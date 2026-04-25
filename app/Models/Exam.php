@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\HasPublicUlid;
+use Database\Factories\ExamFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Models\Concerns\LogsActivity;
+use Spatie\Activitylog\Support\LogOptions;
+
+class Exam extends Model
+{
+    use HasFactory;
+    use HasPublicUlid;
+    use LogsActivity;
+    use SoftDeletes;
+
+    /** @use HasFactory<ExamFactory> */
+    protected static function newFactory(): ExamFactory
+    {
+        return ExamFactory::new();
+    }
+
+    protected $fillable = [
+        'name',
+        'ulid',
+        'category_id',
+        'description',
+        'status',
+        'start_date',
+        'end_date',
+        'additional_info',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => 'string',
+            'start_date' => 'datetime',
+            'end_date' => 'datetime',
+            'additional_info' => 'array',
+        ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('exam')
+            ->logOnly([
+                'ulid',
+                'name',
+                'category_id',
+                'description',
+                'status',
+                'start_date',
+                'end_date',
+                'additional_info',
+            ])
+            ->logOnlyDirty();
+    }
+}
