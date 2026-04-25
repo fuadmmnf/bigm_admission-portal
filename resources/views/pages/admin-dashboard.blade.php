@@ -4,158 +4,63 @@ use App\Models\Application;
 use App\Models\Exam;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
-use Livewire\WithPagination;
 
-#[Layout('layouts.app')]
-new class extends Component {
-    use WithPagination;
-
-    public string $examFilter = '';
-    public string $statusFilter = '';
-
-    public function getExams()
-    {
-        return Exam::query()
-            ->when($this->examFilter, fn ($q) => $q->where('name', 'like', '%'.$this->examFilter.'%'))
-            ->when($this->statusFilter, fn ($q) => $q->where('status', $this->statusFilter))
-            ->with('category')
-            ->paginate(10);
-    }
-
-    public function getApplications()
-    {
-        return Application::query()
-            ->with('exam')
-            ->latest()
-            ->paginate(10);
-    }
-
+new #[Layout('layouts.app')] class extends Component {
     public function getStats()
     {
         return [
             'total_exams' => Exam::query()->count(),
             'active_exams' => Exam::query()->where('status', 'active')->count(),
-            'total_applications' => Application::query()->count(),
-            'pending_applications' => Application::query()->where('status', 'submitted')->count(),
+            'draft_exams' => Exam::query()->where('status', 'draft')->count(),
+            'paid_applications' => Application::query()->where('status', 'paid')->count(),
         ];
     }
 };
 ?>
 
-<div class="py-12">
+<div class="py-10">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p class="text-gray-600 mt-2">Manage exams and applications</p>
+        <div class="rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-8 mb-6 text-white shadow-lg">
+            <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+            <p class="mt-2 text-indigo-100">Overview and quick navigation for exam operations.</p>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            @foreach ($this->getStats() as $label => $value)
-                <div class="bg-white rounded-lg shadow p-6">
-                    <div class="text-gray-600 text-sm font-medium mb-2">
-                        {{ ucfirst(str_replace('_', ' ', $label)) }}
-                    </div>
-                    <div class="text-2xl font-bold text-indigo-600">
-                        {{ $value }}
-                    </div>
+        <div class="flex flex-col md:flex-row gap-6 items-start">
+            <aside class="w-full md:w-72 md:shrink-0 bg-white border border-gray-200 rounded-2xl p-4 shadow-sm md:sticky md:top-6">
+                <h2 class="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Sidebar Navigation</h2>
+                <nav class="space-y-1.5">
+                    <a href="{{ route('admin.exams.active') }}" class="flex items-center px-3 py-2.5 rounded-lg bg-indigo-50 text-indigo-700 font-medium hover:bg-indigo-100 transition">Active Exams</a>
+                    <a href="{{ route('admin.exams.draft') }}" class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">Draft Exams</a>
+                    <a href="{{ route('admin.exams.complete') }}" class="flex items-center px-3 py-2.5 rounded-lg text-gray-700 hover:bg-gray-100 transition">Exam History</a>
+                    <a href="{{ route('admin.exams.create') }}" class="flex items-center px-3 py-2.5 rounded-lg text-green-700 bg-green-50 hover:bg-green-100 transition">Create Exam</a>
+                    <a href="{{ route('admin.reports.index') }}" class="flex items-center px-3 py-2.5 rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 transition">Reports</a>
+                </nav>
+            </aside>
+
+            <section class="w-full md:flex-1">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    @php($labels = [
+                        'total_exams' => 'Total Exams',
+                        'active_exams' => 'Active Exams',
+                        'draft_exams' => 'Draft Exams',
+                        'paid_applications' => 'Paid Applicants',
+                    ])
+
+                    @php($styles = [
+                        'total_exams' => 'from-slate-50 to-slate-100 border-slate-200',
+                        'active_exams' => 'from-indigo-50 to-indigo-100 border-indigo-200',
+                        'draft_exams' => 'from-blue-50 to-blue-100 border-blue-200',
+                        'paid_applications' => 'from-emerald-50 to-emerald-100 border-emerald-200',
+                    ])
+
+                    @foreach ($this->getStats() as $key => $value)
+                        <div class="rounded-2xl border bg-gradient-to-br {{ $styles[$key] ?? 'from-gray-50 to-gray-100 border-gray-200' }} p-5 shadow-sm">
+                            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">{{ $labels[$key] ?? $key }}</p>
+                            <p class="mt-3 text-3xl font-bold text-gray-900">{{ $value }}</p>
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
-        </div>
-
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Exams Section -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                    <h2 class="text-xl font-semibold text-gray-900">Exams</h2>
-                    <a href="#" class="text-sm bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">
-                        Create Exam
-                    </a>
-                </div>
-
-                <div class="p-6 space-y-4">
-                    <!-- Filters -->
-                    <div class="space-y-3">
-                        <input
-                            type="text"
-                            wire:model.live="examFilter"
-                            placeholder="Search exams..."
-                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                        >
-                        <select
-                            wire:model.live="statusFilter"
-                            class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                        >
-                            <option value="">All Statuses</option>
-                            <option value="draft">Draft</option>
-                            <option value="active">Active</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
-
-                    <!-- Exams List -->
-                    <div class="space-y-2">
-                        @forelse ($this->getExams() as $exam)
-                            <div class="flex justify-between items-center p-4 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition">
-                                <div>
-                                    <h3 class="font-medium text-gray-900">{{ $exam->name }}</h3>
-                                    <p class="text-xs text-gray-600 mt-1">
-                                        {{ $exam->category->name }} • Status: <span class="font-semibold text-indigo-600">{{ ucfirst($exam->status) }}</span>
-                                    </p>
-                                </div>
-                                <span class="text-xs bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full">
-                                    {{ $exam->applications_count ?? 0 }} apps
-                                </span>
-                            </div>
-                        @empty
-                            <div class="text-center py-8 text-gray-500">
-                                No exams found
-                            </div>
-                        @endforelse
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="mt-4">
-                        {{ $this->getExams()->links() }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Applications Section -->
-            <div class="bg-white rounded-lg shadow">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <h2 class="text-xl font-semibold text-gray-900">Recent Applications</h2>
-                </div>
-
-                <div class="p-6">
-                    <div class="space-y-2">
-                        @forelse ($this->getApplications() as $application)
-                            <div class="flex justify-between items-center p-4 bg-gray-50 rounded border border-gray-200 hover:bg-gray-100 transition">
-                                <div>
-                                    <h3 class="font-medium text-gray-900">{{ $application->applicant_name }}</h3>
-                                    <p class="text-xs text-gray-600 mt-1">
-                                        {{ $application->applicant_email }} • {{ $application->exam->name }}
-                                    </p>
-                                </div>
-                                <span class="text-xs px-3 py-1 rounded-full {{ $application->status === 'submitted' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700' }}">
-                                    {{ ucfirst($application->status) }}
-                                </span>
-                            </div>
-                        @empty
-                            <div class="text-center py-8 text-gray-500">
-                                No applications yet
-                            </div>
-                        @endforelse
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="mt-4">
-                        {{ $this->getApplications()->links() }}
-                    </div>
-                </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>

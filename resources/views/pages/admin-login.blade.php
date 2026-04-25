@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
 
-#[Layout('layouts.guest')]
-new class extends Component {
+new #[Layout('layouts.guest')] class extends Component {
     public string $email = '';
     public string $password = '';
     public bool $remember = false;
@@ -36,7 +35,7 @@ new class extends Component {
         Auth::login($user, $this->remember);
         session()->regenerate();
 
-        $this->redirect(route('dashboard'), navigate: true);
+        $this->redirect(route('admin-dashboard'));
     }
 };
 ?>

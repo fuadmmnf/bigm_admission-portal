@@ -32,7 +32,6 @@ class Application extends Model
         'applicant_phone',
         'applicant_id_number',
         'status',
-        'payment_status',
         'transaction_id',
         'payment_amount',
         'payment_method',
@@ -44,7 +43,6 @@ class Application extends Model
     {
         return [
             'status' => 'string',
-            'payment_status' => 'string',
             'payment_amount' => 'decimal:2',
             'payment_response' => 'array',
             'additional_info' => 'array',
@@ -59,8 +57,7 @@ class Application extends Model
     public function markAsPaid(string $transactionId, array $response = []): void
     {
         $this->update([
-            'payment_status' => 'paid',
-            'status' => 'submitted',
+            'status' => 'paid',
             'transaction_id' => $transactionId,
             'payment_method' => $response['card_type'] ?? null,
             'payment_response' => $response,
@@ -70,7 +67,7 @@ class Application extends Model
     public function markPaymentFailed(array $response = []): void
     {
         $this->update([
-            'payment_status' => 'failed',
+            'status' => 'failed',
             'payment_response' => $response,
         ]);
     }
@@ -78,7 +75,7 @@ class Application extends Model
     public function markPaymentCancelled(array $response = []): void
     {
         $this->update([
-            'payment_status' => 'cancelled',
+            'status' => 'cancelled',
             'payment_response' => $response,
         ]);
     }
@@ -89,7 +86,6 @@ class Application extends Model
             ->useLogName('application')
             ->logOnly([
                 'status',
-                'payment_status',
                 'transaction_id',
                 'payment_amount',
                 'payment_method',

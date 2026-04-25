@@ -4,12 +4,11 @@ use App\Http\Controllers\Admin\ExamPageController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
 use Illuminate\Support\Facades\Route;
+use Livewire\Volt\Volt;
 
 Route::get('/', HomeController::class)->name('home');
 
-Route::get('/admin/login', function () {
-    return view('pages.admin-login');
-})->name('admin-login')->middleware('guest');
+Volt::route('/admin/login', 'admin-login')->name('admin-login')->middleware('guest');
 
 Route::middleware([
     'auth:sanctum',
@@ -17,9 +16,7 @@ Route::middleware([
     'verified',
     'role:admin|moderator',
 ])->group(function (): void {
-    Route::get('/admin/dashboard', function () {
-        return view('pages.admin-dashboard');
-    })->name('admin-dashboard');
+    Volt::route('/admin/dashboard', 'admin-dashboard')->name('admin-dashboard');
 
     Route::get('/admin/exams/create', [ExamPageController::class, 'create'])->name('admin.exams.create');
     Route::post('/admin/exams', [ExamPageController::class, 'store'])->name('admin.exams.store');
@@ -31,6 +28,10 @@ Route::middleware([
     Route::get('/admin/exams/complete', [ExamPageController::class, 'index'])->defaults('status', 'complete')->name('admin.exams.complete');
 
     Route::get('/admin/exams/{exam}', [ExamPageController::class, 'show'])->name('admin.exams.show')->whereUlid('exam');
+
+    Route::get('/admin/reports', function () {
+        return view('pages.admin-reports');
+    })->name('admin.reports.index');
 });
 
 Route::middleware([
@@ -39,7 +40,7 @@ Route::middleware([
     'verified',
 ])->group(function () {
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        return redirect()->route('admin-dashboard');
     })->name('dashboard');
 });
 

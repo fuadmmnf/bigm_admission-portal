@@ -85,13 +85,13 @@ class AdminExamPagesTest extends TestCase
         Application::factory()->create([
             'exam_id' => $exam->id,
             'applicant_name' => 'Paid Applicant',
-            'payment_status' => 'paid',
+            'status' => 'paid',
         ]);
 
         Application::factory()->create([
             'exam_id' => $exam->id,
             'applicant_name' => 'Unpaid Applicant',
-            'payment_status' => 'pending',
+            'status' => 'pending',
         ]);
 
         $response = $this->get(route('admin.exams.show', $exam));

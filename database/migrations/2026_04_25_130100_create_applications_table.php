@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('applicant_email');
             $table->string('applicant_phone');
             $table->string('applicant_id_number')->nullable();
-            $table->enum('status', ['draft', 'submitted', 'approved', 'rejected'])->default('draft');
-            $table->enum('payment_status', ['pending', 'paid', 'failed', 'cancelled'])->default('pending');
+            $table->enum('status', ['draft', 'submitted', 'approved', 'rejected', 'pending', 'paid', 'failed', 'cancelled'])->default('draft');
             $table->string('transaction_id')->nullable()->unique();
             $table->decimal('payment_amount', 10, 2)->nullable();
             $table->string('payment_method')->nullable();

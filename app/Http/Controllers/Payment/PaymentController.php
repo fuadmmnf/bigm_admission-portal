@@ -21,7 +21,7 @@ class PaymentController extends Controller
      */
     public function initiate(Application $application): RedirectResponse
     {
-        if ($application->payment_status === 'paid') {
+        if ($application->status === 'paid') {
             return redirect()->route('payment.success-page')->with('info', 'This application has already been paid.');
         }
 
@@ -30,7 +30,7 @@ class PaymentController extends Controller
 
         $application->update([
             'transaction_id' => $transactionId,
-            'payment_status' => 'pending',
+            'status' => 'pending',
             'payment_amount' => $application->exam?->fee ?? 0,
         ]);
 
@@ -72,7 +72,7 @@ class PaymentController extends Controller
             return redirect()->route('payment.failed-page')->with('error', 'Application not found.');
         }
 
-        if ($application->payment_status === 'paid') {
+        if ($application->status === 'paid') {
             return redirect()->route('payment.success-page')->with('info', 'Payment already confirmed.');
         }
 
@@ -101,7 +101,7 @@ class PaymentController extends Controller
         $tranId = $request->input('tran_id');
         $application = Application::where('transaction_id', $tranId)->first();
 
-        if ($application && $application->payment_status !== 'paid') {
+        if ($application && $application->status !== 'paid') {
             $application->markPaymentFailed($request->all());
         }
 
@@ -118,7 +118,7 @@ class PaymentController extends Controller
         $tranId = $request->input('tran_id');
         $application = Application::where('transaction_id', $tranId)->first();
 
-        if ($application && $application->payment_status !== 'paid') {
+        if ($application && $application->status !== 'paid') {
             $application->markPaymentCancelled($request->all());
         }
 
@@ -145,7 +145,7 @@ class PaymentController extends Controller
             return response()->json(['result' => 'application_not_found'], 422);
         }
 
-        if ($application->payment_status === 'paid') {
+        if ($application->status === 'paid') {
             return response()->json(['result' => 'already_paid']);
         }
 

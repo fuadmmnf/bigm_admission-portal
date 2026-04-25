@@ -19,13 +19,8 @@ return new class extends Migration
         }
 
         Schema::table('applications', function (Blueprint $table): void {
-            if (! Schema::hasColumn('applications', 'payment_status')) {
-                $table->enum('payment_status', ['pending', 'paid', 'failed', 'cancelled'])
-                    ->default('pending')
-                    ->after('status');
-            }
             if (! Schema::hasColumn('applications', 'transaction_id')) {
-                $table->string('transaction_id')->nullable()->unique()->after('payment_status');
+                $table->string('transaction_id')->nullable()->unique()->after('status');
             }
             if (! Schema::hasColumn('applications', 'payment_amount')) {
                 $table->decimal('payment_amount', 10, 2)->nullable()->after('transaction_id');
@@ -45,7 +40,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('applications', function (Blueprint $table): void {
-            foreach (['payment_status', 'transaction_id', 'payment_amount', 'payment_method', 'payment_response'] as $column) {
+            foreach (['transaction_id', 'payment_amount', 'payment_method', 'payment_response'] as $column) {
                 if (Schema::hasColumn('applications', $column)) {
                     $table->dropColumn($column);
                 }

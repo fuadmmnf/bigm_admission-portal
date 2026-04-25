@@ -30,7 +30,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('admin-dashboard', absolute: false));
     }
 
     public function test_moderator_users_can_authenticate_using_the_login_screen(): void
@@ -45,7 +45,7 @@ class AuthenticationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertRedirect(route('admin-dashboard', absolute: false));
     }
 
     public function test_non_privileged_users_can_not_authenticate(): void

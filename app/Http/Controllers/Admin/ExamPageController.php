@@ -28,8 +28,8 @@ class ExamPageController extends Controller
             ->where('status', $resolvedStatus)
             ->with('category')
             ->withCount([
-                'applications as paid_applications_count' => fn ($query) => $query->where('payment_status', 'paid'),
-                'applications as unpaid_applications_count' => fn ($query) => $query->where('payment_status', '!=', 'paid'),
+                'applications as paid_applications_count' => fn ($query) => $query->where('status', 'paid'),
+                'applications as unpaid_applications_count' => fn ($query) => $query->where('status', '!=', 'paid'),
             ])
             ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%'.$request->string('search').'%'))
             ->orderByDesc('created_at')
@@ -47,12 +47,12 @@ class ExamPageController extends Controller
         $exam->load('category');
 
         $paidApplications = $exam->applications()
-            ->where('payment_status', 'paid')
+            ->where('status', 'paid')
             ->latest()
             ->paginate(10, ['*'], 'paid_page');
 
         $unpaidApplications = $exam->applications()
-            ->where('payment_status', '!=', 'paid')
+            ->where('status', '!=', 'paid')
             ->latest()
             ->paginate(10, ['*'], 'unpaid_page');
 
