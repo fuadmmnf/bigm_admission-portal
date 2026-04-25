@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-4">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
                 <form method="POST" action="{{ $isEdit ? route('admin.exams.update', $exam) : route('admin.exams.store') }}" class="space-y-6">

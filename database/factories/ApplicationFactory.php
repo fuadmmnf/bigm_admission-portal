@@ -16,7 +16,7 @@ class ApplicationFactory extends Factory
     public function definition(): array
     {
         return [
-            'exam_id' => Exam::factory()->create()->id,
+            'exam_id' => Exam::factory(),
             'applicant_name' => fake()->name(),
             'applicant_email' => fake()->unique()->safeEmail(),
             'applicant_phone' => fake()->phoneNumber(),
@@ -30,4 +30,3 @@ class ApplicationFactory extends Factory
         ];
     }
 }
-

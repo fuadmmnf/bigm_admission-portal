@@ -99,6 +99,71 @@ class AdminExamPagesTest extends TestCase
         $response->assertOk();
         $response->assertSee('Paid Applicant');
         $response->assertSee('Unpaid Applicant');
+        $response->assertSee('Applicant List');
+    }
+
+    public function test_exam_show_page_paginates_applicants_list(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        for ($i = 1; $i <= 16; $i++) {
+            Application::factory()->create([
+                'exam_id' => $exam->id,
+                'applicant_name' => 'Applicant '.str_pad((string) $i, 2, '0', STR_PAD_LEFT),
+                'applicant_email' => 'applicant'.$i.'@example.test',
+                'created_at' => now()->startOfDay()->addSeconds($i),
+                'updated_at' => now()->startOfDay()->addSeconds($i),
+            ]);
+        }
+
+        $pageOneResponse = $this->get(route('admin.exams.show', $exam));
+        $pageTwoResponse = $this->get(route('admin.exams.show', $exam).'?page=2');
+
+        $pageOneResponse->assertOk()->assertSee('Applicant 16');
+        $pageTwoResponse->assertOk()->assertSee('Applicant 01');
+    }
+
+    public function test_active_exam_list_page_shows_expected_exam_actions(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        Exam::factory()->create(['name' => 'Actionable Exam', 'status' => 'active']);
+
+        $response = $this->get(route('admin.exams.active'));
+
+        $response->assertOk();
+        $response->assertSee('aria-label="View applicants"', false);
+        $response->assertSee('aria-label="Edit exam"', false);
+        $response->assertSee('aria-label="Delete exam"', false);
+        $response->assertSee('data-delete-trigger', false);
+        $response->assertSee('delete-exam-modal');
+    }
+
+    public function test_admin_can_delete_exam_from_list_action(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['name' => 'Disposable Exam', 'status' => 'active']);
+
+        $response = $this->delete(route('admin.exams.destroy', $exam));
+
+        $response->assertRedirect(route('admin.exams.active'));
+
+        $this->assertSoftDeleted('exams', [
+            'id' => $exam->id,
+            'name' => 'Disposable Exam',
+        ]);
     }
 
     public function test_create_and_edit_use_same_exam_form_view(): void

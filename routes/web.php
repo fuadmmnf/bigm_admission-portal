@@ -1,12 +1,16 @@
 <?php
 
 use App\Http\Controllers\Admin\ExamPageController;
+use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::get('/apply/{exam:ulid}', [ApplicationFormController::class, 'create'])->name('applications.create');
+Route::post('/apply/{exam:ulid}', [ApplicationFormController::class, 'store'])->name('applications.store');
 
 Volt::route('/admin/login', 'admin-login')->name('admin-login')->middleware('guest');
 
@@ -22,6 +26,9 @@ Route::middleware([
     Route::post('/admin/exams', [ExamPageController::class, 'store'])->name('admin.exams.store');
     Route::get('/admin/exams/{exam}/edit', [ExamPageController::class, 'edit'])->name('admin.exams.edit')->whereUlid('exam');
     Route::put('/admin/exams/{exam}', [ExamPageController::class, 'update'])->name('admin.exams.update')->whereUlid('exam');
+    Route::delete('/admin/exams/{exam}', [ExamPageController::class, 'destroy'])
+        ->name('admin.exams.destroy')
+        ->where('exam', '[0-9A-HJKMNP-TV-Z]{26}');
 
     Route::get('/admin/exams/draft', [ExamPageController::class, 'index'])->defaults('status', 'draft')->name('admin.exams.draft');
     Route::get('/admin/exams/active', [ExamPageController::class, 'index'])->defaults('status', 'active')->name('admin.exams.active');

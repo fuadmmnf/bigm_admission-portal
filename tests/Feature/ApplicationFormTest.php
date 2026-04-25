@@ -1,0 +1,191 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Application;
+use App\Models\Category;
+use App\Models\Exam;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
+
+class ApplicationFormTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_public_user_can_open_application_form_for_active_exam(): void
+    {
+        $exam = Exam::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->subDay(),
+            'end_date' => now()->addDay(),
+        ]);
+
+        $response = $this->get(route('applications.create', $exam));
+
+        $response->assertOk();
+        $response->assertSee('Admission Application Form');
+        $response->assertSee($exam->name);
+    }
+
+    public function test_application_form_returns_not_found_for_non_active_exam(): void
+    {
+        $exam = Exam::factory()->create([
+            'status' => 'draft',
+        ]);
+
+        $response = $this->get(route('applications.create', $exam));
+
+        $response->assertNotFound();
+    }
+
+    public function test_submitting_stepper_form_creates_application_and_redirects_to_payment(): void
+    {
+        Storage::fake('public');
+
+        $exam = Exam::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->subDay(),
+            'end_date' => now()->addDay(),
+        ]);
+
+        $presentDistrict = Category::factory()->create([
+            'type' => 'district',
+            'name' => 'Dhaka',
+        ]);
+        $presentUpazila = Category::factory()->create([
+            'type' => 'upazila',
+            'name' => 'Dhanmondi',
+            'parent_id' => $presentDistrict->id,
+        ]);
+
+        $permanentDistrict = Category::factory()->create([
+            'type' => 'district',
+            'name' => 'Faridpur',
+        ]);
+        $permanentUpazila = Category::factory()->create([
+            'type' => 'upazila',
+            'name' => 'Faridpur Sadar',
+            'parent_id' => $permanentDistrict->id,
+        ]);
+
+        $payload = [
+            'applicant_name' => 'Rahim Uddin',
+            'applicant_photo' => UploadedFile::fake()->image('photo.png', 300, 80),
+            'father_name' => 'Abdul Karim',
+            'mother_name' => 'Sufia Khatun',
+            'date_of_birth' => '1997-05-10',
+            'age_as_of_reference' => '28 Years, 0 Months',
+            'national_id_number' => '19901234567890123',
+            'mobile_number' => '01710000000',
+            'email' => 'rahim@example.com',
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 80),
+
+            'present_address' => [
+                'district_id' => $presentDistrict->id,
+                'upazila_id' => $presentUpazila->id,
+                'post_office' => 'New Market',
+                'post_code' => '1205',
+                'address_line' => 'Road 4, House 11',
+            ],
+            'permanent_address' => [
+                'district_id' => $permanentDistrict->id,
+                'upazila_id' => $permanentUpazila->id,
+                'post_office' => 'Faridpur',
+                'post_code' => '7800',
+                'address_line' => 'Village Charpara',
+            ],
+
+            'education' => [
+                'ssc' => [
+                    'examination' => 'SSC',
+                    'education_board' => 'Dhaka',
+                    'result' => '5.00',
+                    'result_scale' => 'Out of 5',
+                    'group' => 'Science',
+                    'passing_year' => 2013,
+                ],
+                'hsc' => [
+                    'examination' => 'HSC',
+                    'education_board' => 'Dhaka',
+                    'result' => '5.00',
+                    'result_scale' => 'Out of 5',
+                    'group' => 'Science',
+                    'passing_year' => 2015,
+                ],
+                'graduation' => [
+                    'examination' => 'Honors',
+                    'subject' => 'Public Administration',
+                    'institution' => 'University of Dhaka',
+                    'result' => '3.72',
+                    'result_scale' => 'Out of 4',
+                    'passing_year' => 2019,
+                    'course_duration_years' => 4,
+                ],
+                'masters' => [
+                    'examination' => 'M.S.S',
+                    'subject' => 'Public Administration',
+                    'institution' => 'University of Dhaka',
+                    'result' => '3.80',
+                    'result_scale' => 'Out of 4',
+                    'passing_year' => 2020,
+                    'course_duration_years' => 1,
+                ],
+            ],
+
+            'job_experience' => [
+                'total_years' => 4,
+                'current' => [
+                    'job_category' => 'Govt. Non-Cadre (9th grade and above)',
+                    'organization_name' => 'Ministry of Education',
+                    'designation' => 'Assistant Director',
+                    'address' => 'Dhaka Secretariat',
+                    'starting_date' => '2022-01-01',
+                ],
+                'previous' => [
+                    'job_category' => 'Private Organization',
+                    'organization_name' => 'ABC Consulting',
+                    'designation' => 'Executive',
+                    'address' => 'Motijheel, Dhaka',
+                    'starting_date' => '2020-01-01',
+                    'ending_date' => '2021-12-31',
+                ],
+            ],
+
+            'course_preferences' => [
+                'first_choice' => 'HRM',
+                'second_choice' => 'GPP',
+                'third_choice' => 'IER',
+                'fourth_choice' => 'PM',
+                'fifth_choice' => 'PSCM',
+                'sixth_choice' => 'PPFM',
+            ],
+
+            'declaration' => '1',
+        ];
+
+        $response = $this->post(route('applications.store', $exam), $payload);
+
+        $application = Application::query()->latest('id')->first();
+
+        $this->assertNotNull($application);
+        $response->assertRedirect(route('payment.initiate', $application));
+
+        $this->assertDatabaseHas('applications', [
+            'id' => $application->id,
+            'exam_id' => $exam->id,
+            'applicant_name' => 'Rahim Uddin',
+            'applicant_email' => 'rahim@example.com',
+            'applicant_phone' => '01710000000',
+            'status' => 'submitted',
+        ]);
+
+        $this->assertSame('homepage_stepper_form', $application->additional_info['source']);
+        $this->assertSame('Dhaka', $application->additional_info['present_address']['district_name']);
+        $this->assertSame('Dhanmondi', $application->additional_info['present_address']['upazila_name']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['applicant_photo']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['signature']);
+    }
+}
+

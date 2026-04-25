@@ -30,6 +30,15 @@
                     <h3 class="font-semibold text-lg mb-1">{{ $exam->name }}</h3>
                     <p class="text-sm text-gray-600 mb-4">{{ $exam->category?->name ?? 'Uncategorized' }}</p>
                     <p class="text-sm text-gray-700 line-clamp-3">{{ $exam->description ?: 'No details provided yet.' }}</p>
+
+                    <div class="mt-5">
+                        <a
+                            href="{{ route('applications.create', $exam) }}"
+                            class="inline-flex items-center justify-center w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                        >
+                            Apply Now
+                        </a>
+                    </div>
                 </article>
             @empty
                 <div class="col-span-full bg-white border border-gray-200 rounded-lg p-8 text-center text-gray-500">

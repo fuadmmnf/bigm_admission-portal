@@ -20,21 +20,26 @@
     <body class="font-sans antialiased">
         <x-banner />
 
-        <div class="min-h-screen bg-gray-100">
-            @livewire('navigation-menu')
+        <div class="min-h-screen bg-gray-100 flex flex-col">
+            <!-- Navbar -->
+            <nav class="bg-white border-b border-gray-200">
+                @livewire('navigation-menu')
+            </nav>
 
             <!-- Page Heading -->
             @if (isset($header))
                 <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
                 </header>
             @endif
 
             <!-- Page Content -->
-            <main>
-                {{ $slot }}
+            <main class="flex-1 overflow-y-auto py-4">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {{ $slot }}
+                </div>
             </main>
         </div>
 

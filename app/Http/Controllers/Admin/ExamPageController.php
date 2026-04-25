@@ -46,20 +46,13 @@ class ExamPageController extends Controller
     {
         $exam->load('category');
 
-        $paidApplications = $exam->applications()
-            ->where('status', 'paid')
+        $applications = $exam->applications()
             ->latest()
-            ->paginate(10, ['*'], 'paid_page');
-
-        $unpaidApplications = $exam->applications()
-            ->where('status', '!=', 'paid')
-            ->latest()
-            ->paginate(10, ['*'], 'unpaid_page');
+            ->paginate(15);
 
         return view('pages.admin-exam-show', [
             'exam' => $exam,
-            'paidApplications' => $paidApplications,
-            'unpaidApplications' => $unpaidApplications,
+            'applications' => $applications,
         ]);
     }
 
@@ -101,6 +94,23 @@ class ExamPageController extends Controller
         return redirect()
             ->route('admin.exams.show', $exam)
             ->with('status', 'Exam updated successfully.');
+    }
+
+    public function destroy(Exam $exam): RedirectResponse
+    {
+        $statusRouteMap = [
+            'draft' => 'admin.exams.draft',
+            'active' => 'admin.exams.active',
+            'closed' => 'admin.exams.complete',
+        ];
+
+        $redirectRoute = $statusRouteMap[$exam->status] ?? 'admin.exams.active';
+
+        $exam->delete();
+
+        return redirect()
+            ->route($redirectRoute)
+            ->with('status', 'Exam deleted successfully.');
     }
 
     private function validateExam(Request $request): array

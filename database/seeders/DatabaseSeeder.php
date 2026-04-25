@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ProgramCategoriesSeeder::class,
             BangladeshLocationCategoriesSeeder::class,
             ExamPaginationSeeder::class,
+            ExamApplicantsSeeder::class,
         ]);
     }
 }
