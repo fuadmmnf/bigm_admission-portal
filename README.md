@@ -11,6 +11,7 @@ Laravel 13 starter with Jetstream (Livewire + Volt), Spatie Permission, and Spat
 - Registration disabled for public users
 - Seeded baseline roles/permissions and auth users
 - Protected `/api/users` endpoint with filter/sort/pagination support via Spatie Query Builder
+- Upload/reporting stack with Media Library, DomPDF, and Laravel Excel
 
 ## Quick start
 
@@ -59,6 +60,24 @@ cd laradock
 docker compose exec -T workspace sh -lc "cd /var/www && php artisan test"
 ```
 
+## Uploads and Reporting Libraries
+
+- `spatie/laravel-medialibrary`: applicant photo/signature/marksheet file management
+- `barryvdh/laravel-dompdf`: server-side PDF generation for admit cards and printable reports
+- `maatwebsite/excel`: tabular report exports (`xlsx`, `csv`)
+
+Published setup files:
+
+- `config/media-library.php`
+- `database/migrations/2026_04_25_045206_create_media_table.php`
+- `config/dompdf.php`
+- `config/excel.php`
+
+Centralized upload constraints:
+
+- `config/applicant_uploads.php`
+- `app/Http/Requests/Applicant/StoreApplicantDocumentsRequest.php`
+
 ## API example
 
 Authenticated users with `users.view` can query users:
@@ -77,12 +96,13 @@ Allowed query parameters:
 Public categories endpoint:
 
 ```bash
-GET /api/categories?type=exam&parent_ulid=01HTXYZ...
+GET /api/categories?filter[type]=exam&filter[parent_ulid]=01HTXYZ...&filter[search]=admission
 ```
 
 Supported category query parameters:
 
-- `type` (example: `exam`, `location`)
-- `parent_ulid` (`null` or `root` to fetch top-level nodes)
+- `filter[type]` (example: `exam`, `location`)
+- `filter[parent_ulid]` (`null` or `root` to fetch top-level nodes)
+- `filter[search]` (partial match on category name)
 - `per_page` (integer)
 

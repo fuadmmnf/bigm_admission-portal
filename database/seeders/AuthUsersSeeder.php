@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AuthUsersSeeder extends Seeder
 {
@@ -14,6 +15,7 @@ class AuthUsersSeeder extends Seeder
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
+                'ulid' => (string) Str::ulid(),
                 'password' => Hash::make('password'),
             ]
         );
@@ -24,6 +26,7 @@ class AuthUsersSeeder extends Seeder
             ['email' => 'moderator@example.com'],
             [
                 'name' => 'Moderator User',
+                'ulid' => (string) Str::ulid(),
                 'password' => Hash::make('password'),
             ]
         );

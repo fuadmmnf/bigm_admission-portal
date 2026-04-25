@@ -21,7 +21,7 @@ class CategoryIndexTest extends TestCase
             'type' => 'location',
         ]);
 
-        $response = $this->getJson('/api/categories?type=exam');
+        $response = $this->getJson('/api/categories?filter[type]=exam');
 
         $response
             ->assertOk()
@@ -54,7 +54,7 @@ class CategoryIndexTest extends TestCase
             'parent_id' => $examRootB->id,
         ]);
 
-        $response = $this->getJson('/api/categories?type=exam&parent_ulid='.$examRootA->ulid);
+        $response = $this->getJson('/api/categories?filter[type]=exam&filter[parent_ulid]='.$examRootA->ulid);
 
         $response
             ->assertOk()
@@ -70,13 +70,39 @@ class CategoryIndexTest extends TestCase
             'type' => 'exam',
         ]);
 
-        $response = $this->getJson('/api/categories?type=exam');
+        $response = $this->getJson('/api/categories?filter[type]=exam');
 
         $publicId = data_get($response->json(), 'data.0.id');
 
         $this->assertIsString($publicId);
         $this->assertMatchesRegularExpression('/^[0-9A-HJKMNP-TV-Z]{26}$/', $publicId);
         $response->assertJsonMissingPath('data.0.ulid');
+    }
+
+    public function test_categories_can_be_searched_by_name(): void
+    {
+        Category::factory()->create([
+            'name' => 'Medical Admission',
+            'type' => 'exam',
+        ]);
+        Category::factory()->create([
+            'name' => 'District Dhaka',
+            'type' => 'location',
+        ]);
+
+        $response = $this->getJson('/api/categories?filter[search]=admission');
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Medical Admission');
+    }
+
+    public function test_unknown_filters_are_rejected(): void
+    {
+        $response = $this->getJson('/api/categories?filter[foo]=bar');
+
+        $response->assertStatus(400);
     }
 }
 

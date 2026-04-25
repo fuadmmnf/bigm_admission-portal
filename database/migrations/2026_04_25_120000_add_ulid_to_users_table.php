@@ -10,8 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
-        });
+        if (! Schema::hasColumn('users', 'ulid')) {
+            Schema::table('users', function (Blueprint $table): void {
+                $table->ulid('ulid')->nullable()->unique()->after('id');
+            });
+        }
 
         User::query()
             ->whereNull('ulid')
@@ -22,10 +25,12 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
-            $table->dropUnique('users_ulid_unique');
-            $table->dropColumn('ulid');
-        });
+        if (Schema::hasColumn('users', 'ulid')) {
+            Schema::table('users', function (Blueprint $table): void {
+                $table->dropUnique('users_ulid_unique');
+                $table->dropColumn('ulid');
+            });
+        }
     }
 };
 
