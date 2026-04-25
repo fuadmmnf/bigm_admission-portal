@@ -1,11 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\ExamPageController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', HomeController::class)->name('home');
 
 Route::get('/admin/login', function () {
     return view('pages.admin-login');
@@ -15,10 +15,22 @@ Route::middleware([
     'auth:sanctum',
     config('jetstream.auth_session'),
     'verified',
-])->group(function () {
+    'role:admin|moderator',
+])->group(function (): void {
     Route::get('/admin/dashboard', function () {
         return view('pages.admin-dashboard');
-    })->name('admin-dashboard')->middleware('role:admin|moderator');
+    })->name('admin-dashboard');
+
+    Route::get('/admin/exams/create', [ExamPageController::class, 'create'])->name('admin.exams.create');
+    Route::post('/admin/exams', [ExamPageController::class, 'store'])->name('admin.exams.store');
+    Route::get('/admin/exams/{exam}/edit', [ExamPageController::class, 'edit'])->name('admin.exams.edit')->whereUlid('exam');
+    Route::put('/admin/exams/{exam}', [ExamPageController::class, 'update'])->name('admin.exams.update')->whereUlid('exam');
+
+    Route::get('/admin/exams/draft', [ExamPageController::class, 'index'])->defaults('status', 'draft')->name('admin.exams.draft');
+    Route::get('/admin/exams/active', [ExamPageController::class, 'index'])->defaults('status', 'active')->name('admin.exams.active');
+    Route::get('/admin/exams/complete', [ExamPageController::class, 'index'])->defaults('status', 'complete')->name('admin.exams.complete');
+
+    Route::get('/admin/exams/{exam}', [ExamPageController::class, 'show'])->name('admin.exams.show')->whereUlid('exam');
 });
 
 Route::middleware([
