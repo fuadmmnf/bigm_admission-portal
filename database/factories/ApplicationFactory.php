@@ -22,6 +22,11 @@ class ApplicationFactory extends Factory
             'applicant_phone' => fake()->phoneNumber(),
             'applicant_id_number' => fake()->numerify('###########'),
             'status' => fake()->randomElement(['draft', 'submitted', 'approved', 'rejected']),
+            'payment_status' => 'pending',
+            'transaction_id' => null,
+            'payment_amount' => fake()->randomFloat(2, 100, 2000),
+            'payment_method' => null,
+            'payment_response' => null,
             'additional_info' => null,
         ];
     }

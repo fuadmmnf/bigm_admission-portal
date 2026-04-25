@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Models;
 
+use App\Models\Application;
 use App\Models\Category;
 use App\Models\Exam;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,8 +49,10 @@ class ExamTest extends TestCase
     public function test_exam_has_applications(): void
     {
         $exam = Exam::factory()->create();
+        Application::factory()->create(['exam_id' => $exam->id]);
 
         $this->assertTrue($exam->applications()->exists());
+        $this->assertCount(1, $exam->applications);
     }
 }
 

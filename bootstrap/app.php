@@ -17,6 +17,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
+
+        // SSLCommerz POSTs to these callback URLs from their servers — exempt from CSRF
+        $middleware->validateCsrfTokens(except: [
+            '/payment/success',
+            '/payment/failed',
+            '/payment/cancel',
+            '/payment/ipn',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

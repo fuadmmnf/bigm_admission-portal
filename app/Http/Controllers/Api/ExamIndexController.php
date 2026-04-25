@@ -13,7 +13,14 @@ class ExamIndexController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $exams = QueryBuilder::for(Exam::query())
+        $user = $request->user();
+        $baseQuery = Exam::query();
+
+        if (! $user || ! $user->hasAnyRole(['admin', 'moderator'])) {
+            $baseQuery->availableForApplication();
+        }
+
+        $exams = QueryBuilder::for($baseQuery)
             ->with('category')
             ->allowedFilters(
                 AllowedFilter::exact('status'),
@@ -27,4 +34,3 @@ class ExamIndexController extends Controller
         return ExamResource::collection($exams);
     }
 }
-

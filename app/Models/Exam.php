@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\HasPublicUlid;
 use Database\Factories\ExamFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -54,6 +55,20 @@ class Exam extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class);
+    }
+
+    public function scopeAvailableForApplication(Builder $query): Builder
+    {
+        return $query
+            ->where('status', 'active')
+            ->where(function (Builder $query): void {
+                $query->whereNull('start_date')
+                    ->orWhere('start_date', '<=', now());
+            })
+            ->where(function (Builder $query): void {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            });
     }
 
     public function getActivitylogOptions(): LogOptions
