@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
 use App\Models\Exam;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +25,6 @@ class ExamPageController extends Controller
 
         $exams = Exam::query()
             ->where('status', $resolvedStatus)
-            ->with('category')
             ->withCount([
                 'applications as paid_applications_count' => fn ($query) => $query->where('status', 'paid'),
                 'applications as unpaid_applications_count' => fn ($query) => $query->where('status', '!=', 'paid'),
@@ -44,8 +42,6 @@ class ExamPageController extends Controller
 
     public function show(Exam $exam): View
     {
-        $exam->load('category');
-
         $applications = $exam->applications()
             ->latest()
             ->paginate(15);
@@ -60,7 +56,6 @@ class ExamPageController extends Controller
     {
         return view('pages.admin-exam-form', [
             'exam' => new Exam(),
-            'categories' => Category::query()->where('type', 'exam')->orderBy('name')->get(),
             'isEdit' => false,
         ]);
     }
@@ -69,7 +64,6 @@ class ExamPageController extends Controller
     {
         return view('pages.admin-exam-form', [
             'exam' => $exam,
-            'categories' => Category::query()->where('type', 'exam')->orderBy('name')->get(),
             'isEdit' => true,
         ]);
     }
@@ -117,7 +111,6 @@ class ExamPageController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'category_id' => ['required', 'integer', Rule::exists('categories', 'id')],
             'description' => ['nullable', 'string'],
             'status' => ['required', Rule::in(['draft', 'active', 'closed'])],
             'start_date' => ['nullable', 'date'],

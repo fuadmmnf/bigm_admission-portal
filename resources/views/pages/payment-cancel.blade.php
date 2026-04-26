@@ -15,7 +15,7 @@
         </div>
         <h1 class="text-2xl font-bold text-gray-800 mb-2">Payment Cancelled</h1>
         <p class="text-gray-600 mb-1">
-            {{ session('info', 'You cancelled the payment. You can try again any time before the exam deadline.') }}
+            {{ $info ?? session('info', 'You cancelled the payment. You can try again any time before the exam deadline.') }}
         </p>
     </div>
 </body>

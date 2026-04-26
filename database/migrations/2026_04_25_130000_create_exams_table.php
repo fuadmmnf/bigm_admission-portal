@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::create('exams', function (Blueprint $table): void {
             $table->id();
             $table->ulid('ulid')->unique();
-            $table->foreignId('category_id')->constrained('categories')->cascadeOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
             $table->enum('status', ['draft', 'active', 'closed'])->default('draft');
@@ -21,6 +20,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
+
     }
 
     public function down(): void

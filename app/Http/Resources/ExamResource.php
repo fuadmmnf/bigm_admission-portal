@@ -13,11 +13,6 @@ class ExamResource extends JsonResource
             'id' => $this->ulid,
             'name' => $this->name,
             'description' => $this->description,
-            'category' => [
-                'id' => $this->category?->ulid,
-                'name' => $this->category?->name,
-                'type' => $this->category?->type,
-            ],
             'status' => $this->status,
             'start_date' => $this->start_date?->toIso8601String(),
             'end_date' => $this->end_date?->toIso8601String(),

@@ -21,7 +21,6 @@ class ExamIndexController extends Controller
         }
 
         $exams = QueryBuilder::for($baseQuery)
-            ->with('category')
             ->allowedFilters(
                 AllowedFilter::exact('status'),
                 AllowedFilter::partial('search', 'name'),

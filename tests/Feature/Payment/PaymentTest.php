@@ -15,6 +15,14 @@ class PaymentTest extends TestCase
 
     public function test_payment_initiation_redirects_to_gateway(): void
     {
+        config()->set('sslcommerz.sandbox', true);
+        config()->set('sslcommerz.sandbox_routes', [
+            'success' => 'https://public-callback.example/payment/success',
+            'failed' => 'https://public-callback.example/payment/failed',
+            'cancel' => 'https://public-callback.example/payment/cancel',
+            'ipn' => 'https://public-callback.example/payment/ipn',
+        ]);
+
         Http::fake([
             'sandbox.sslcommerz.com/*' => Http::response([
                 'status' => 'SUCCESS',
@@ -30,10 +38,89 @@ class PaymentTest extends TestCase
         $response = $this->get(route('payment.initiate', $application));
 
         $response->assertRedirect('https://sandbox.sslcommerz.com/pay/fake-session');
+
+        Http::assertSent(function ($request) {
+            return $request['success_url'] === 'https://public-callback.example/payment/success'
+                && $request['fail_url'] === 'https://public-callback.example/payment/failed'
+                && $request['cancel_url'] === 'https://public-callback.example/payment/cancel'
+                && $request['ipn_url'] === 'https://public-callback.example/payment/ipn';
+        });
+    }
+
+    public function test_payment_initiation_allows_localhost_callback_urls_in_sandbox_mode(): void
+    {
+        config()->set('sslcommerz.sandbox', true);
+        config()->set('sslcommerz.sandbox_routes', [
+            'success' => '/payment/success',
+            'failed' => '/payment/failed',
+            'cancel' => '/payment/cancel',
+            'ipn' => '/payment/ipn',
+        ]);
+
+        Http::fake([
+            'sandbox.sslcommerz.com/*' => Http::response([
+                'status' => 'SUCCESS',
+                'GatewayPageURL' => 'https://sandbox.sslcommerz.com/pay/fake-session',
+            ], 200),
+        ]);
+
+        $application = Application::factory()->create([
+            'status' => 'draft',
+            'payment_amount' => 500.00,
+        ]);
+
+        $response = $this->get(route('payment.initiate', $application));
+
+        $response->assertRedirect('https://sandbox.sslcommerz.com/pay/fake-session');
+
+        Http::assertSent(function ($request) {
+            return parse_url($request['success_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['success_url'], PHP_URL_PATH) === '/payment/success'
+                && parse_url($request['fail_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['fail_url'], PHP_URL_PATH) === '/payment/failed'
+                && parse_url($request['cancel_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['cancel_url'], PHP_URL_PATH) === '/payment/cancel'
+                && parse_url($request['ipn_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['ipn_url'], PHP_URL_PATH) === '/payment/ipn';
+        });
+    }
+
+    public function test_payment_initiation_allows_localhost_callback_url_when_sandbox_is_disabled(): void
+    {
+        config()->set('sslcommerz.sandbox', false);
+
+        Http::fake([
+            'securepay.sslcommerz.com/*' => Http::response([
+                'status' => 'SUCCESS',
+                'GatewayPageURL' => 'https://securepay.sslcommerz.com/pay/fake-session',
+            ], 200),
+        ]);
+
+        $application = Application::factory()->create([
+            'status' => 'draft',
+            'payment_amount' => 500.00,
+        ]);
+
+        $response = $this->get(route('payment.initiate', $application));
+
+        $response->assertRedirect('https://securepay.sslcommerz.com/pay/fake-session');
+
+        Http::assertSent(function ($request) {
+            return parse_url($request['success_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['success_url'], PHP_URL_PATH) === '/payment/callback/success'
+                && parse_url($request['fail_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['fail_url'], PHP_URL_PATH) === '/payment/callback/failed'
+                && parse_url($request['cancel_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['cancel_url'], PHP_URL_PATH) === '/payment/callback/cancel'
+                && parse_url($request['ipn_url'], PHP_URL_HOST) === 'localhost'
+                && parse_url($request['ipn_url'], PHP_URL_PATH) === '/payment/ipn';
+        });
     }
 
     public function test_successful_payment_marks_application_as_paid(): void
     {
+        config()->set('sslcommerz.sandbox', true);
+
         Http::fake([
             'sandbox.sslcommerz.com/*' => Http::response([
                 'status' => 'VALID',
@@ -55,11 +142,43 @@ class PaymentTest extends TestCase
             'status' => 'VALID',
         ]);
 
-        $response->assertRedirect();
+        $response->assertOk();
+        $response->assertSee('Payment Successful');
 
         $application->refresh();
         $this->assertEquals('paid', $application->status);
         $this->assertEquals('TXN-TEST-001', $application->transaction_id);
+    }
+
+    public function test_sandbox_success_callback_uses_fallback_when_validation_api_returns_500(): void
+    {
+        config()->set('sslcommerz.sandbox', true);
+
+        Http::fake([
+            'sandbox.sslcommerz.com/*' => Http::response('validator-error', 500),
+        ]);
+
+        $application = Application::factory()->create([
+            'transaction_id' => 'TXN-SANDBOX-FALLBACK-001',
+            'status' => 'pending',
+            'payment_amount' => 500.00,
+        ]);
+
+        $response = $this->post(route('payment.success'), [
+            'val_id' => 'fallback-val-id',
+            'tran_id' => 'TXN-SANDBOX-FALLBACK-001',
+            'status' => 'VALID',
+            'amount' => '500.00',
+            'card_type' => 'BKASH-BKash',
+        ]);
+
+        $response->assertOk();
+        $response->assertSee('Payment Successful');
+
+        $application->refresh();
+        $this->assertEquals('paid', $application->status);
+        $this->assertEquals('TXN-SANDBOX-FALLBACK-001', $application->transaction_id);
+        $this->assertTrue((bool) data_get($application->payment_response, 'validation_fallback'));
     }
 
     public function test_failed_payment_marks_application_status_as_failed(): void
@@ -74,7 +193,8 @@ class PaymentTest extends TestCase
             'status' => 'FAILED',
         ]);
 
-        $response->assertRedirect(route('payment.failed-page'));
+        $response->assertOk();
+        $response->assertSee('Payment Failed');
 
         $application->refresh();
         $this->assertEquals('failed', $application->status);
@@ -92,7 +212,8 @@ class PaymentTest extends TestCase
             'status' => 'CANCELLED',
         ]);
 
-        $response->assertRedirect(route('payment.cancel-page'));
+        $response->assertOk();
+        $response->assertSee('Payment Cancelled');
 
         $application->refresh();
         $this->assertEquals('cancelled', $application->status);
@@ -100,6 +221,8 @@ class PaymentTest extends TestCase
 
     public function test_ipn_validates_and_marks_application_as_paid(): void
     {
+        config()->set('sslcommerz.sandbox', true);
+
         Http::fake([
             'sandbox.sslcommerz.com/*' => Http::response([
                 'status' => 'VALID',

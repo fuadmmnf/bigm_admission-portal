@@ -62,14 +62,20 @@ Route::middleware([
 Route::get('/payment/initiate/{application:ulid}', [PaymentController::class, 'initiate'])
     ->name('payment.initiate');
 
-// SSLCommerz POST callbacks — CSRF excluded in bootstrap/app.php or via the controller
-Route::post('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
-Route::post('/payment/failed', [PaymentController::class, 'failed'])->name('payment.failed');
-Route::post('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+
+// SSLCommerz callbacks (some gateways/providers may hit via GET redirect, others via POST)
+Route::match(['get', 'post'], '/payment/callback/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::match(['get', 'post'], '/payment/callback/failed', [PaymentController::class, 'failed'])->name('payment.failed');
+Route::match(['get', 'post'], '/payment/callback/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 Route::post('/payment/ipn', [PaymentController::class, 'ipn'])->name('payment.ipn');
 
+// Backward-compatible legacy callback URLs (can be removed once env/config is updated everywhere)
+Route::match(['get', 'post'], '/payment/success', [PaymentController::class, 'success']);
+Route::match(['get', 'post'], '/payment/failed', [PaymentController::class, 'failed']);
+Route::match(['get', 'post'], '/payment/cancel', [PaymentController::class, 'cancel']);
+
 // User-facing result pages
-Route::get('/payment/success', fn () => view('pages.payment-success'))->name('payment.success-page');
-Route::get('/payment/failed', fn () => view('pages.payment-failed'))->name('payment.failed-page');
-Route::get('/payment/cancel', fn () => view('pages.payment-cancel'))->name('payment.cancel-page');
+Route::get('/payment/result/success', fn () => view('pages.payment-success'))->name('payment.success-page');
+Route::get('/payment/result/failed', fn () => view('pages.payment-failed'))->name('payment.failed-page');
+Route::get('/payment/result/cancel', fn () => view('pages.payment-cancel'))->name('payment.cancel-page');
 

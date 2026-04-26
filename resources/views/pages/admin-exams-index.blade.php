@@ -30,7 +30,6 @@
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Exam</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Category</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Paid</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Unpaid</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
@@ -40,7 +39,6 @@
                         @forelse ($exams as $exam)
                             <tr>
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $exam->name }}</td>
-                                <td class="px-4 py-3 text-sm text-gray-600">{{ $exam->category?->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-sm text-green-700 font-semibold">{{ $exam->paid_applications_count }}</td>
                                 <td class="px-4 py-3 text-sm text-amber-700 font-semibold">{{ $exam->unpaid_applications_count }}</td>
                                 <td class="px-4 py-3 text-right text-sm">
@@ -86,7 +84,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-gray-500">No exams found.</td>
+                                <td colspan="4" class="px-4 py-8 text-center text-gray-500">No exams found.</td>
                             </tr>
                         @endforelse
                     </tbody>

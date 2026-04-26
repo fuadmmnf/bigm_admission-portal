@@ -24,10 +24,6 @@
                         <dd class="font-semibold text-gray-900">{{ $exam->status === 'closed' ? 'complete' : $exam->status }}</dd>
                     </div>
                     <div>
-                        <dt class="text-gray-500">Category</dt>
-                        <dd class="font-semibold text-gray-900">{{ $exam->category?->name ?? '-' }}</dd>
-                    </div>
-                    <div>
                         <dt class="text-gray-500">Application Window</dt>
                         <dd class="font-semibold text-gray-900">
                             {{ optional($exam->start_date)->format('d M Y') ?? 'N/A' }} - {{ optional($exam->end_date)->format('d M Y') ?? 'N/A' }}

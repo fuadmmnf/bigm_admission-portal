@@ -7,7 +7,6 @@ use Database\Factories\ExamFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
@@ -29,7 +28,6 @@ class Exam extends Model
     protected $fillable = [
         'name',
         'ulid',
-        'category_id',
         'description',
         'status',
         'start_date',
@@ -45,11 +43,6 @@ class Exam extends Model
             'end_date' => 'datetime',
             'additional_info' => 'array',
         ];
-    }
-
-    public function category(): BelongsTo
-    {
-        return $this->belongsTo(Category::class);
     }
 
     public function applications(): HasMany
@@ -78,7 +71,6 @@ class Exam extends Model
             ->logOnly([
                 'ulid',
                 'name',
-                'category_id',
                 'description',
                 'status',
                 'start_date',

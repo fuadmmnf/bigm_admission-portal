@@ -20,16 +20,6 @@
                         @error('name') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label for="category_id" class="block text-sm font-medium text-gray-700">Category</label>
-                        <select id="category_id" name="category_id" class="mt-1 block w-full border-gray-300 rounded-md" required>
-                            <option value="">Select category</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}" @selected((string) old('category_id', $exam->category_id) === (string) $category->id)>{{ $category->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('category_id') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
-                    </div>
 
                     <div>
                         <label for="status" class="block text-sm font-medium text-gray-700">Status</label>

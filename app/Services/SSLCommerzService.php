@@ -46,14 +46,16 @@ class SSLCommerzService
      */
     public function initiate(array $data): string
     {
+        $callbackRoutes = (array) config($this->sandbox ? 'sslcommerz.sandbox_routes' : 'sslcommerz.routes', []);
+
         $payload = array_merge([
             'store_id' => $this->storeId,
             'store_passwd' => $this->storePassword,
             'currency' => config('sslcommerz.currency', 'BDT'),
-            'success_url' => url(config('sslcommerz.routes.success')),
-            'fail_url' => url(config('sslcommerz.routes.failed')),
-            'cancel_url' => url(config('sslcommerz.routes.cancel')),
-            'ipn_url' => url(config('sslcommerz.routes.ipn')),
+            'success_url' => url((string) ($callbackRoutes['success'] ?? '/payment/success')),
+            'fail_url' => url((string) ($callbackRoutes['failed'] ?? '/payment/failed')),
+            'cancel_url' => url((string) ($callbackRoutes['cancel'] ?? '/payment/cancel')),
+            'ipn_url' => url((string) ($callbackRoutes['ipn'] ?? '/payment/ipn')),
             'shipping_method' => 'NO',
             'product_name' => 'Admission Application',
             'product_category' => 'Admission',
@@ -128,5 +130,6 @@ class SSLCommerzService
             throw new RuntimeException("SSLCommerz {$context} request failed with HTTP {$response->status()}");
         }
     }
+
 }
 

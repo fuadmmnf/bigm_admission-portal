@@ -11,7 +11,6 @@ class HomeController extends Controller
     {
         $exams = Exam::query()
             ->availableForApplication()
-            ->with('category')
             ->orderBy('start_date')
             ->paginate(9);
 

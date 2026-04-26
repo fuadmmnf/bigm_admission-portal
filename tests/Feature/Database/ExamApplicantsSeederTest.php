@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Database;
 
+use App\Models\Application;
 use App\Models\Exam;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -37,6 +38,7 @@ class ExamApplicantsSeederTest extends TestCase
         $this->assertGreaterThan(0, $activeExams->count());
         $this->assertGreaterThan(0, $activeExams->where('applications_count', 0)->count());
         $this->assertGreaterThan(0, $activeExams->where('applications_count', '>=', 30)->count());
+        $this->assertSame(0, Application::query()->whereNull('ulid')->count());
     }
 
     public function test_database_seeder_does_not_seed_applicants_into_draft_exams(): void

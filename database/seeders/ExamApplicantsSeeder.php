@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Application;
 use App\Models\Exam;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class ExamApplicantsSeeder extends Seeder
 {
@@ -65,7 +66,14 @@ class ExamApplicantsSeeder extends Seeder
                     ],
                 ];
 
-                Application::query()->updateOrCreate($attributes, $values);
+                $application = Application::query()->firstOrNew($attributes);
+
+                if (blank($application->ulid)) {
+                    $application->ulid = (string) Str::ulid();
+                }
+
+                $application->fill($values);
+                $application->save();
             }
         }
     }

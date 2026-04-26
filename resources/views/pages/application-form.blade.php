@@ -116,6 +116,17 @@
                         </button>
                     </template>
                 </div>
+                @if (app()->environment(['local', 'testing']))
+                    <div class="mt-3 pt-3 border-t border-dashed border-amber-200">
+                        <button
+                            type="button"
+                            x-on:click="fillDevData()"
+                            class="inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+                        >
+                            Dev Mode: Autofill Form
+                        </button>
+                    </div>
+                @endif
             </div>
 
             <section x-show="step === 1" x-cloak class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-4">
@@ -164,13 +175,13 @@
                     </div>
 
                     <div>
-                        <label for="applicant_photo" class="block text-sm font-medium text-gray-700">Applicant Photo * (min 300x80, max 1MB)</label>
+                        <label for="applicant_photo" class="block text-sm font-medium text-gray-700">Applicant Photo * (300x300 pixels, max 1MB)</label>
                         <input id="applicant_photo" name="applicant_photo" type="file" accept="image/*" class="mt-1 block w-full text-sm" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Signature * (min 300x80, max 1MB)</label>
-                        <input name="signature" type="file" accept="image/*" class="mt-1 block w-full text-sm" required>
+                        <label class="block text-sm font-medium text-gray-700">Signature * (300x80 pixels, max 1MB)</label>
+                        <input id="signature_input" name="signature" type="file" accept="image/*" class="mt-1 block w-full text-sm" required>
                     </div>
                 </div>
             </section>
@@ -182,21 +193,62 @@
                     <fieldset class="rounded-lg border border-gray-200 p-4">
                         <legend class="px-2 text-sm font-semibold text-gray-700">Present Address *</legend>
                         <div class="grid grid-cols-1 gap-3 mt-2">
-                            <input type="text" x-model="presentDistrictSearch" placeholder="Filter district..." class="rounded-md border-gray-300">
-                            <select name="present_address[district_id]" x-model="presentDistrictId" x-on:change="onDistrictChange('present')" class="rounded-md border-gray-300" required>
-                                <option value="">Select District</option>
-                                <template x-for="district in filteredDistricts(presentDistrictSearch)" :key="district.id">
-                                    <option :value="district.id" x-text="district.name"></option>
-                                </template>
-                            </select>
 
-                            <input type="text" x-model="presentUpazilaSearch" placeholder="Filter upazila/thana..." class="rounded-md border-gray-300">
-                            <select name="present_address[upazila_id]" x-model="presentUpazilaId" class="rounded-md border-gray-300" required>
-                                <option value="">Select Upazila/Thana</option>
-                                <template x-for="upazila in filteredUpazilas(presentDistrictId, presentUpazilaSearch)" :key="upazila.id">
-                                    <option :value="upazila.id" x-text="upazila.name"></option>
-                                </template>
-                            </select>
+                            {{-- District combobox --}}
+                            <div class="relative" :class="presentDistrictOpen ? 'pb-52' : ''">
+                                <input
+                                    type="text"
+                                    x-model="presentDistrictText"
+                                    x-on:focus="closeAddressDropdowns(); presentDistrictOpen = true"
+                                    x-on:input="presentDistrictId = ''; presentDistrictOpen = true"
+                                    x-on:blur="setTimeout(() => { presentDistrictOpen = false; restoreLabel('presentDistrict') }, 150)"
+                                    placeholder="Search and select district..."
+                                    autocomplete="off"
+                                    class="rounded-md border-gray-300 w-full"
+                                >
+                                <div x-show="presentDistrictOpen" x-cloak class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                    <template x-for="district in filteredDistricts(presentDistrictText)" :key="district.id">
+                                        <button
+                                            type="button"
+                                            class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
+                                            :class="presentDistrictId === String(district.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
+                                            x-on:mousedown.prevent="presentDistrictId = String(district.id); presentDistrictText = district.name; presentDistrictOpen = false; onDistrictChange('present')"
+                                            x-text="district.name"
+                                        ></button>
+                                    </template>
+                                    <div x-show="filteredDistricts(presentDistrictText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No districts found</div>
+                                </div>
+                                <input type="hidden" name="present_address[district_id]" :value="presentDistrictId">
+                            </div>
+
+                            {{-- Upazila combobox --}}
+                            <div class="relative" :class="presentUpazilaOpen ? 'pb-52' : ''">
+                                <input
+                                    type="text"
+                                    x-model="presentUpazilaText"
+                                    x-on:focus="if (presentDistrictId) { closeAddressDropdowns(); presentUpazilaOpen = true }"
+                                    x-on:input="presentUpazilaId = ''; presentUpazilaOpen = true"
+                                    x-on:blur="setTimeout(() => { presentUpazilaOpen = false; restoreLabel('presentUpazila') }, 150)"
+                                    placeholder="Search and select upazila/thana..."
+                                    autocomplete="off"
+                                    :disabled="!presentDistrictId"
+                                    class="rounded-md border-gray-300 w-full disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                                >
+                                <div x-show="presentUpazilaOpen" x-cloak class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                    <template x-for="upazila in filteredUpazilas(presentDistrictId, presentUpazilaText)" :key="upazila.id">
+                                        <button
+                                            type="button"
+                                            class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
+                                            :class="presentUpazilaId === String(upazila.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
+                                            x-on:mousedown.prevent="presentUpazilaId = String(upazila.id); presentUpazilaText = upazila.name; presentUpazilaOpen = false"
+                                            x-text="upazila.name"
+                                        ></button>
+                                    </template>
+                                    <div x-show="filteredUpazilas(presentDistrictId, presentUpazilaText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No upazilas found</div>
+                                </div>
+                                <input type="hidden" name="present_address[upazila_id]" :value="presentUpazilaId">
+                            </div>
+
                             <input name="present_address[post_office]" type="text" value="{{ old('present_address.post_office') }}" placeholder="Post Office" class="rounded-md border-gray-300" required>
                             <input name="present_address[post_code]" type="text" value="{{ old('present_address.post_code') }}" placeholder="Post Code" class="rounded-md border-gray-300" required>
                             <input name="present_address[address_line]" type="text" value="{{ old('present_address.address_line') }}" placeholder="Village/Road/House/Flat" class="rounded-md border-gray-300" required>
@@ -206,21 +258,62 @@
                     <fieldset class="rounded-lg border border-gray-200 p-4">
                         <legend class="px-2 text-sm font-semibold text-gray-700">Permanent Address *</legend>
                         <div class="grid grid-cols-1 gap-3 mt-2">
-                            <input type="text" x-model="permanentDistrictSearch" placeholder="Filter district..." class="rounded-md border-gray-300">
-                            <select name="permanent_address[district_id]" x-model="permanentDistrictId" x-on:change="onDistrictChange('permanent')" class="rounded-md border-gray-300" required>
-                                <option value="">Select District</option>
-                                <template x-for="district in filteredDistricts(permanentDistrictSearch)" :key="district.id">
-                                    <option :value="district.id" x-text="district.name"></option>
-                                </template>
-                            </select>
 
-                            <input type="text" x-model="permanentUpazilaSearch" placeholder="Filter upazila/thana..." class="rounded-md border-gray-300">
-                            <select name="permanent_address[upazila_id]" x-model="permanentUpazilaId" class="rounded-md border-gray-300" required>
-                                <option value="">Select Upazila/Thana</option>
-                                <template x-for="upazila in filteredUpazilas(permanentDistrictId, permanentUpazilaSearch)" :key="upazila.id">
-                                    <option :value="upazila.id" x-text="upazila.name"></option>
-                                </template>
-                            </select>
+                            {{-- District combobox --}}
+                            <div class="relative" :class="permanentDistrictOpen ? 'pb-52' : ''">
+                                <input
+                                    type="text"
+                                    x-model="permanentDistrictText"
+                                    x-on:focus="closeAddressDropdowns(); permanentDistrictOpen = true"
+                                    x-on:input="permanentDistrictId = ''; permanentDistrictOpen = true"
+                                    x-on:blur="setTimeout(() => { permanentDistrictOpen = false; restoreLabel('permanentDistrict') }, 150)"
+                                    placeholder="Search and select district..."
+                                    autocomplete="off"
+                                    class="rounded-md border-gray-300 w-full"
+                                >
+                                <div x-show="permanentDistrictOpen" x-cloak class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                    <template x-for="district in filteredDistricts(permanentDistrictText)" :key="district.id">
+                                        <button
+                                            type="button"
+                                            class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
+                                            :class="permanentDistrictId === String(district.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
+                                            x-on:mousedown.prevent="permanentDistrictId = String(district.id); permanentDistrictText = district.name; permanentDistrictOpen = false; onDistrictChange('permanent')"
+                                            x-text="district.name"
+                                        ></button>
+                                    </template>
+                                    <div x-show="filteredDistricts(permanentDistrictText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No districts found</div>
+                                </div>
+                                <input type="hidden" name="permanent_address[district_id]" :value="permanentDistrictId">
+                            </div>
+
+                            {{-- Upazila combobox --}}
+                            <div class="relative" :class="permanentUpazilaOpen ? 'pb-52' : ''">
+                                <input
+                                    type="text"
+                                    x-model="permanentUpazilaText"
+                                    x-on:focus="if (permanentDistrictId) { closeAddressDropdowns(); permanentUpazilaOpen = true }"
+                                    x-on:input="permanentUpazilaId = ''; permanentUpazilaOpen = true"
+                                    x-on:blur="setTimeout(() => { permanentUpazilaOpen = false; restoreLabel('permanentUpazila') }, 150)"
+                                    placeholder="Search and select upazila/thana..."
+                                    autocomplete="off"
+                                    :disabled="!permanentDistrictId"
+                                    class="rounded-md border-gray-300 w-full disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                                >
+                                <div x-show="permanentUpazilaOpen" x-cloak class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                                    <template x-for="upazila in filteredUpazilas(permanentDistrictId, permanentUpazilaText)" :key="upazila.id">
+                                        <button
+                                            type="button"
+                                            class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
+                                            :class="permanentUpazilaId === String(upazila.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
+                                            x-on:mousedown.prevent="permanentUpazilaId = String(upazila.id); permanentUpazilaText = upazila.name; permanentUpazilaOpen = false"
+                                            x-text="upazila.name"
+                                        ></button>
+                                    </template>
+                                    <div x-show="filteredUpazilas(permanentDistrictId, permanentUpazilaText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No upazilas found</div>
+                                </div>
+                                <input type="hidden" name="permanent_address[upazila_id]" :value="permanentUpazilaId">
+                            </div>
+
                             <input name="permanent_address[post_office]" type="text" value="{{ old('permanent_address.post_office') }}" placeholder="Post Office" class="rounded-md border-gray-300" required>
                             <input name="permanent_address[post_code]" type="text" value="{{ old('permanent_address.post_code') }}" placeholder="Post Code" class="rounded-md border-gray-300" required>
                             <input name="permanent_address[address_line]" type="text" value="{{ old('permanent_address.address_line') }}" placeholder="Village/Road/House/Flat" class="rounded-md border-gray-300" required>
@@ -476,10 +569,14 @@
                 presentUpazilaId: presentUpazilaId ? String(presentUpazilaId) : '',
                 permanentDistrictId: permanentDistrictId ? String(permanentDistrictId) : '',
                 permanentUpazilaId: permanentUpazilaId ? String(permanentUpazilaId) : '',
-                presentDistrictSearch: '',
-                presentUpazilaSearch: '',
-                permanentDistrictSearch: '',
-                permanentUpazilaSearch: '',
+                presentDistrictText: '',
+                presentUpazilaText: '',
+                permanentDistrictText: '',
+                permanentUpazilaText: '',
+                presentDistrictOpen: false,
+                presentUpazilaOpen: false,
+                permanentDistrictOpen: false,
+                permanentUpazilaOpen: false,
                 ageDisplay: initialAge ?? '',
                 allPrograms: programs,
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
@@ -512,6 +609,8 @@
                 },
                 stepTitles: ['Personal', 'Address', 'Education', 'Career', 'Course Choice', 'Confirm'],
                 init() {
+                    this._initComboboxLabels();
+
                     if (initialDob) {
                         this.calculateAge(initialDob);
                     }
@@ -522,6 +621,200 @@
                             this.calculateAge(event.target.value);
                         });
                     }
+                },
+                _initComboboxLabels() {
+                    if (this.presentDistrictId) {
+                        const d = this.districts.find(d => String(d.id) === this.presentDistrictId);
+                        if (d) this.presentDistrictText = d.name;
+                    }
+                    if (this.presentUpazilaId) {
+                        const u = this.upazilas.find(u => String(u.id) === this.presentUpazilaId);
+                        if (u) this.presentUpazilaText = u.name;
+                    }
+                    if (this.permanentDistrictId) {
+                        const d = this.districts.find(d => String(d.id) === this.permanentDistrictId);
+                        if (d) this.permanentDistrictText = d.name;
+                    }
+                    if (this.permanentUpazilaId) {
+                        const u = this.upazilas.find(u => String(u.id) === this.permanentUpazilaId);
+                        if (u) this.permanentUpazilaText = u.name;
+                    }
+                },
+                restoreLabel(fieldType) {
+                    if (fieldType === 'presentDistrict') {
+                        const d = this.districts.find(d => String(d.id) === this.presentDistrictId);
+                        this.presentDistrictText = d ? d.name : '';
+                    } else if (fieldType === 'presentUpazila') {
+                        const u = this.upazilas.find(u => String(u.id) === this.presentUpazilaId);
+                        this.presentUpazilaText = u ? u.name : '';
+                    } else if (fieldType === 'permanentDistrict') {
+                        const d = this.districts.find(d => String(d.id) === this.permanentDistrictId);
+                        this.permanentDistrictText = d ? d.name : '';
+                    } else if (fieldType === 'permanentUpazila') {
+                        const u = this.upazilas.find(u => String(u.id) === this.permanentUpazilaId);
+                        this.permanentUpazilaText = u ? u.name : '';
+                    }
+                },
+                closeAddressDropdowns() {
+                    this.presentDistrictOpen = false;
+                    this.presentUpazilaOpen = false;
+                    this.permanentDistrictOpen = false;
+                    this.permanentUpazilaOpen = false;
+                },
+                setInputValue(name, value) {
+                    const input = document.querySelector(`[name="${name}"]`);
+                    if (!input) {
+                        return;
+                    }
+
+                    input.value = value;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+                setSelectValue(name, value) {
+                    const select = document.querySelector(`select[name="${name}"]`);
+                    if (!select) {
+                        return;
+                    }
+
+                    select.value = value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+                async createDummyImageFile(width, height, fileName, label, bgColor) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = bgColor;
+                    ctx.fillRect(0, 0, width, height);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `${Math.max(12, Math.floor(height * 0.28))}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(label, width / 2, height / 2);
+
+                    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.92));
+
+                    return new File([blob], fileName, { type: 'image/png' });
+                },
+                async attachFileToInput(inputSelector, file) {
+                    const input = document.querySelector(inputSelector);
+                    if (!input) {
+                        return;
+                    }
+
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                },
+                fillEducationDefaults() {
+                    const educationSelects = document.querySelectorAll('select[name^="education["]');
+                    educationSelects.forEach((select) => {
+                        if (select.value) {
+                            return;
+                        }
+
+                        const firstValidOption = Array.from(select.options).find((opt) => opt.value !== '');
+                        if (firstValidOption) {
+                            select.value = firstValidOption.value;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                },
+                async fillDevData() {
+                    this.setInputValue('applicant_name', 'Test Applicant');
+                    this.setInputValue('father_name', 'Test Father');
+                    this.setInputValue('mother_name', 'Test Mother');
+                    this.setInputValue('national_id_number', '1234567890');
+                    this.setInputValue('mobile_number', '01712345678');
+                    this.setInputValue('email', 'dev.applicant@example.test');
+
+                    this.setInputValue('date_of_birth', '1998-04-15');
+                    this.calculateAge('1998-04-15');
+
+                    const presentDistrict = this.districts[0] ?? null;
+                    if (presentDistrict) {
+                        this.presentDistrictId = String(presentDistrict.id);
+                        this.presentDistrictText = presentDistrict.name;
+                        this.onDistrictChange('present');
+
+                        const presentUpazila = this.upazilas.find((u) => String(u.parent_id) === String(presentDistrict.id));
+                        if (presentUpazila) {
+                            this.presentUpazilaId = String(presentUpazila.id);
+                            this.presentUpazilaText = presentUpazila.name;
+                        }
+                    }
+
+                    const permanentDistrict = this.districts[1] ?? this.districts[0] ?? null;
+                    if (permanentDistrict) {
+                        this.permanentDistrictId = String(permanentDistrict.id);
+                        this.permanentDistrictText = permanentDistrict.name;
+                        this.onDistrictChange('permanent');
+
+                        const permanentUpazila = this.upazilas.find((u) => String(u.parent_id) === String(permanentDistrict.id));
+                        if (permanentUpazila) {
+                            this.permanentUpazilaId = String(permanentUpazila.id);
+                            this.permanentUpazilaText = permanentUpazila.name;
+                        }
+                    }
+
+                    this.setInputValue('present_address[post_office]', 'GPO');
+                    this.setInputValue('present_address[post_code]', '1000');
+                    this.setInputValue('present_address[address_line]', 'Road 1, House 10');
+                    this.setInputValue('permanent_address[post_office]', 'GPO');
+                    this.setInputValue('permanent_address[post_code]', '1000');
+                    this.setInputValue('permanent_address[address_line]', 'Road 2, House 20');
+
+                    this.fillEducationDefaults();
+                    this.setInputValue('education[ssc][result]', '5.00');
+                    this.setInputValue('education[ssc][result_scale]', '5.00');
+                    this.setInputValue('education[ssc][passing_year]', '2014');
+                    this.setInputValue('education[hsc][result]', '5.00');
+                    this.setInputValue('education[hsc][result_scale]', '5.00');
+                    this.setInputValue('education[hsc][passing_year]', '2016');
+                    this.setInputValue('education[graduation][subject]', 'Computer Science');
+                    this.setInputValue('education[graduation][institution]', 'Test University');
+                    this.setInputValue('education[graduation][result]', '3.80');
+                    this.setInputValue('education[graduation][result_scale]', '4.00');
+                    this.setInputValue('education[graduation][passing_year]', '2020');
+                    this.setInputValue('education[graduation][course_duration_years]', '4');
+
+                    this.setInputValue('job_experience[total_years]', '3.5');
+                    this.setInputValue('job_experience[current][organization_name]', 'Dev Company Ltd.');
+                    this.setInputValue('job_experience[current][designation]', 'Software Engineer');
+                    this.setInputValue('job_experience[current][starting_date]', '2022-01-01');
+                    this.setInputValue('job_experience[current][address]', 'Dhaka');
+
+                    const jobCategorySelect = document.querySelector('select[name="job_experience[current][job_category]"]');
+                    if (jobCategorySelect) {
+                        const firstJobCategory = Array.from(jobCategorySelect.options).find((opt) => opt.value !== '');
+                        if (firstJobCategory) {
+                            jobCategorySelect.value = firstJobCategory.value;
+                            jobCategorySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }
+
+                    this.courseChoices = (this.allPrograms ?? []).slice(0, 6);
+
+                    const declaration = document.querySelector('input[name="declaration"]');
+                    if (declaration) {
+                        declaration.checked = true;
+                        declaration.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
+                    const [photoFile, signatureFile] = await Promise.all([
+                        this.createDummyImageFile(300, 300, 'dev-photo.png', 'DEV PHOTO 300x300', '#4f46e5'),
+                        this.createDummyImageFile(300, 80, 'dev-signature.png', 'DEV SIGN 300x80', '#0f766e'),
+                    ]);
+
+                    await this.attachFileToInput('#applicant_photo', photoFile);
+                    await this.attachFileToInput('#signature_input', signatureFile);
+
+                    this.step = this.totalSteps;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 },
                 calculateAge(dobValue) {
                     if (!dobValue) {
@@ -577,10 +870,12 @@
                 onDistrictChange(addressType) {
                     if (addressType === 'present') {
                         this.presentUpazilaId = '';
+                        this.presentUpazilaText = '';
                     }
 
                     if (addressType === 'permanent') {
                         this.permanentUpazilaId = '';
+                        this.permanentUpazilaText = '';
                     }
                 },
                 next() {

@@ -20,6 +20,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // SSLCommerz POSTs to these callback URLs from their servers — exempt from CSRF
         $middleware->validateCsrfTokens(except: [
+            '/payment/callback/success',
+            '/payment/callback/failed',
+            '/payment/callback/cancel',
             '/payment/success',
             '/payment/failed',
             '/payment/cancel',

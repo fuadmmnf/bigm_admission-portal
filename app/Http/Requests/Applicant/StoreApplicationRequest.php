@@ -15,10 +15,11 @@ class StoreApplicationRequest extends FormRequest
     public function rules(): array
     {
         $currentYear = (int) now()->format('Y');
+        $programs = config('applicant_form.programs', []);
 
         return [
             'applicant_name' => ['required', 'string', 'max:255'],
-            'applicant_photo' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024', 'dimensions:min_width=300,min_height=80'],
+            'applicant_photo' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024', 'dimensions:width=300,height=300'],
             'father_name' => ['required', 'string', 'max:255'],
             'mother_name' => ['required', 'string', 'max:255'],
             'date_of_birth' => ['required', 'date', 'before:today'],
@@ -26,7 +27,7 @@ class StoreApplicationRequest extends FormRequest
             'national_id_number' => ['required', 'string', 'max:120'],
             'mobile_number' => ['required', 'string', 'max:30'],
             'email' => ['required', 'email', 'max:255'],
-            'signature' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024', 'dimensions:min_width=300,min_height=80'],
+            'signature' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024', 'dimensions:width=300,height=80'],
 
             'present_address.district_id' => ['required', 'integer', Rule::exists('categories', 'id')->where('type', 'district')],
             'present_address.upazila_id' => [
@@ -99,15 +100,16 @@ class StoreApplicationRequest extends FormRequest
             'job_experience.previous.starting_date' => ['nullable', 'date'],
             'job_experience.previous.ending_date' => ['nullable', 'date', 'after_or_equal:job_experience.previous.starting_date'],
 
-            'course_preferences.first_choice' => ['required', 'string', Rule::in(config('applicant_form.programs', []))],
-            'course_preferences.second_choice' => ['required', 'string', Rule::in(config('applicant_form.programs', [])), 'different:course_preferences.first_choice'],
-            'course_preferences.third_choice' => ['required', 'string', Rule::in(config('applicant_form.programs', [])), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice'],
-            'course_preferences.fourth_choice' => ['required', 'string', Rule::in(config('applicant_form.programs', [])), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice'],
-            'course_preferences.fifth_choice' => ['required', 'string', Rule::in(config('applicant_form.programs', [])), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice', 'different:course_preferences.fourth_choice'],
-            'course_preferences.sixth_choice' => ['required', 'string', Rule::in(config('applicant_form.programs', [])), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice', 'different:course_preferences.fourth_choice', 'different:course_preferences.fifth_choice'],
+            'course_preferences.first_choice' => ['required', 'string', Rule::in($programs)],
+            'course_preferences.second_choice' => ['required', 'string', Rule::in($programs), 'different:course_preferences.first_choice'],
+            'course_preferences.third_choice' => ['required', 'string', Rule::in($programs), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice'],
+            'course_preferences.fourth_choice' => ['required', 'string', Rule::in($programs), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice'],
+            'course_preferences.fifth_choice' => ['required', 'string', Rule::in($programs), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice', 'different:course_preferences.fourth_choice'],
+            'course_preferences.sixth_choice' => ['required', 'string', Rule::in($programs), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice', 'different:course_preferences.fourth_choice', 'different:course_preferences.fifth_choice'],
 
             'declaration' => ['accepted'],
         ];
     }
+
 }
 

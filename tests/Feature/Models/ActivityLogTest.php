@@ -13,10 +13,7 @@ class ActivityLogTest extends TestCase
 
     public function test_exam_model_logs_create_update_and_delete_events(): void
     {
-        $category = Category::factory()->create(['type' => 'exam']);
-
         $exam = Exam::factory()->create([
-            'category_id' => $category->id,
             'name' => 'Activity Log Exam',
             'status' => 'draft',
         ]);

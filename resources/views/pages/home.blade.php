@@ -28,7 +28,6 @@
                         <span class="text-xs text-gray-500">{{ optional($exam->start_date)->format('d M Y') ?? 'Open' }}</span>
                     </div>
                     <h3 class="font-semibold text-lg mb-1">{{ $exam->name }}</h3>
-                    <p class="text-sm text-gray-600 mb-4">{{ $exam->category?->name ?? 'Uncategorized' }}</p>
                     <p class="text-sm text-gray-700 line-clamp-3">{{ $exam->description ?: 'No details provided yet.' }}</p>
 
                     <div class="mt-5">

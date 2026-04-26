@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Database;
 
-use App\Models\Category;
 use App\Models\Exam;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -11,33 +10,13 @@ class ExamPaginationSeederTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_database_seeder_creates_exams_for_all_program_categories_and_all_ui_statuses(): void
+    public function test_database_seeder_creates_exam_batches_for_all_ui_statuses(): void
     {
         $this->seed();
 
-        $programCategories = Category::query()->where('type', 'program')->get();
-
-        $this->assertGreaterThan(0, $programCategories->count());
-
-        foreach ($programCategories as $programCategory) {
-            $this->assertSame(
-                6,
-                Exam::query()->where('category_id', $programCategory->id)->where('status', 'draft')->count(),
-                'Draft exam count mismatch for category '.$programCategory->name
-            );
-
-            $this->assertSame(
-                6,
-                Exam::query()->where('category_id', $programCategory->id)->where('status', 'active')->count(),
-                'Active exam count mismatch for category '.$programCategory->name
-            );
-
-            $this->assertSame(
-                6,
-                Exam::query()->where('category_id', $programCategory->id)->where('status', 'closed')->count(),
-                'Completed/closed exam count mismatch for category '.$programCategory->name
-            );
-        }
+        $this->assertSame(18, Exam::query()->where('status', 'draft')->count());
+        $this->assertSame(18, Exam::query()->where('status', 'active')->count());
+        $this->assertSame(18, Exam::query()->where('status', 'closed')->count());
     }
 
     public function test_seeded_exam_volume_is_large_enough_for_status_pagination(): void

@@ -5,33 +5,37 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/Http/Controllers/Applicant/ApplicationFormController.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/config/applicant_form.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/views/components/admin/sidebar.blade.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Feature/ApplicationFormTest.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/tests/Feature/Database/ExamApplicantsSeederTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/admission_portal.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/admission_portal.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/Application.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Application.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/seeders/DatabaseSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/seeders/DatabaseSeeder.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/navigation-menu.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/navigation-menu.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Api/ExamIndexController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Api/ExamIndexController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Resources/ExamResource.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Resources/ExamResource.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Models/Exam.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Exam.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Services/SSLCommerzService.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Services/SSLCommerzService.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bootstrap/app.php" beforeDir="false" afterPath="$PROJECT_DIR$/bootstrap/app.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/sslcommerz.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/sslcommerz.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/factories/ExamFactory.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/factories/ExamFactory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/migrations/2026_04_25_130000_create_exams_table.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/migrations/2026_04_25_130000_create_exams_table.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/seeders/ExamPaginationSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/seeders/ExamPaginationSeeder.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-form.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-form.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exams-index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exams-index.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-reports.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-reports.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pages/home.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/home.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/payment-cancel.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/payment-cancel.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/payment-failed.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/payment-failed.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/payment-success.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/payment-success.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Feature/Models/ApplicationTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Models/ApplicationTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Database/ExamApplicantsSeederTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Database/ExamApplicantsSeederTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Database/ExamPaginationSeederTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Database/ExamPaginationSeederTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Models/ActivityLogTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Models/ActivityLogTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Models/ExamTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Models/ExamTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Payment/PaymentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Payment/PaymentTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,6 +55,15 @@
     <persistenceIdMap>
       <entry key="_/Users/fuad/misc/projects/innovatech/bigm/admission_portal" value="3CpjYTqlad1C8P1Pfzv75lrsSPt" />
     </persistenceIdMap>
+  </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="Agent" />
+  </component>
+  <component name="CopilotUserSelectedModel">
+    <selectedModels>
+      <entry key="agent-panel" value="Auto" />
+      <entry key="chat-panel" value="Auto" />
+    </selectedModels>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -271,7 +284,7 @@
       <updated>1777089453018</updated>
       <workItem from="1777089456444" duration="18000" />
       <workItem from="1777089921186" duration="17971000" />
-      <workItem from="1777127474206" duration="8115000" />
+      <workItem from="1777127474206" duration="17994000" />
     </task>
     <servers />
   </component>

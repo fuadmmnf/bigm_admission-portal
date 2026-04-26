@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Application;
-use App\Models\Category;
 use App\Models\Exam;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -191,11 +190,8 @@ class AdminExamPagesTest extends TestCase
         $admin->assignRole('admin');
         $this->actingAs($admin);
 
-        $category = Category::factory()->create(['type' => 'exam']);
-
         $storeResponse = $this->post(route('admin.exams.store'), [
             'name' => 'Combined Cadet Exam',
-            'category_id' => $category->id,
             'description' => 'National level admission exam',
             'status' => 'draft',
             'start_date' => now()->addDay()->toDateTimeString(),
@@ -213,7 +209,6 @@ class AdminExamPagesTest extends TestCase
 
         $updateResponse = $this->put(route('admin.exams.update', $created), [
             'name' => 'Combined Cadet Exam 2026',
-            'category_id' => $category->id,
             'description' => 'Updated copy',
             'status' => 'active',
             'start_date' => now()->addDay()->toDateTimeString(),

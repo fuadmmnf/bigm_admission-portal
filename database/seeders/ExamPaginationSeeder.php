@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
 use App\Models\Exam;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Seeder;
@@ -10,61 +9,41 @@ use Illuminate\Support\Str;
 
 class ExamPaginationSeeder extends Seeder
 {
-    private const BATCH_SIZE_PER_STATUS_PER_PROGRAM = 6;
+    private const BATCH_SIZE_PER_STATUS = 18;
 
     public function run(): void
     {
-        $programCategories = Category::query()
-            ->where('type', 'program')
-            ->orderBy('name')
-            ->get();
-
-        if ($programCategories->isEmpty()) {
-            $this->call(ProgramCategoriesSeeder::class);
-
-            $programCategories = Category::query()
-                ->where('type', 'program')
-                ->orderBy('name')
-                ->get();
-        }
-
         $statusMap = [
             'draft' => 'draft',
             'active' => 'active',
             'completed' => 'closed',
         ];
 
-        foreach ($programCategories as $programCategory) {
-            $programCode = data_get($programCategory->additional_info, 'code', 'PROGRAM');
+        foreach ($statusMap as $uiStatus => $storedStatus) {
+            for ($i = 1; $i <= self::BATCH_SIZE_PER_STATUS; $i++) {
+                [$startDate, $endDate] = $this->resolveDateWindow($uiStatus, $i);
 
-            foreach ($statusMap as $uiStatus => $storedStatus) {
-                for ($i = 1; $i <= self::BATCH_SIZE_PER_STATUS_PER_PROGRAM; $i++) {
-                    [$startDate, $endDate] = $this->resolveDateWindow($uiStatus, $i);
+                $name = sprintf('Exam %s Batch %02d', ucfirst($uiStatus), $i);
 
-                    $name = sprintf('%s %s Batch %02d', $programCode, ucfirst($uiStatus), $i);
+                $exam = Exam::query()->firstOrNew([
+                    'name' => $name,
+                ]);
 
-                    $exam = Exam::query()->firstOrNew([
-                        'category_id' => $programCategory->id,
-                        'name' => $name,
-                    ]);
-
-                    if (blank($exam->ulid)) {
-                        $exam->ulid = (string) Str::ulid();
-                    }
-
-                    $exam->description = sprintf('%s course exam seeded for %s UI pagination testing.', $programCategory->name, $uiStatus);
-                    $exam->status = $storedStatus;
-                    $exam->start_date = $startDate;
-                    $exam->end_date = $endDate;
-                    $exam->additional_info = [
-                        'seeded_for' => 'ui-pagination',
-                        'ui_status' => $uiStatus,
-                        'program_code' => $programCode,
-                        'batch' => $i,
-                    ];
-
-                    $exam->save();
+                if (blank($exam->ulid)) {
+                    $exam->ulid = (string) Str::ulid();
                 }
+
+                $exam->description = sprintf('Seeded exam for %s UI pagination testing.', $uiStatus);
+                $exam->status = $storedStatus;
+                $exam->start_date = $startDate;
+                $exam->end_date = $endDate;
+                $exam->additional_info = [
+                    'seeded_for' => 'ui-pagination',
+                    'ui_status' => $uiStatus,
+                    'batch' => $i,
+                ];
+
+                $exam->save();
             }
         }
     }
