@@ -154,6 +154,16 @@
                                                 >
                                                     View Card
                                                 </a>
+                                                <button
+                                                    type="button"
+                                                    class="inline-flex items-center justify-center text-red-600 hover:text-red-700"
+                                                    title="Delete application"
+                                                    @click="deleteApplication('{{ $application->ulid }}')"
+                                                >
+                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" />
+                                                    </svg>
+                                                </button>
                                                 @if ($exam->status === 'active')
                                                     <button
                                                         type="button"
@@ -210,6 +220,11 @@
         </form>
     @endif
 
+    <form id="delete-application-form" method="POST" style="display:none">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <script>
         function admitCardForm() {
             const pageUlids = @js($applications->pluck('ulid')->toArray());
@@ -240,6 +255,16 @@
                     const form = document.getElementById('quick-send-form');
                     if (!form) return;
                     document.getElementById('quick-send-ulid').value = ulid;
+                    form.submit();
+                },
+
+                deleteApplication(ulid) {
+                    if (!confirm('Delete this application? This action can be restored only from soft-deleted records.')) return;
+
+                    const form = document.getElementById('delete-application-form');
+                    if (!form) return;
+
+                    form.action = `/admin/applications/${ulid}`;
                     form.submit();
                 },
             };
