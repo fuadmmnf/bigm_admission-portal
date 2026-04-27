@@ -4,9 +4,7 @@
             <div>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">{{ $exam->name }}</h2>
                 <p class="text-sm text-gray-500 mt-0.5">
-                    Paid: <strong class="text-emerald-700">{{ $totalPaid }}</strong>
-                    <span class="text-gray-400 mx-1">/</span>
-                    Total submitted: <strong class="text-gray-600">{{ $totalAll }}</strong>
+                    Paid Applicants: <strong class="text-emerald-700">{{ $totalPaid }}</strong>
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -32,26 +30,32 @@
 
             {{-- Exam summary --}}
             <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
-                <dl class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                    <div>
+                <div class="overflow-x-auto">
+                <dl class="min-w-[980px] grid grid-cols-5 gap-4 text-sm">
+                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
                         <dt class="text-gray-500">Status</dt>
                         <dd class="font-semibold text-gray-900">{{ $exam->status === 'closed' ? 'complete' : $exam->status }}</dd>
                     </div>
-                    <div>
+                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
                         <dt class="text-gray-500">Application Window</dt>
                         <dd class="font-semibold text-gray-900">
                             {{ optional($exam->start_date)->format('d M Y') ?? 'N/A' }} – {{ optional($exam->end_date)->format('d M Y') ?? 'N/A' }}
                         </dd>
                     </div>
-                    <div>
+                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
                         <dt class="text-gray-500">Paid Applicants</dt>
                         <dd class="font-semibold text-emerald-700">{{ $totalPaid }}</dd>
                     </div>
-                    <div>
-                        <dt class="text-gray-500">Total Submitted</dt>
-                        <dd class="font-semibold text-gray-900">{{ $totalAll }}</dd>
+                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
+                        <dt class="text-gray-500">Viva Selected</dt>
+                        <dd class="font-semibold text-amber-700">{{ $totalViva }}</dd>
+                    </div>
+                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
+                        <dt class="text-gray-500">Program Selected</dt>
+                        <dd class="font-semibold text-purple-700">{{ $totalProgram }}</dd>
                     </div>
                 </dl>
+                </div>
             </div>
 
             {{-- Paid applicant list + send-admit-card form --}}
@@ -62,25 +66,39 @@
                 x-data="admitCardForm()"
             >
                 @csrf
+                <input type="hidden" name="send_scope" :value="sendScope">
+                <input type="hidden" name="target_stage" :value="targetStage">
 
                 <section class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
 
                     {{-- Toolbar --}}
                     <div class="px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
-                            <h3 class="font-semibold text-gray-900">Paid Applicants</h3>
+                            <h3 class="font-semibold text-gray-900">Applicant List</h3>
                             <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                                {{ $applications->total() }} paid
+                                {{ $applications->total() }} on this tab
                             </span>
                         </div>
 
-                        {{-- Send button – visible only when ≥1 row selected AND exam is active --}}
-                        @if ($exam->status === 'active')
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
+                                    formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
+                                    x-on:click="sendScope = 'all_paid'"
+                                    onclick="return confirm('Send admit card emails to ALL paid applicants for this exam?')"
+                                >
+                                    Send All Paid
+                                </button>
+                            </div>
                             <div class="flex items-center gap-2" x-show="selected.length > 0" x-cloak>
                                 <span class="text-sm text-gray-600" x-text="`${selected.length} selected`"></span>
                                 <button
                                     type="submit"
                                     class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
+                                    formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
+                                    x-on:click="sendScope = 'selected'"
                                     onclick="return confirm('Send admit card emails to the selected applicants?')"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -88,43 +106,72 @@
                                     </svg>
                                     Send Admit Card(s)
                                 </button>
+
+                                @if ($activeTab === 'paid')
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
+                                        formaction="{{ route('admin.exams.applications.stage-update', $exam) }}"
+                                        x-on:click="targetStage = 'viva_selected'"
+                                        onclick="return confirm('Mark selected applicants as Viva eligible?')"
+                                    >
+                                        Mark Viva Eligible
+                                    </button>
+                                @endif
+
+                                @if ($activeTab === 'viva')
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center gap-1.5 rounded-md bg-purple-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-700"
+                                        formaction="{{ route('admin.exams.applications.stage-update', $exam) }}"
+                                        x-on:click="targetStage = 'program_selected'"
+                                        onclick="return confirm('Mark selected applicants as Program selected?')"
+                                    >
+                                        Mark Program Selected
+                                    </button>
+                                @endif
                             </div>
-                            <div x-show="selected.length === 0" class="text-xs text-gray-400 italic">Select applicants to send admit cards</div>
-                        @else
-                            <span class="text-xs text-amber-600 font-medium">Admit card emails are available for active exams only</span>
-                        @endif
+                            <div x-show="selected.length === 0" class="text-xs text-gray-400 italic">Select applicants to apply bulk actions</div>
+                        </div>
+                    </div>
+
+                    <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                        <div class="inline-flex rounded-md border border-gray-200 bg-white p-1 text-xs font-semibold">
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid']) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'paid' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Paid ({{ $totalPaid }})</a>
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva']) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'viva' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Viva Selected ({{ $totalViva }})</a>
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program']) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'program' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Program Selected ({{ $totalProgram }})</a>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    @if ($exam->status === 'active')
-                                        <th class="px-4 py-3 w-10">
-                                            <input
-                                                type="checkbox"
-                                                class="rounded border-gray-300 text-indigo-600 cursor-pointer"
-                                                :checked="allSelected"
-                                                @change="toggleAll($event)"
-                                                title="Select / deselect all on this page"
-                                            >
-                                        </th>
-                                    @endif
+                                    <th class="px-4 py-3 w-10">
+                                        <input
+                                            type="checkbox"
+                                            class="rounded border-gray-300 text-indigo-600 cursor-pointer"
+                                            :checked="allSelected"
+                                            x-on:change="toggleAll($event)"
+                                            title="Select / deselect all on this page"
+                                        >
+                                    </th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-10">#</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection Stage</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 bg-white">
-                                @forelse ($applications as $index => $application)
-                                    <tr
-                                        class="transition-colors"
-                                        :class="selected.includes('{{ $application->ulid }}') ? 'bg-indigo-50' : 'hover:bg-gray-50'"
-                                    >
-                                        @if ($exam->status === 'active')
+                                @if ($applications->isNotEmpty())
+                                    @foreach ($applications as $index => $application)
+                                        <tr
+                                            class="transition-colors"
+                                            :class="selected.includes('{{ $application->ulid }}') ? 'bg-indigo-50' : 'hover:bg-gray-50'"
+                                        >
                                             <td class="px-4 py-3">
                                                 <input
                                                     type="checkbox"
@@ -134,56 +181,55 @@
                                                     x-model="selected"
                                                 >
                                             </td>
-                                        @endif
-                                        <td class="px-4 py-3 text-sm text-gray-500">{{ $applications->firstItem() + $index }}</td>
-                                        <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $application->applicant_name }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
-                                        <td class="px-4 py-3 text-sm">
-                                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                                                Paid
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-sm whitespace-nowrap">
-                                            <div class="flex items-center gap-2">
-                                                <a
-                                                    href="{{ route('admin.applications.admit-card', $application) }}"
-                                                    target="_blank"
-                                                    rel="noopener"
-                                                    class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
-                                                >
-                                                    View Card
-                                                </a>
-                                                <button
-                                                    type="button"
-                                                    class="inline-flex items-center justify-center text-red-600 hover:text-red-700"
-                                                    title="Delete application"
-                                                    @click="deleteApplication('{{ $application->ulid }}')"
-                                                >
-                                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" />
-                                                    </svg>
-                                                </button>
-                                                @if ($exam->status === 'active')
-                                                    <button
-                                                        type="button"
+                                            <td class="px-4 py-3 text-sm text-gray-500">{{ $applications->firstItem() + $index }}</td>
+                                            <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $application->applicant_name }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
+                                            <td class="px-4 py-3 text-sm">
+                                                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                                                    Paid
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 text-sm text-gray-700">{{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</td>
+                                            <td class="px-4 py-3 text-sm whitespace-nowrap">
+                                                <div class="flex items-center gap-2">
+                                                    <a
+                                                        href="{{ route('admin.applications.show', ['application' => $application, 'tab' => $activeTab]) }}"
                                                         class="inline-flex items-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                                                        @click="quickSend('{{ $application->ulid }}')"
-                                                        title="Send admit card email to this applicant"
                                                     >
-                                                        Send Email
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @empty
+                                                        Details
+                                                    </a>
+                                                    <a
+                                                        href="{{ route('admin.applications.admit-card', $application) }}"
+                                                        target="_blank"
+                                                        rel="noopener"
+                                                        class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                    >
+                                                        View Card
+                                                    </a>
+                                                    @if (optional(auth()->user())->hasRole('admin'))
+                                                        <button
+                                                            type="button"
+                                                            class="inline-flex items-center justify-center text-red-600 hover:text-red-700"
+                                                            title="Delete application"
+                                                            x-on:click="removeApplication('{{ route('admin.applications.destroy', $application) }}')"
+                                                        >
+                                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" />
+                                                            </svg>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
                                     <tr>
-                                        <td colspan="{{ $exam->status === 'active' ? 7 : 6 }}" class="px-4 py-8 text-center text-sm text-gray-500">
-                                            No paid applicants yet.
+                                        <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500">
+                                            No applicants found for this tab.
                                         </td>
                                     </tr>
-                                @endforelse
+                                @endif
                             </tbody>
                         </table>
                     </div>
@@ -192,15 +238,13 @@
                     @if ($applications->total() > 0)
                         <div class="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50 gap-3 flex-wrap">
                             <div class="text-xs text-gray-500">
-                                Showing {{ $applications->firstItem() }}–{{ $applications->lastItem() }} of {{ $applications->total() }} paid applicants
+                                Showing {{ $applications->firstItem() }}–{{ $applications->lastItem() }} of {{ $applications->total() }} applicants
                             </div>
-                            @if ($exam->status === 'active')
-                                <div class="flex items-center gap-2">
-                                    <button type="button" @click="selectAll()" class="text-xs font-medium text-indigo-600 hover:underline">Select all on page</button>
-                                    <span class="text-gray-300">|</span>
-                                    <button type="button" @click="clearAll()" x-show="selected.length > 0" class="text-xs font-medium text-gray-500 hover:underline" x-cloak>Clear selection</button>
-                                </div>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                <button type="button" x-on:click="selectAll()" class="text-xs font-medium text-indigo-600 hover:underline">Select all on page</button>
+                                <span class="text-gray-300">|</span>
+                                <button type="button" x-on:click="clearAll()" x-show="selected.length > 0" class="text-xs font-medium text-gray-500 hover:underline" x-cloak>Clear selection</button>
+                            </div>
                         </div>
                     @endif
 
@@ -211,14 +255,6 @@
             </form>
         </div>
     </div>
-
-    {{-- Hidden form used by the per-row "Send Email" button to post a single ULID --}}
-    @if ($exam->status === 'active')
-        <form id="quick-send-form" method="POST" action="{{ route('admin.exams.send-admit-cards', $exam) }}" style="display:none">
-            @csrf
-            <input type="hidden" name="application_ids[]" id="quick-send-ulid">
-        </form>
-    @endif
 
     <form id="delete-application-form" method="POST" style="display:none">
         @csrf
@@ -231,6 +267,8 @@
 
             return {
                 selected: [],
+                sendScope: 'selected',
+                targetStage: 'viva_selected',
 
                 get allSelected() {
                     return pageUlids.length > 0 && pageUlids.every(u => this.selected.includes(u));
@@ -250,21 +288,14 @@
                     this.selected = this.selected.filter(u => !pageUlids.includes(u));
                 },
 
-                quickSend(ulid) {
-                    if (!confirm('Send the admit card email to this applicant?')) return;
-                    const form = document.getElementById('quick-send-form');
-                    if (!form) return;
-                    document.getElementById('quick-send-ulid').value = ulid;
-                    form.submit();
-                },
 
-                deleteApplication(ulid) {
-                    if (!confirm('Delete this application? This action can be restored only from soft-deleted records.')) return;
+                removeApplication(deleteUrl) {
+                    if (!confirm('Confirm delete of this application? This action can be restored only from soft-deleted records.')) return;
 
                     const form = document.getElementById('delete-application-form');
                     if (!form) return;
 
-                    form.action = `/admin/applications/${ulid}`;
+                    form.action = deleteUrl;
                     form.submit();
                 },
             };

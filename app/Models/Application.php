@@ -42,6 +42,12 @@ class Application extends Model
         'national_id_birth_registration_passport_number' => 'applicant_id_number',
     ];
 
+    public const STAGE_PAID = 'paid';
+
+    public const STAGE_VIVA_SELECTED = 'viva_selected';
+
+    public const STAGE_PROGRAM_SELECTED = 'program_selected';
+
     /** @use HasFactory<ApplicationFactory> */
     protected static function newFactory(): ApplicationFactory
     {
@@ -60,6 +66,7 @@ class Application extends Model
         'payment_amount',
         'payment_method',
         'payment_response',
+        'selection_stage',
         'additional_info',
     ];
 
@@ -69,6 +76,7 @@ class Application extends Model
             'status' => 'string',
             'payment_amount' => 'decimal:2',
             'payment_response' => 'array',
+            'selection_stage' => 'string',
             'additional_info' => 'array',
         ];
     }
@@ -125,6 +133,7 @@ class Application extends Model
     {
         $this->update([
             'status' => 'paid',
+            'selection_stage' => self::STAGE_PAID,
             'transaction_id' => $transactionId,
             'payment_method' => $response['card_type'] ?? null,
             'payment_response' => $response,

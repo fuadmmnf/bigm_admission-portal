@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\ExamPageController;
 use App\Http\Controllers\Admin\ApplicationAdmitCardController;
 use App\Http\Controllers\Admin\ApplicationDeleteController;
+use App\Http\Controllers\Admin\ApplicationShowController;
+use App\Http\Controllers\Admin\ApplicationStageUpdateController;
 use App\Http\Controllers\Admin\SendAdmitCardController;
 use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
@@ -40,11 +42,17 @@ Route::middleware([
     Route::get('/admin/exams/{exam}', [ExamPageController::class, 'show'])->name('admin.exams.show')->whereUlid('exam');
     Route::get('/admin/applications/{application:ulid}/admit-card', ApplicationAdmitCardController::class)
         ->name('admin.applications.admit-card');
+    Route::get('/admin/applications/{application:ulid}', ApplicationShowController::class)
+        ->name('admin.applications.show');
     Route::delete('/admin/applications/{application:ulid}', ApplicationDeleteController::class)
+        ->middleware('role:admin')
         ->name('admin.applications.destroy');
 
     Route::post('/admin/exams/{exam}/send-admit-cards', SendAdmitCardController::class)
         ->name('admin.exams.send-admit-cards')
+        ->whereUlid('exam');
+    Route::post('/admin/exams/{exam}/applications/stage', ApplicationStageUpdateController::class)
+        ->name('admin.exams.applications.stage-update')
         ->whereUlid('exam');
 
     Route::get('/admin/reports', function () {

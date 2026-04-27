@@ -5,7 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationShowController.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationStageUpdateController.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/admit_card_mail.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/database/migrations/2026_04_27_120500_add_selection_stage_to_applications_table.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/resources/views/pages/admin-application-show.blade.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Feature/SendAdmitCardControllerTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationDeleteController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationDeleteController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/SendAdmitCardController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/SendAdmitCardController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Models/Application.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Application.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -254,7 +269,7 @@
       <updated>1777089453018</updated>
       <workItem from="1777089456444" duration="18000" />
       <workItem from="1777089921186" duration="17971000" />
-      <workItem from="1777127474206" duration="22792000" />
+      <workItem from="1777127474206" duration="26234000" />
     </task>
     <servers />
   </component>

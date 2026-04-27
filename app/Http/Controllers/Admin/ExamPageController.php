@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Application;
 use App\Models\Exam;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -40,21 +41,49 @@ class ExamPageController extends Controller
         ]);
     }
 
-    public function show(Exam $exam): View
+    public function show(Request $request, Exam $exam): View
     {
-        $applications = $exam->applications()
-            ->where('status', 'paid')
+        $activeTab = $request->string('tab')->toString();
+        if (! in_array($activeTab, ['paid', 'viva', 'program'], true)) {
+            $activeTab = 'paid';
+        }
+
+        $applicationsQuery = $exam->applications()
+            ->where('status', 'paid');
+
+        if ($activeTab === 'viva') {
+            $applicationsQuery->whereIn('selection_stage', [
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+            ]);
+        }
+
+        if ($activeTab === 'program') {
+            $applicationsQuery->where('selection_stage', Application::STAGE_PROGRAM_SELECTED);
+        }
+
+        $applications = $applicationsQuery
             ->latest()
-            ->paginate(25);
+            ->paginate(25)
+            ->appends($request->query());
 
         $totalPaid = $exam->applications()->where('status', 'paid')->count();
-        $totalAll  = $exam->applications()->count();
+        $totalViva = $exam->applications()
+            ->where('status', 'paid')
+            ->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED])
+            ->count();
+        $totalProgram = $exam->applications()
+            ->where('status', 'paid')
+            ->where('selection_stage', Application::STAGE_PROGRAM_SELECTED)
+            ->count();
 
         return view('pages.admin-exam-show', [
             'exam'         => $exam,
             'applications' => $applications,
             'totalPaid'    => $totalPaid,
-            'totalAll'     => $totalAll,
+            'totalViva'    => $totalViva,
+            'totalProgram' => $totalProgram,
+            'activeTab'    => $activeTab,
         ]);
     }
 

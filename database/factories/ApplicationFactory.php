@@ -15,13 +15,25 @@ class ApplicationFactory extends Factory
 
     public function definition(): array
     {
+        $status = fake()->randomElement(['draft', 'submitted', 'approved', 'rejected', 'pending', 'paid', 'failed', 'cancelled']);
+
+        $selectionStage = null;
+        if ($status === 'paid') {
+            $selectionStage = fake()->randomElement([
+                Application::STAGE_PAID,
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+            ]);
+        }
+
         return [
             'exam_id' => Exam::factory(),
             'applicant_name' => fake()->name(),
             'applicant_email' => fake()->unique()->safeEmail(),
             'applicant_phone' => fake()->phoneNumber(),
             'applicant_id_number' => fake()->numerify('###########'),
-            'status' => fake()->randomElement(['draft', 'submitted', 'approved', 'rejected', 'pending', 'paid', 'failed', 'cancelled']),
+            'status' => $status,
+            'selection_stage' => $selectionStage,
             'transaction_id' => null,
             'payment_amount' => fake()->randomFloat(2, 100, 2000),
             'payment_method' => null,
