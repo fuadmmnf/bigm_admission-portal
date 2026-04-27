@@ -41,6 +41,25 @@ class ApplicationFormController extends Controller
 
         $validated = $request->validated();
 
+        // Block duplicate paid submissions: same email, phone, or NID for the same exam
+        $alreadyPaid = Application::query()
+            ->where('exam_id', $exam->id)
+            ->where('status', 'paid')
+            ->where(function ($q) use ($validated): void {
+                $q->where('applicant_email', $validated['email'])
+                  ->orWhere('applicant_phone', $validated['mobile_number'])
+                  ->orWhere('applicant_id_number', $validated['national_id_number']);
+            })
+            ->exists();
+
+        if ($alreadyPaid) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'applicant_name' => 'A paid application already exists for this exam with the same email, phone, or ID number. Please contact the office if you believe this is an error.',
+                ]);
+        }
+
         $applicantPhotoPath = $request->file('applicant_photo')?->store('applicant_uploads/photos', 'public');
         $signaturePath = $request->file('signature')?->store('applicant_uploads/signatures', 'public');
 

@@ -43,12 +43,18 @@ class ExamPageController extends Controller
     public function show(Exam $exam): View
     {
         $applications = $exam->applications()
+            ->where('status', 'paid')
             ->latest()
-            ->paginate(15);
+            ->paginate(25);
+
+        $totalPaid = $exam->applications()->where('status', 'paid')->count();
+        $totalAll  = $exam->applications()->count();
 
         return view('pages.admin-exam-show', [
-            'exam' => $exam,
+            'exam'         => $exam,
             'applications' => $applications,
+            'totalPaid'    => $totalPaid,
+            'totalAll'     => $totalAll,
         ]);
     }
 

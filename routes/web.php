@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\ExamPageController;
+use App\Http\Controllers\Admin\ApplicationAdmitCardController;
+use App\Http\Controllers\Admin\SendAdmitCardController;
 use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
@@ -35,6 +37,12 @@ Route::middleware([
     Route::get('/admin/exams/complete', [ExamPageController::class, 'index'])->defaults('status', 'complete')->name('admin.exams.complete');
 
     Route::get('/admin/exams/{exam}', [ExamPageController::class, 'show'])->name('admin.exams.show')->whereUlid('exam');
+    Route::get('/admin/applications/{application:ulid}/admit-card', ApplicationAdmitCardController::class)
+        ->name('admin.applications.admit-card');
+
+    Route::post('/admin/exams/{exam}/send-admit-cards', SendAdmitCardController::class)
+        ->name('admin.exams.send-admit-cards')
+        ->whereUlid('exam');
 
     Route::get('/admin/reports', function () {
         return view('pages.admin-reports');
