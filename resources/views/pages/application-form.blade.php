@@ -9,10 +9,15 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-gray-50 text-gray-900" x-data="{ showIntroModal: true }">
     @php
         $errorKeys = $errors->keys();
         $initialStep = 1;
+        $photoRules = $uploadRules['photo'] ?? [];
+        $signatureRules = $uploadRules['signature'] ?? [];
+        $marksheetRules = $uploadRules['marksheet_pdf'] ?? [];
+        $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
+        $applicationEndAt = optional($exam->end_date)->format('d M Y, h:i A');
 
         foreach ($errorKeys as $errorKey) {
             if (
@@ -45,6 +50,70 @@
         }
     @endphp
 
+    <div
+        x-show="showIntroModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 p-4"
+    >
+        <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl border border-gray-200">
+            <div class="px-6 py-5 border-b border-gray-200">
+                <h2 class="text-xl font-bold text-gray-900">Read Before You Start Application</h2>
+                <p class="text-sm text-gray-600 mt-1">Please review these instructions carefully. Application fields will be enabled after you confirm.</p>
+            </div>
+
+            <div class="px-6 py-5 space-y-5 text-sm text-gray-700">
+                <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
+                    <p class="font-semibold text-indigo-900">Application Window</p>
+                    <p class="mt-1 text-indigo-800">
+                        Start: <strong>{{ $applicationStartAt ?? 'Immediately' }}</strong><br>
+                        End: <strong>{{ $applicationEndAt ?? 'Until exam closes' }}</strong>
+                    </p>
+                </div>
+
+                <div>
+                    <p class="font-semibold text-gray-900 mb-2">Required Upload Dimensions & Limits</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Photo: {{ data_get($photoRules, 'width', 300) }}x{{ data_get($photoRules, 'height', 300) }} px, max {{ data_get($photoRules, 'max_kb', 1024) }} KB.</li>
+                        <li>Signature: {{ data_get($signatureRules, 'width', 300) }}x{{ data_get($signatureRules, 'height', 80) }} px, max {{ data_get($signatureRules, 'max_kb', 512) }} KB.</li>
+                        <li>Educational marksheet PDFs (SSC/HSC/Graduation/Masters): max {{ data_get($marksheetRules, 'max_count', 10) }} files, {{ data_get($marksheetRules, 'max_kb', 5120) }} KB each.</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <p class="font-semibold text-gray-900 mb-2">Stepper Breakdown</p>
+                    <ol class="list-decimal list-inside space-y-1">
+                        <li><strong>Personal</strong>: Applicant details, photo, and signature.</li>
+                        <li><strong>Address</strong>: Present and permanent address.</li>
+                        <li><strong>Education</strong>: SSC, HSC, Graduation, and optional Masters details.</li>
+                        <li><strong>Career</strong>: Job experience (current and previous).</li>
+                        <li><strong>Course Choice</strong>: 6 program preferences without duplication.</li>
+                        <li><strong>Confirm</strong>: Declaration and final submission for payment.</li>
+                    </ol>
+                </div>
+
+                <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-red-800">
+                    <p class="font-semibold">Important Warning</p>
+                    <ul class="list-disc list-inside mt-2 space-y-1">
+                        <li>If payment fails or is cancelled, the submitted application will be deleted.</li>
+                        <li>If the payment page is reloaded before completion, the application will be deleted.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2">
+                <a href="{{ route('home') }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Back</a>
+                <button
+                    type="button"
+                    x-on:click="showIntroModal = false"
+                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                >
+                    I Understand, Start Application
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div :class="showIntroModal ? 'pointer-events-none select-none opacity-70 blur-[1px]' : ''">
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
             <div>
@@ -56,6 +125,10 @@
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-8">
+        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-6 text-sm text-blue-900">
+            <span class="font-semibold">Application period:</span>
+            {{ $applicationStartAt ?? 'Now' }} to {{ $applicationEndAt ?? 'Until exam closes' }}
+        </div>
         <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4 mb-6">
             <p class="text-sm text-indigo-900">
                 Fill out all required fields from the original PDF form. After submission, you will be redirected to payment.
@@ -544,6 +617,7 @@
             </div>
         </form>
     </main>
+    </div>
 
     <script>
         function applicationStepper({

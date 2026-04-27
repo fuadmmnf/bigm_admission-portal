@@ -4,13 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationAdmitCardController.php" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/resources/views/pages/applicant-admit-card.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
-    </list>
+    <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -258,7 +252,7 @@
       <updated>1777089453018</updated>
       <workItem from="1777089456444" duration="18000" />
       <workItem from="1777089921186" duration="17971000" />
-      <workItem from="1777127474206" duration="20483000" />
+      <workItem from="1777127474206" duration="21559000" />
     </task>
     <servers />
   </component>

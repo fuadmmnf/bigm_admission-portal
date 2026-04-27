@@ -181,7 +181,7 @@ class PaymentTest extends TestCase
         $this->assertTrue((bool) data_get($application->payment_response, 'validation_fallback'));
     }
 
-    public function test_failed_payment_marks_application_status_as_failed(): void
+    public function test_failed_payment_deletes_unpaid_application(): void
     {
         $application = Application::factory()->create([
             'transaction_id' => 'TXN-FAIL-001',
@@ -196,11 +196,12 @@ class PaymentTest extends TestCase
         $response->assertOk();
         $response->assertSee('Payment Failed');
 
-        $application->refresh();
-        $this->assertEquals('failed', $application->status);
+        $this->assertSoftDeleted('applications', [
+            'id' => $application->id,
+        ]);
     }
 
-    public function test_cancelled_payment_marks_application_status_as_cancelled(): void
+    public function test_cancelled_payment_deletes_unpaid_application(): void
     {
         $application = Application::factory()->create([
             'transaction_id' => 'TXN-CANCEL-001',
@@ -215,8 +216,28 @@ class PaymentTest extends TestCase
         $response->assertOk();
         $response->assertSee('Payment Cancelled');
 
-        $application->refresh();
-        $this->assertEquals('cancelled', $application->status);
+        $this->assertSoftDeleted('applications', [
+            'id' => $application->id,
+        ]);
+    }
+
+    public function test_reloading_payment_initiate_deletes_pending_application(): void
+    {
+        $application = Application::factory()->create([
+            'status' => 'pending',
+            'transaction_id' => 'TXN-RELOAD-001',
+        ]);
+
+        $response = $this
+            ->withSession(['active_payment_application_ulid' => $application->ulid])
+            ->get(route('payment.initiate', $application));
+
+        $response->assertRedirect(route('payment.failed-page'));
+        $response->assertSessionHas('error');
+
+        $this->assertSoftDeleted('applications', [
+            'id' => $application->id,
+        ]);
     }
 
     public function test_ipn_validates_and_marks_application_as_paid(): void

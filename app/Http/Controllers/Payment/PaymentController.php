@@ -25,6 +25,18 @@ class PaymentController extends Controller
             return redirect()->route('payment.success-page')->with('info', 'This application has already been paid.');
         }
 
+        $sessionPaymentKey = (string) $request->session()->get('active_payment_application_ulid', '');
+        if ($application->status === 'pending' && $sessionPaymentKey === (string) $application->ulid) {
+            $application->delete();
+
+            $request->session()->forget('active_payment_application_ulid');
+
+            return redirect()->route('payment.failed-page')->with(
+                'error',
+                'Application deleted because the payment page was reloaded before payment completion. Please submit a new application.'
+            );
+        }
+
         // Generate a unique transaction ID and persist it before redirect
         $transactionId = 'TXN-' . strtoupper($application->ulid) . '-' . now()->format('YmdHis');
         $defaultAmount = (float) config('sslcommerz.default_amount', 0);
@@ -34,6 +46,8 @@ class PaymentController extends Controller
             'status' => 'pending',
             'payment_amount' => $defaultAmount,
         ]);
+
+        $request->session()->put('active_payment_application_ulid', $application->ulid);
 
         $callbackBaseUrl = $request->getSchemeAndHttpHost();
         $callbackRoutes = (array) config($this->isSandboxMode() ? 'sslcommerz.sandbox_routes' : 'sslcommerz.routes', []);
@@ -133,6 +147,7 @@ class PaymentController extends Controller
                 ]);
 
                 $application->markAsPaid($tranId, $fallbackPayload);
+                $request->session()->forget('active_payment_application_ulid');
 
                 Log::warning('SSLCommerz sandbox fallback used after validation error.', [
                     'application_ulid' => $application->ulid,
@@ -153,15 +168,18 @@ class PaymentController extends Controller
 
         if ($this->sslcommerz->isPaymentValid($validation, $tranId, $application->payment_amount)) {
             $application->markAsPaid($tranId, $validation);
+            $request->session()->forget('active_payment_application_ulid');
             Log::info('Payment confirmed', ['application_ulid' => $application->ulid, 'tran_id' => $tranId]);
             return view('pages.payment-success', [
                 'application' => $application->ulid,
             ]);
         }
 
-        $application->markPaymentFailed($validation);
+        $application->delete();
+        $request->session()->forget('active_payment_application_ulid');
+
         return view('pages.payment-failed', [
-            'error' => 'Payment could not be verified.',
+            'error' => 'Payment could not be verified. The application has been deleted. Please submit again.',
         ]);
     }
 
@@ -181,13 +199,15 @@ class PaymentController extends Controller
         $application = Application::where('transaction_id', $tranId)->first();
 
         if ($application && $application->status !== 'paid') {
-            $application->markPaymentFailed($request->all());
+            $application->delete();
         }
+
+        $request->session()->forget('active_payment_application_ulid');
 
         Log::info('SSLCommerz payment failed', ['tran_id' => $tranId]);
 
         return view('pages.payment-failed', [
-            'error' => 'Payment failed. Please try again.',
+            'error' => 'Payment failed. The application has been deleted. Please submit a new application and try again.',
         ]);
     }
 
@@ -207,13 +227,15 @@ class PaymentController extends Controller
         $application = Application::where('transaction_id', $tranId)->first();
 
         if ($application && $application->status !== 'paid') {
-            $application->markPaymentCancelled($request->all());
+            $application->delete();
         }
+
+        $request->session()->forget('active_payment_application_ulid');
 
         Log::info('SSLCommerz payment cancelled', ['tran_id' => $tranId]);
 
         return view('pages.payment-cancel', [
-            'info' => 'Payment was cancelled.',
+            'info' => 'Payment was cancelled. The application has been deleted. Please submit a new application if you want to apply again.',
         ]);
     }
 
@@ -253,7 +275,7 @@ class PaymentController extends Controller
             }
         }
 
-        $application->markPaymentFailed($request->all());
+        $application->delete();
         return response()->json(['result' => 'failed']);
     }
 

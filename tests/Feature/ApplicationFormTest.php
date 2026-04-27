@@ -27,6 +27,34 @@ class ApplicationFormTest extends TestCase
         $response->assertOk();
         $response->assertSee('Admission Application Form');
         $response->assertSee($exam->name);
+        $response->assertSee('Read Before You Start Application');
+        $response->assertSee('If payment fails or is cancelled, the submitted application will be deleted.');
+    }
+
+    public function test_application_form_returns_not_found_before_start_date(): void
+    {
+        $exam = Exam::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->addDay(),
+            'end_date' => now()->addDays(5),
+        ]);
+
+        $response = $this->get(route('applications.create', $exam));
+
+        $response->assertNotFound();
+    }
+
+    public function test_application_form_returns_not_found_after_end_date(): void
+    {
+        $exam = Exam::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->subDays(5),
+            'end_date' => now()->subMinute(),
+        ]);
+
+        $response = $this->get(route('applications.create', $exam));
+
+        $response->assertNotFound();
     }
 
     public function test_application_form_returns_not_found_for_non_active_exam(): void

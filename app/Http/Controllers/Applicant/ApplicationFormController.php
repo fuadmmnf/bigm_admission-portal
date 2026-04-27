@@ -32,6 +32,11 @@ class ApplicationFormController extends Controller
             'formOptions' => config('applicant_form'),
             'districts' => $districts,
             'upazilas' => $upazilas,
+            'uploadRules' => [
+                'photo' => config('applicant_uploads.photo', []),
+                'signature' => config('applicant_uploads.signature', []),
+                'marksheet_pdf' => config('applicant_uploads.marksheet_pdf', []),
+            ],
         ]);
     }
 
