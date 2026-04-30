@@ -36,6 +36,7 @@ class ApplicationFormController extends Controller
                 'photo' => config('applicant_uploads.photo', []),
                 'signature' => config('applicant_uploads.signature', []),
                 'marksheet_pdf' => config('applicant_uploads.marksheet_pdf', []),
+                'certificate_pdf' => config('applicant_uploads.certificate_pdf', []),
             ],
         ]);
     }
@@ -67,6 +68,24 @@ class ApplicationFormController extends Controller
 
         $applicantPhotoPath = $request->file('applicant_photo')?->store('applicant_uploads/photos', 'public');
         $signaturePath = $request->file('signature')?->store('applicant_uploads/signatures', 'public');
+        $educationDocumentPaths = [
+            'ssc' => [
+                'marksheet' => $request->file('education_documents.ssc.marksheet')?->store('applicant_uploads/education/ssc', 'public'),
+                'certificate' => $request->file('education_documents.ssc.certificate')?->store('applicant_uploads/education/ssc', 'public'),
+            ],
+            'hsc' => [
+                'marksheet' => $request->file('education_documents.hsc.marksheet')?->store('applicant_uploads/education/hsc', 'public'),
+                'certificate' => $request->file('education_documents.hsc.certificate')?->store('applicant_uploads/education/hsc', 'public'),
+            ],
+            'graduation' => [
+                'marksheet' => $request->file('education_documents.graduation.marksheet')?->store('applicant_uploads/education/graduation', 'public'),
+                'certificate' => $request->file('education_documents.graduation.certificate')?->store('applicant_uploads/education/graduation', 'public'),
+            ],
+            'masters' => [
+                'marksheet' => $request->file('education_documents.masters.marksheet')?->store('applicant_uploads/education/masters', 'public'),
+                'certificate' => $request->file('education_documents.masters.certificate')?->store('applicant_uploads/education/masters', 'public'),
+            ],
+        ];
 
         $dob = Carbon::parse($validated['date_of_birth']);
         $ageDiff = $dob->diff(now());
@@ -117,6 +136,7 @@ class ApplicationFormController extends Controller
                 'uploads' => [
                     'applicant_photo' => $applicantPhotoPath,
                     'signature' => $signaturePath,
+                    'education_documents' => $educationDocumentPaths,
                 ],
             ],
         ]);

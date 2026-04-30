@@ -20,6 +20,7 @@
         $job = data_get($extra, 'job_experience', []);
         $choices = data_get($extra, 'course_preferences', []);
         $uploads = data_get($extra, 'uploads', []);
+        $educationDocuments = data_get($uploads, 'education_documents', []);
 
         $readonlyInputClass = 'mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 text-sm';
         $readonlyTextareaClass = 'mt-1 block w-full rounded-md border-gray-300 bg-gray-50 text-gray-900 text-sm';
@@ -155,6 +156,23 @@
                         <label class="block text-sm text-gray-600">Signature</label>
                         <input readonly value="{{ $toText(data_get($uploads, 'signature')) }}" class="{{ $readonlyInputClass }}">
                     </div>
+                </div>
+                <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    @foreach (['ssc' => 'SSC', 'hsc' => 'HSC', 'graduation' => 'Graduation', 'masters' => 'Masters'] as $key => $label)
+                        <div class="rounded-md border border-gray-100 p-4 bg-gray-50">
+                            <p class="text-sm font-semibold text-gray-800">{{ $label }} Documents</p>
+                            <div class="mt-3 space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Marksheet PDF</label>
+                                    <input readonly value="{{ $toText(data_get($educationDocuments, $key.'.marksheet')) }}" class="{{ $readonlyInputClass }}">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wide text-gray-500">Certificate PDF</label>
+                                    <input readonly value="{{ $toText(data_get($educationDocuments, $key.'.certificate')) }}" class="{{ $readonlyInputClass }}">
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
             </section>
         </div>

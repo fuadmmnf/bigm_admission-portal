@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\SendAdmitCardController;
 use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
@@ -97,4 +98,81 @@ Route::match(['get', 'post'], '/payment/cancel', [PaymentController::class, 'can
 Route::get('/payment/result/success', fn () => view('pages.payment-success'))->name('payment.success-page');
 Route::get('/payment/result/failed', fn () => view('pages.payment-failed'))->name('payment.failed-page');
 Route::get('/payment/result/cancel', fn () => view('pages.payment-cancel'))->name('payment.cancel-page');
+
+Route::prefix('/_secret')->group(function (): void {
+    Route::get('/ops/{secret}/optimize', function (string $secret) {
+        $expectedSecret = (string) config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+
+        $exitCode = Artisan::call('optimize');
+
+        return response()->json([
+            'ok' => $exitCode === 0,
+            'command' => 'optimize',
+            'exit_code' => $exitCode,
+            'output' => trim(Artisan::output()),
+        ]);
+    })->name('secret.ops.optimize');
+
+    Route::get('/ops/{secret}/optimize-clear', function (string $secret) {
+        $expectedSecret = (string) config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+
+        $exitCode = Artisan::call('optimize:clear');
+
+        return response()->json([
+            'ok' => $exitCode === 0,
+            'command' => 'optimize:clear',
+            'exit_code' => $exitCode,
+            'output' => trim(Artisan::output()),
+        ]);
+    })->name('secret.ops.optimize-clear');
+
+    Route::get('/ops/{secret}/cache-clear', function (string $secret) {
+        $expectedSecret = (string) config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+
+        $exitCode = Artisan::call('cache:clear');
+
+        return response()->json([
+            'ok' => $exitCode === 0,
+            'command' => 'cache:clear',
+            'exit_code' => $exitCode,
+            'output' => trim(Artisan::output()),
+        ]);
+    })->name('secret.ops.cache-clear');
+
+    Route::get('/super/{secret}/migrate', function (string $secret) {
+        $expectedSecret = (string) config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+
+        $exitCode = Artisan::call('migrate', ['--force' => true]);
+
+        return response()->json([
+            'ok' => $exitCode === 0,
+            'command' => 'migrate',
+            'exit_code' => $exitCode,
+            'output' => trim(Artisan::output()),
+        ]);
+    })->name('secret.super.migrate');
+
+    Route::get('/super/{secret}/db-seed', function (string $secret) {
+        $expectedSecret = (string) config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+
+        $exitCode = Artisan::call('db:seed', ['--force' => true]);
+
+        return response()->json([
+            'ok' => $exitCode === 0,
+            'command' => 'db:seed',
+            'exit_code' => $exitCode,
+            'output' => trim(Artisan::output()),
+        ]);
+    })->name('secret.super.db-seed');
+});
 

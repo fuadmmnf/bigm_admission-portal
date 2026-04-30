@@ -16,6 +16,7 @@
         $photoRules = $uploadRules['photo'] ?? [];
         $signatureRules = $uploadRules['signature'] ?? [];
         $marksheetRules = $uploadRules['marksheet_pdf'] ?? [];
+        $certificateRules = $uploadRules['certificate_pdf'] ?? [];
         $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
         $applicationEndAt = optional($exam->end_date)->format('d M Y, h:i A');
 
@@ -28,7 +29,7 @@
                 break;
             }
 
-            if (str_starts_with($errorKey, 'education.')) {
+            if (str_starts_with($errorKey, 'education.') || str_starts_with($errorKey, 'education_documents.')) {
                 $initialStep = 3;
                 break;
             }
@@ -75,7 +76,8 @@
                     <ul class="list-disc list-inside space-y-1">
                         <li>Photo: {{ data_get($photoRules, 'width', 300) }}x{{ data_get($photoRules, 'height', 300) }} px, max {{ data_get($photoRules, 'max_kb', 1024) }} KB.</li>
                         <li>Signature: {{ data_get($signatureRules, 'width', 300) }}x{{ data_get($signatureRules, 'height', 80) }} px, max {{ data_get($signatureRules, 'max_kb', 512) }} KB.</li>
-                        <li>Educational marksheet PDFs (SSC/HSC/Graduation/Masters): max {{ data_get($marksheetRules, 'max_count', 10) }} files, {{ data_get($marksheetRules, 'max_kb', 5120) }} KB each.</li>
+                        <li>SSC, HSC, and other qualification marksheet PDFs: max {{ data_get($marksheetRules, 'max_kb', 5120) }} KB each.</li>
+                        <li>SSC, HSC, and other qualification certificate PDFs: max {{ data_get($certificateRules, 'max_kb', 5120) }} KB each.</li>
                     </ul>
                 </div>
 
@@ -423,6 +425,16 @@
                         </select>
                         <input name="education[ssc][passing_year]" type="number" value="{{ old('education.ssc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300" required>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <label for="ssc_marksheet" class="block text-sm font-medium text-gray-700">SSC Marksheet PDF *</label>
+                            <input id="ssc_marksheet" name="education_documents[ssc][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                        </div>
+                        <div>
+                            <label for="ssc_certificate" class="block text-sm font-medium text-gray-700">SSC Certificate PDF *</label>
+                            <input id="ssc_certificate" name="education_documents[ssc][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                        </div>
+                    </div>
                 </fieldset>
 
                 <fieldset class="rounded-lg border border-gray-200 p-4">
@@ -450,6 +462,16 @@
                         </select>
                         <input name="education[hsc][passing_year]" type="number" value="{{ old('education.hsc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300" required>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <label for="hsc_marksheet" class="block text-sm font-medium text-gray-700">HSC Marksheet PDF *</label>
+                            <input id="hsc_marksheet" name="education_documents[hsc][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                        </div>
+                        <div>
+                            <label for="hsc_certificate" class="block text-sm font-medium text-gray-700">HSC Certificate PDF *</label>
+                            <input id="hsc_certificate" name="education_documents[hsc][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                        </div>
+                    </div>
                 </fieldset>
 
                 <fieldset class="rounded-lg border border-gray-200 p-4">
@@ -468,6 +490,16 @@
                         <input name="education[graduation][passing_year]" type="number" value="{{ old('education.graduation.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300" required>
                         <input name="education[graduation][course_duration_years]" type="number" step="0.1" value="{{ old('education.graduation.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300" required>
                     </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <label for="graduation_marksheet" class="block text-sm font-medium text-gray-700">Graduation Marksheet PDF *</label>
+                            <input id="graduation_marksheet" name="education_documents[graduation][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                        </div>
+                        <div>
+                            <label for="graduation_certificate" class="block text-sm font-medium text-gray-700">Graduation Certificate PDF *</label>
+                            <input id="graduation_certificate" name="education_documents[graduation][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                        </div>
+                    </div>
                 </fieldset>
 
                 <fieldset class="rounded-lg border border-gray-200 p-4">
@@ -480,6 +512,16 @@
                         <input name="education[masters][result_scale]" type="text" value="{{ old('education.masters.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300">
                         <input name="education[masters][passing_year]" type="number" value="{{ old('education.masters.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300">
                         <input name="education[masters][course_duration_years]" type="number" step="0.1" value="{{ old('education.masters.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                        <div>
+                            <label for="masters_marksheet" class="block text-sm font-medium text-gray-700">Masters Marksheet PDF (Optional)</label>
+                            <input id="masters_marksheet" name="education_documents[masters][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm">
+                        </div>
+                        <div>
+                            <label for="masters_certificate" class="block text-sm font-medium text-gray-700">Masters Certificate PDF (Optional)</label>
+                            <input id="masters_certificate" name="education_documents[masters][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm">
+                        </div>
                     </div>
                 </fieldset>
             </section>
@@ -773,6 +815,11 @@
 
                     return new File([blob], fileName, { type: 'image/png' });
                 },
+                createDummyPdfFile(fileName, label) {
+                    const content = `%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] /Contents 4 0 R /Resources << >> >>\nendobj\n4 0 obj\n<< /Length 58 >>\nstream\nBT /F1 12 Tf 24 96 Td (${label}) Tj ET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000117 00000 n \n0000000223 00000 n \ntrailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n329\n%%EOF`;
+
+                    return new File([content], fileName, { type: 'application/pdf' });
+                },
                 async attachFileToInput(inputSelector, file) {
                     const input = document.querySelector(inputSelector);
                     if (!input) {
@@ -886,6 +933,21 @@
 
                     await this.attachFileToInput('#applicant_photo', photoFile);
                     await this.attachFileToInput('#signature_input', signatureFile);
+
+                    const docFiles = {
+                        '#ssc_marksheet': this.createDummyPdfFile('ssc-marksheet.pdf', 'SSC Marksheet'),
+                        '#ssc_certificate': this.createDummyPdfFile('ssc-certificate.pdf', 'SSC Certificate'),
+                        '#hsc_marksheet': this.createDummyPdfFile('hsc-marksheet.pdf', 'HSC Marksheet'),
+                        '#hsc_certificate': this.createDummyPdfFile('hsc-certificate.pdf', 'HSC Certificate'),
+                        '#graduation_marksheet': this.createDummyPdfFile('graduation-marksheet.pdf', 'Graduation Marksheet'),
+                        '#graduation_certificate': this.createDummyPdfFile('graduation-certificate.pdf', 'Graduation Certificate'),
+                        '#masters_marksheet': this.createDummyPdfFile('masters-marksheet.pdf', 'Masters Marksheet'),
+                        '#masters_certificate': this.createDummyPdfFile('masters-certificate.pdf', 'Masters Certificate'),
+                    };
+
+                    for (const [selector, file] of Object.entries(docFiles)) {
+                        await this.attachFileToInput(selector, file);
+                    }
 
                     this.step = this.totalSteps;
                     window.scrollTo({ top: 0, behavior: 'smooth' });

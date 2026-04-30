@@ -100,7 +100,7 @@ class ApplicationFormTest extends TestCase
 
         $payload = [
             'applicant_name' => 'Rahim Uddin',
-            'applicant_photo' => UploadedFile::fake()->image('photo.png', 300, 80),
+            'applicant_photo' => UploadedFile::fake()->image('photo.png', 300, 300),
             'father_name' => 'Abdul Karim',
             'mother_name' => 'Sufia Khatun',
             'date_of_birth' => '1997-05-10',
@@ -161,6 +161,24 @@ class ApplicationFormTest extends TestCase
                     'course_duration_years' => 1,
                 ],
             ],
+            'education_documents' => [
+                'ssc' => [
+                    'marksheet' => UploadedFile::fake()->create('ssc-marksheet.pdf', 300, 'application/pdf'),
+                    'certificate' => UploadedFile::fake()->create('ssc-certificate.pdf', 300, 'application/pdf'),
+                ],
+                'hsc' => [
+                    'marksheet' => UploadedFile::fake()->create('hsc-marksheet.pdf', 300, 'application/pdf'),
+                    'certificate' => UploadedFile::fake()->create('hsc-certificate.pdf', 300, 'application/pdf'),
+                ],
+                'graduation' => [
+                    'marksheet' => UploadedFile::fake()->create('graduation-marksheet.pdf', 300, 'application/pdf'),
+                    'certificate' => UploadedFile::fake()->create('graduation-certificate.pdf', 300, 'application/pdf'),
+                ],
+                'masters' => [
+                    'marksheet' => UploadedFile::fake()->create('masters-marksheet.pdf', 300, 'application/pdf'),
+                    'certificate' => UploadedFile::fake()->create('masters-certificate.pdf', 300, 'application/pdf'),
+                ],
+            ],
 
             'job_experience' => [
                 'total_years' => 4,
@@ -214,6 +232,12 @@ class ApplicationFormTest extends TestCase
         $this->assertSame('Dhanmondi', $application->additional_info['present_address']['upazila_name']);
         Storage::disk('public')->assertExists($application->additional_info['uploads']['applicant_photo']);
         Storage::disk('public')->assertExists($application->additional_info['uploads']['signature']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['education_documents']['ssc']['marksheet']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['education_documents']['ssc']['certificate']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['education_documents']['hsc']['marksheet']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['education_documents']['hsc']['certificate']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['education_documents']['graduation']['marksheet']);
+        Storage::disk('public')->assertExists($application->additional_info['uploads']['education_documents']['graduation']['certificate']);
     }
 }
 

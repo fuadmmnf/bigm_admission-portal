@@ -16,6 +16,8 @@ class StoreApplicationRequest extends FormRequest
     {
         $currentYear = (int) now()->format('Y');
         $programs = config('applicant_form.programs', []);
+        $marksheetMaxKb = (int) config('applicant_uploads.marksheet_pdf.max_kb', 5120);
+        $certificateMaxKb = (int) config('applicant_uploads.certificate_pdf.max_kb', 5120);
 
         return [
             'applicant_name' => ['required', 'string', 'max:255'],
@@ -86,6 +88,15 @@ class StoreApplicationRequest extends FormRequest
             'education.masters.result_scale' => ['nullable', 'string', 'max:30'],
             'education.masters.passing_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
             'education.masters.course_duration_years' => ['nullable', 'numeric', 'min:1', 'max:10'],
+
+            'education_documents.ssc.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
+            'education_documents.ssc.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
+            'education_documents.hsc.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
+            'education_documents.hsc.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
+            'education_documents.graduation.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
+            'education_documents.graduation.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
+            'education_documents.masters.marksheet' => ['nullable', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
+            'education_documents.masters.certificate' => ['nullable', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
 
             'job_experience.total_years' => ['required', 'numeric', 'min:0', 'max:60'],
             'job_experience.current.job_category' => ['nullable', 'string', 'max:120'],

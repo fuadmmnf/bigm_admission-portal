@@ -17,5 +17,9 @@ return [
         'max_kb' => 5120,
         'max_count' => 10,
     ],
+
+    'certificate_pdf' => [
+        'max_kb' => 5120,
+    ],
 ];
 
