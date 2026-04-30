@@ -234,6 +234,16 @@
                     </div>
 
                     <div>
+                        <label for="gender" class="block text-sm font-medium text-gray-700">Gender *</label>
+                        <select id="gender" name="gender" class="mt-1 block w-full rounded-md border-gray-300" required>
+                            <option value="">Select Gender</option>
+                            @foreach (($formOptions['genders'] ?? []) as $gender)
+                                <option value="{{ $gender }}" @selected(old('gender') === $gender)>{{ $gender }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="age_as_of_reference" class="block text-sm font-medium text-gray-700">Age (as of today) *</label>
                         <input id="age_as_of_reference" type="text" x-model="ageDisplay" class="mt-1 block w-full rounded-md border-gray-300 bg-gray-50" disabled>
                         <input name="age_as_of_reference" type="hidden" :value="ageDisplay">
@@ -849,6 +859,7 @@
                     this.setInputValue('applicant_name', 'Test Applicant');
                     this.setInputValue('father_name', 'Test Father');
                     this.setInputValue('mother_name', 'Test Mother');
+                    this.setSelectValue('gender', 'Male');
                     this.setInputValue('national_id_number', '1234567890');
                     this.setInputValue('mobile_number', '01712345678');
                     this.setInputValue('email', 'dev.applicant@example.test');

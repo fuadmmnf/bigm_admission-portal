@@ -66,24 +66,24 @@ class ApplicationFormController extends Controller
                 ]);
         }
 
-        $applicantPhotoPath = $request->file('applicant_photo')?->store('applicant_uploads/photos', 'public');
-        $signaturePath = $request->file('signature')?->store('applicant_uploads/signatures', 'public');
+        $applicantPhotoPath = $request->file('applicant_photo')?->storePublicly('applicant_uploads/photos', 'public');
+        $signaturePath = $request->file('signature')?->storePublicly('applicant_uploads/signatures', 'public');
         $educationDocumentPaths = [
             'ssc' => [
-                'marksheet' => $request->file('education_documents.ssc.marksheet')?->store('applicant_uploads/education/ssc', 'public'),
-                'certificate' => $request->file('education_documents.ssc.certificate')?->store('applicant_uploads/education/ssc', 'public'),
+                'marksheet' => $request->file('education_documents.ssc.marksheet')?->storePublicly('applicant_uploads/education/ssc', 'public'),
+                'certificate' => $request->file('education_documents.ssc.certificate')?->storePublicly('applicant_uploads/education/ssc', 'public'),
             ],
             'hsc' => [
-                'marksheet' => $request->file('education_documents.hsc.marksheet')?->store('applicant_uploads/education/hsc', 'public'),
-                'certificate' => $request->file('education_documents.hsc.certificate')?->store('applicant_uploads/education/hsc', 'public'),
+                'marksheet' => $request->file('education_documents.hsc.marksheet')?->storePublicly('applicant_uploads/education/hsc', 'public'),
+                'certificate' => $request->file('education_documents.hsc.certificate')?->storePublicly('applicant_uploads/education/hsc', 'public'),
             ],
             'graduation' => [
-                'marksheet' => $request->file('education_documents.graduation.marksheet')?->store('applicant_uploads/education/graduation', 'public'),
-                'certificate' => $request->file('education_documents.graduation.certificate')?->store('applicant_uploads/education/graduation', 'public'),
+                'marksheet' => $request->file('education_documents.graduation.marksheet')?->storePublicly('applicant_uploads/education/graduation', 'public'),
+                'certificate' => $request->file('education_documents.graduation.certificate')?->storePublicly('applicant_uploads/education/graduation', 'public'),
             ],
             'masters' => [
-                'marksheet' => $request->file('education_documents.masters.marksheet')?->store('applicant_uploads/education/masters', 'public'),
-                'certificate' => $request->file('education_documents.masters.certificate')?->store('applicant_uploads/education/masters', 'public'),
+                'marksheet' => $request->file('education_documents.masters.marksheet')?->storePublicly('applicant_uploads/education/masters', 'public'),
+                'certificate' => $request->file('education_documents.masters.certificate')?->storePublicly('applicant_uploads/education/masters', 'public'),
             ],
         ];
 
@@ -102,6 +102,7 @@ class ApplicationFormController extends Controller
             'applicant_email' => $validated['email'],
             'applicant_phone' => $validated['mobile_number'],
             'applicant_id_number' => $validated['national_id_number'],
+            'gender' => $validated['gender'],
             'status' => 'submitted',
             'additional_info' => [
                 'source' => 'homepage_stepper_form',
@@ -109,6 +110,7 @@ class ApplicationFormController extends Controller
                 'personal' => [
                     'father_name' => $validated['father_name'],
                     'mother_name' => $validated['mother_name'],
+                    'gender' => $validated['gender'],
                     'date_of_birth' => $validated['date_of_birth'],
                     'age_as_of_reference' => $computedAge,
                 ],

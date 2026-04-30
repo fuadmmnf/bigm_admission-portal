@@ -103,6 +103,7 @@ class ApplicationFormTest extends TestCase
             'applicant_photo' => UploadedFile::fake()->image('photo.png', 300, 300),
             'father_name' => 'Abdul Karim',
             'mother_name' => 'Sufia Khatun',
+            'gender' => 'Male',
             'date_of_birth' => '1997-05-10',
             'age_as_of_reference' => '28 Years, 0 Months',
             'national_id_number' => '19901234567890123',
@@ -224,10 +225,12 @@ class ApplicationFormTest extends TestCase
             'applicant_name' => 'Rahim Uddin',
             'applicant_email' => 'rahim@example.com',
             'applicant_phone' => '01710000000',
+            'gender' => 'Male',
             'status' => 'submitted',
         ]);
 
         $this->assertSame('homepage_stepper_form', $application->additional_info['source']);
+        $this->assertSame('Male', data_get($application->additional_info, 'personal.gender'));
         $this->assertSame('Dhaka', $application->additional_info['present_address']['district_name']);
         $this->assertSame('Dhanmondi', $application->additional_info['present_address']['upazila_name']);
         Storage::disk('public')->assertExists($application->additional_info['uploads']['applicant_photo']);

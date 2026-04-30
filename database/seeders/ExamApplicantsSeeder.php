@@ -40,6 +40,7 @@ class ExamApplicantsSeeder extends Seeder
 
             for ($row = 1; $row <= $applicantCount; $row++) {
                 $status = $this->resolveApplicationStatus($row);
+                $gender = fake()->randomElement(['Male', 'Female', 'Other']);
 
                 $attributes = [
                     'exam_id' => $exam->id,
@@ -50,6 +51,7 @@ class ExamApplicantsSeeder extends Seeder
                     'applicant_name' => fake()->name(),
                     'applicant_phone' => sprintf('+8801%09d', ($exam->id * 1000 + $row) % 1000000000),
                     'applicant_id_number' => str_pad((string) ($exam->id * 100000 + $row), 11, '0', STR_PAD_LEFT),
+                    'gender' => $gender,
                     'status' => $status,
                     'transaction_id' => $status === 'paid' ? sprintf('SEED-TXN-%d-%03d', $exam->id, $row) : null,
                     'payment_amount' => in_array($status, ['pending', 'paid', 'failed', 'cancelled'], true)
@@ -63,6 +65,9 @@ class ExamApplicantsSeeder extends Seeder
                         'seeded_for' => 'exam-applicants',
                         'exam_status' => $exam->status,
                         'row' => $row,
+                        'personal' => [
+                            'gender' => $gender,
+                        ],
                     ],
                 ];
 

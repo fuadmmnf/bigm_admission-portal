@@ -29,32 +29,30 @@
             @endif
 
             {{-- Exam summary --}}
-            <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+            <div class="bg-white shadow-sm border border-gray-200 rounded-lg px-3 py-2">
                 <div class="overflow-x-auto">
-                <dl class="min-w-[980px] grid grid-cols-5 gap-4 text-sm">
-                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
-                        <dt class="text-gray-500">Status</dt>
-                        <dd class="font-semibold text-gray-900">{{ $exam->status === 'closed' ? 'complete' : $exam->status }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
-                        <dt class="text-gray-500">Application Window</dt>
-                        <dd class="font-semibold text-gray-900">
-                            {{ optional($exam->start_date)->format('d M Y') ?? 'N/A' }} – {{ optional($exam->end_date)->format('d M Y') ?? 'N/A' }}
-                        </dd>
-                    </div>
-                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
-                        <dt class="text-gray-500">Paid Applicants</dt>
-                        <dd class="font-semibold text-emerald-700">{{ $totalPaid }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
-                        <dt class="text-gray-500">Viva Selected</dt>
-                        <dd class="font-semibold text-amber-700">{{ $totalViva }}</dd>
-                    </div>
-                    <div class="rounded-md border border-gray-100 bg-gray-50 p-3">
-                        <dt class="text-gray-500">Program Selected</dt>
-                        <dd class="font-semibold text-purple-700">{{ $totalProgram }}</dd>
-                    </div>
-                </dl>
+                    <dl class="min-w-max flex items-center gap-2 text-xs whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1">
+                            <dt class="text-gray-500">Status:</dt>
+                            <dd class="font-semibold text-gray-900">{{ $exam->status === 'closed' ? 'complete' : $exam->status }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1">
+                            <dt class="text-gray-500">Application Window:</dt>
+                            <dd class="font-semibold text-gray-900">{{ optional($exam->start_date)->format('d M Y') ?? 'N/A' }} – {{ optional($exam->end_date)->format('d M Y') ?? 'N/A' }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1">
+                            <dt class="text-emerald-700">Paid:</dt>
+                            <dd class="font-semibold text-emerald-700">{{ $totalPaid }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1">
+                            <dt class="text-amber-700">Viva:</dt>
+                            <dd class="font-semibold text-amber-700">{{ $totalViva }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-purple-200 bg-purple-50 px-2 py-1">
+                            <dt class="text-purple-700">Program:</dt>
+                            <dd class="font-semibold text-purple-700">{{ $totalProgram }}</dd>
+                        </div>
+                    </dl>
                 </div>
             </div>
 
@@ -160,6 +158,7 @@
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Gender</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection Stage</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
@@ -185,6 +184,7 @@
                                             <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $application->applicant_name }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
+                                            <td class="px-4 py-3 text-sm text-gray-700">{{ $application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A') }}</td>
                                             <td class="px-4 py-3 text-sm">
                                                 <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                                                     Paid
@@ -225,7 +225,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="8" class="px-4 py-8 text-center text-sm text-gray-500">
+                                        <td colspan="9" class="px-4 py-8 text-center text-sm text-gray-500">
                                             No applicants found for this tab.
                                         </td>
                                     </tr>

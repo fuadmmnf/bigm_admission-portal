@@ -16,6 +16,7 @@ class StoreApplicationRequest extends FormRequest
     {
         $currentYear = (int) now()->format('Y');
         $programs = config('applicant_form.programs', []);
+        $genders = config('applicant_form.genders', []);
         $marksheetMaxKb = (int) config('applicant_uploads.marksheet_pdf.max_kb', 5120);
         $certificateMaxKb = (int) config('applicant_uploads.certificate_pdf.max_kb', 5120);
 
@@ -26,6 +27,7 @@ class StoreApplicationRequest extends FormRequest
             'mother_name' => ['required', 'string', 'max:255'],
             'date_of_birth' => ['required', 'date', 'before:today'],
             'age_as_of_reference' => ['nullable', 'string', 'max:120'],
+            'gender' => ['required', 'string', Rule::in($genders)],
             'national_id_number' => ['required', 'string', 'max:120'],
             'mobile_number' => ['required', 'string', 'max:30'],
             'email' => ['required', 'email', 'max:255'],

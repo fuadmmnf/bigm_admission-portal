@@ -44,6 +44,17 @@
                                 <td class="px-4 py-3 text-right text-sm">
                                     <div class="inline-flex items-center gap-1.5">
                                         <a
+                                            href="{{ route('admin.exams.reports.index', $exam) }}"
+                                            class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-indigo-200 bg-indigo-50 text-indigo-600 transition-colors duration-150 hover:bg-indigo-100 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:ring-offset-1"
+                                            aria-label="Exam settings"
+                                            title="Exam settings & reports"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                                <path fill-rule="evenodd" d="M11.49 3.17a1 1 0 0 0-1.98 0l-.12.95a1 1 0 0 1-.74.84l-.92.24a1 1 0 0 0-.58 1.56l.57.77a1 1 0 0 1 0 1.18l-.57.77a1 1 0 0 0 .58 1.56l.92.24a1 1 0 0 1 .74.84l.12.95a1 1 0 0 0 1.98 0l.12-.95a1 1 0 0 1 .74-.84l.92-.24a1 1 0 0 0 .58-1.56l-.57-.77a1 1 0 0 1 0-1.18l.57-.77a1 1 0 0 0-.58-1.56l-.92-.24a1 1 0 0 1-.74-.84l-.12-.95ZM10.5 11.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </a>
+
+                                        <a
                                             href="{{ route('admin.exams.show', $exam) }}"
                                             class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-sky-200 bg-sky-50/70 text-sky-600 transition-colors duration-150 hover:bg-sky-100 hover:text-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-200 focus:ring-offset-1"
                                             aria-label="View applicants"

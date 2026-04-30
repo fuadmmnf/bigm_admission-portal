@@ -16,6 +16,7 @@ class ApplicationFactory extends Factory
     public function definition(): array
     {
         $status = fake()->randomElement(['draft', 'submitted', 'approved', 'rejected', 'pending', 'paid', 'failed', 'cancelled']);
+        $gender = fake()->randomElement(['Male', 'Female', 'Other']);
 
         $selectionStage = null;
         if ($status === 'paid') {
@@ -32,13 +33,22 @@ class ApplicationFactory extends Factory
             'applicant_email' => fake()->unique()->safeEmail(),
             'applicant_phone' => fake()->phoneNumber(),
             'applicant_id_number' => fake()->numerify('###########'),
+            'gender' => $gender,
             'status' => $status,
             'selection_stage' => $selectionStage,
             'transaction_id' => null,
             'payment_amount' => fake()->randomFloat(2, 100, 2000),
             'payment_method' => null,
             'payment_response' => null,
-            'additional_info' => null,
+            'additional_info' => [
+                'personal' => [
+                    'father_name' => fake()->name('male'),
+                    'mother_name' => fake()->name('female'),
+                    'gender' => $gender,
+                    'date_of_birth' => fake()->date('Y-m-d', '-18 years'),
+                    'age_as_of_reference' => fake()->numberBetween(18, 45).' Years, '.fake()->numberBetween(0, 11).' Months',
+                ],
+            ],
         ];
     }
 }

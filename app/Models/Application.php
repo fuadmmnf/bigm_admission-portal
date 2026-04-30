@@ -61,6 +61,7 @@ class Application extends Model
         'applicant_email',
         'applicant_phone',
         'applicant_id_number',
+        'gender',
         'status',
         'transaction_id',
         'payment_amount',
@@ -74,6 +75,7 @@ class Application extends Model
     {
         return [
             'status' => 'string',
+            'gender' => 'string',
             'payment_amount' => 'decimal:2',
             'payment_response' => 'array',
             'selection_stage' => 'string',

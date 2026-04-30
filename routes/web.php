@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ApplicationAdmitCardController;
 use App\Http\Controllers\Admin\ApplicationDeleteController;
 use App\Http\Controllers\Admin\ApplicationShowController;
 use App\Http\Controllers\Admin\ApplicationStageUpdateController;
+use App\Http\Controllers\Admin\ExamReportController;
 use App\Http\Controllers\Admin\SendAdmitCardController;
 use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
@@ -54,6 +55,42 @@ Route::middleware([
         ->whereUlid('exam');
     Route::post('/admin/exams/{exam}/applications/stage', ApplicationStageUpdateController::class)
         ->name('admin.exams.applications.stage-update')
+        ->whereUlid('exam');
+
+    Route::get('/admin/exams/{exam}/reports', [ExamReportController::class, 'index'])
+        ->name('admin.exams.reports.index')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/attendance-list', [ExamReportController::class, 'attendanceList'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.attendance-list')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/viva-selected-list', [ExamReportController::class, 'vivaSelectedList'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.viva-selected-list')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/gender-wise-applicants', [ExamReportController::class, 'genderWiseApplicants'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.gender-wise-applicants')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/employer-wise', [ExamReportController::class, 'employerWiseApplicants'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.employer-wise')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/choice-list-wise', [ExamReportController::class, 'choiceListWiseApplicants'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.choice-list-wise')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/job-experience-wise', [ExamReportController::class, 'jobExperienceWiseApplicants'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.job-experience-wise')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/enrolled-students', [ExamReportController::class, 'enrolledStudents'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.enrolled-students')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/all-applicant-cvs', [ExamReportController::class, 'allApplicantCvs'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.all-applicant-cvs')
         ->whereUlid('exam');
 
     Route::get('/admin/reports', function () {

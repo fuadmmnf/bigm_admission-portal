@@ -137,38 +137,38 @@ class AdminExamPagesTest extends TestCase
             'exam_id' => $exam->id,
             'status' => 'paid',
             'selection_stage' => Application::STAGE_PAID,
-            'applicant_name' => 'Paid Only',
+            'applicant_name' => 'Candidate Paid',
         ]);
         Application::factory()->create([
             'exam_id' => $exam->id,
             'status' => 'paid',
             'selection_stage' => Application::STAGE_VIVA_SELECTED,
-            'applicant_name' => 'Viva Selected',
+            'applicant_name' => 'Candidate Viva',
         ]);
         Application::factory()->create([
             'exam_id' => $exam->id,
             'status' => 'paid',
             'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
-            'applicant_name' => 'Program Selected',
+            'applicant_name' => 'Candidate Program',
         ]);
 
         $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid']))
             ->assertOk()
-            ->assertSee('Paid Only')
-            ->assertSee('Viva Selected')
-            ->assertSee('Program Selected');
+            ->assertSee('Candidate Paid')
+            ->assertSee('Candidate Viva')
+            ->assertSee('Candidate Program');
 
         $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva']))
             ->assertOk()
-            ->assertDontSee('Paid Only')
-            ->assertSee('Viva Selected')
-            ->assertSee('Program Selected');
+            ->assertDontSee('Candidate Paid')
+            ->assertSee('Candidate Viva')
+            ->assertSee('Candidate Program');
 
         $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'program']))
             ->assertOk()
-            ->assertDontSee('Paid Only')
-            ->assertDontSee('Viva Selected')
-            ->assertSee('Program Selected');
+            ->assertDontSee('Candidate Paid')
+            ->assertDontSee('Candidate Viva')
+            ->assertSee('Candidate Program');
     }
 
     public function test_admin_can_mark_selected_paid_applicants_as_viva_selected(): void
@@ -306,11 +306,174 @@ class AdminExamPagesTest extends TestCase
         $response = $this->get(route('admin.exams.active'));
 
         $response->assertOk();
+        $response->assertSee('aria-label="Exam settings"', false);
         $response->assertSee('aria-label="View applicants"', false);
         $response->assertSee('aria-label="Edit exam"', false);
         $response->assertSee('aria-label="Delete exam"', false);
         $response->assertSee('data-delete-trigger', false);
         $response->assertSee('delete-exam-modal');
+    }
+
+    public function test_admin_can_view_exam_reports_page(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        $response = $this->get(route('admin.exams.reports.index', $exam));
+
+        $response->assertOk();
+        $response->assertSee('Exam Reports');
+        $response->assertSee('Download Attendance Sheet');
+        $response->assertSee('Download Viva List');
+        $response->assertSee('Download Gender Report');
+        $response->assertSee('Download Employer Report');
+        $response->assertSee('Download Choice Report');
+        $response->assertSee('Download Job-Experience Report');
+        $response->assertSee('Download Enrolled Students');
+        $response->assertSee('Download All CVs');
+    }
+
+    public function test_admin_can_stream_attendance_pdf_report(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'applicant_name' => 'Paid Candidate',
+        ]);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'pending',
+            'applicant_name' => 'Pending Candidate',
+        ]);
+
+        $response = $this->get(route('admin.exams.reports.attendance-list', $exam));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_moderator_cannot_download_attendance_pdf_report(): void
+    {
+        $moderator = User::factory()->create();
+        Role::findOrCreate('moderator', 'web');
+        $moderator->assignRole('moderator');
+        $this->actingAs($moderator);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        $response = $this->get(route('admin.exams.reports.attendance-list', $exam));
+
+        $response->assertForbidden();
+    }
+
+    public function test_admin_can_stream_viva_selected_pdf_report(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_VIVA_SELECTED,
+            'applicant_name' => 'Viva Candidate',
+        ]);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Paid Only Candidate',
+        ]);
+
+        $response = $this->get(route('admin.exams.reports.viva-selected-list', $exam));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_moderator_cannot_download_viva_selected_pdf_report(): void
+    {
+        $moderator = User::factory()->create();
+        Role::findOrCreate('moderator', 'web');
+        $moderator->assignRole('moderator');
+        $this->actingAs($moderator);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        $response = $this->get(route('admin.exams.reports.viva-selected-list', $exam));
+
+        $response->assertForbidden();
+    }
+
+    public function test_admin_can_stream_all_new_exam_reports(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
+            'applicant_name' => 'Final Candidate',
+        ]);
+
+        $routes = [
+            'admin.exams.reports.gender-wise-applicants',
+            'admin.exams.reports.employer-wise',
+            'admin.exams.reports.choice-list-wise',
+            'admin.exams.reports.job-experience-wise',
+            'admin.exams.reports.enrolled-students',
+            'admin.exams.reports.all-applicant-cvs',
+        ];
+
+        foreach ($routes as $routeName) {
+            $response = $this->get(route($routeName, $exam));
+            $response->assertOk();
+            $response->assertHeader('content-type', 'application/pdf');
+        }
+    }
+
+    public function test_moderator_cannot_download_new_exam_reports(): void
+    {
+        $moderator = User::factory()->create();
+        Role::findOrCreate('moderator', 'web');
+        $moderator->assignRole('moderator');
+        $this->actingAs($moderator);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        $routes = [
+            'admin.exams.reports.gender-wise-applicants',
+            'admin.exams.reports.employer-wise',
+            'admin.exams.reports.choice-list-wise',
+            'admin.exams.reports.job-experience-wise',
+            'admin.exams.reports.enrolled-students',
+            'admin.exams.reports.all-applicant-cvs',
+        ];
+
+        foreach ($routes as $routeName) {
+            $this->get(route($routeName, $exam))->assertForbidden();
+        }
     }
 
     public function test_admin_can_delete_exam_from_list_action(): void

@@ -36,6 +36,8 @@ return [
 
     'groups' => ['Science', 'Humanities', 'Business Studies', 'General', 'Other'],
 
+    'genders' => ['Male', 'Female', 'Other'],
+
     'programs' => ['HRM', 'GPP', 'IER', 'PM', 'PSCM', 'PPFM'],
 
     'payment_methods' => ['Card', 'Mobile Banking', 'Net Banking'],
