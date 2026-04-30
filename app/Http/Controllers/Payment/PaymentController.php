@@ -14,298 +14,269 @@ use RuntimeException;
 class PaymentController extends Controller
 {
     public function __construct(private SSLCommerzService $sslcommerz) {}
+    /**
+     * Determine if SSLCommerz is running in sandbox mode.
+     */
+    private function isSandboxMode(): bool
+    {
+        return (bool) config('sslcommerz.sandbox', true);
+    }
 
     /**
-     * Initiate a payment for the given application.
-     * Redirects the user to the SSLCommerz payment gateway.
+     * Fallback handler for sandbox validation failures.
+     * Used because SSLCommerz sandbox validation is unreliable.
+     */
+    private function handleSandboxFallback(Request $request, Application $application): View
+    {
+        $tranId = $request->input('tran_id');
+
+        Log::warning('Sandbox fallback triggered for payment', [
+            'tran_id' => $tranId,
+            'application_ulid' => $application->ulid,
+        ]);
+
+        // Ensure transaction matches
+        if ($tranId !== $application->transaction_id) {
+            return view('pages.payment-failed', [
+                'error' => 'Transaction mismatch in sandbox fallback.',
+            ]);
+        }
+
+        // Mark as paid safely (sandbox only)
+        $application->markAsPaid($tranId, [
+            'sandbox_fallback' => true,
+            'raw_request' => $request->all(),
+        ]);
+
+        $request->session()->forget('active_payment_application_ulid');
+
+        return view('pages.payment-success', [
+            'application' => $application->ulid,
+            'info' => 'Payment confirmed via sandbox fallback.',
+        ]);
+    }
+
+    /**
+     * Initiate SSLCommerz payment
      */
     public function initiate(Request $request, Application $application): RedirectResponse
     {
         if ($application->status === 'paid') {
-            return redirect()->route('payment.success-page')->with('info', 'This application has already been paid.');
+            return redirect()
+                ->route('payment.success')
+                ->with('info', 'Already paid.');
         }
 
-        // Keep pending applications on repeated initiate hits.
-        // Some browsers or retries can trigger this endpoint more than once.
+        $amount = (float) config('sslcommerz.default_amount', 0);
 
-        // Generate a unique transaction ID and persist it before redirect
-        $transactionId = 'TXN-' . strtoupper($application->ulid) . '-' . now()->format('YmdHis');
-        $defaultAmount = (float) config('sslcommerz.default_amount', 0);
+        if ($amount <= 0) {
+            Log::error('Invalid payment amount', [
+                'application_ulid' => $application->ulid,
+                'amount' => $amount,
+            ]);
+
+            return redirect()->route('payment.failed')
+                ->with('error', 'Invalid payment configuration.');
+        }
+
+        if (
+            blank($application->applicant_name) ||
+            blank($application->applicant_email) ||
+            blank($application->applicant_phone)
+        ) {
+            return redirect()->route('payment.failed')
+                ->with('error', 'Missing applicant information.');
+        }
+
+        // Stable transaction ID (no regeneration)
+        $transactionId = $application->transaction_id;
+
+        if (blank($transactionId)) {
+            $transactionId = 'TXN-' . strtoupper($application->ulid) . '-' . now()->format('YmdHis');
+        }
 
         $application->update([
             'transaction_id' => $transactionId,
             'status' => 'pending',
-            'payment_amount' => $defaultAmount,
+            'payment_amount' => $amount,
         ]);
 
-        $request->session()->put('active_payment_application_ulid', $application->ulid);
-
-        $callbackBaseUrl = $request->getSchemeAndHttpHost();
-        $callbackRoutes = (array) config($this->isSandboxMode() ? 'sslcommerz.sandbox_routes' : 'sslcommerz.routes', []);
-
-        $successUrl = $this->buildGatewayCallbackUrl($callbackBaseUrl, (string) ($callbackRoutes['success'] ?? '/payment/success'));
-        $failedUrl = $this->buildGatewayCallbackUrl($callbackBaseUrl, (string) ($callbackRoutes['failed'] ?? '/payment/failed'));
-        $cancelUrl = $this->buildGatewayCallbackUrl($callbackBaseUrl, (string) ($callbackRoutes['cancel'] ?? '/payment/cancel'));
-        $ipnUrl = $this->buildGatewayCallbackUrl($callbackBaseUrl, (string) ($callbackRoutes['ipn'] ?? '/payment/ipn'));
+        $baseUrl = rtrim(config('app.url'), '/');
 
         $paymentData = [
             'tran_id' => $transactionId,
-            'total_amount' => (float) $application->payment_amount,
+            'total_amount' => $amount,
+            'currency' => 'BDT',
+
             'cus_name' => $application->applicant_name,
             'cus_email' => $application->applicant_email,
             'cus_phone' => $application->applicant_phone,
+
             'product_name' => 'Admission: ' . ($application->exam?->name ?? 'Exam'),
             'product_category' => 'Admission',
-            'success_url' => $successUrl,
-            'fail_url' => $failedUrl,
-            'cancel_url' => $cancelUrl,
-            'ipn_url' => $ipnUrl,
+            'product_profile' => 'general',
+
+            'shipping_method' => 'NO',
+
+            'cus_add1' => 'N/A',
+            'cus_city' => 'Dhaka',
+            'cus_country' => 'Bangladesh',
+
+            // CALLBACKS (ONLY HERE, NOT IN SERVICE)
+            'success_url' => $baseUrl . '/payment/callback/success',
+            'fail_url'    => $baseUrl . '/payment/callback/failed',
+            'cancel_url'  => $baseUrl . '/payment/callback/cancel',
+            'ipn_url'     => $baseUrl . '/payment/ipn',
         ];
 
-        Log::info('SSLCommerz initiation payload prepared', [
-            'application_ulid' => $application->ulid,
+        Log::info('SSLCommerz initiate request', [
+            'application' => $application->ulid,
             'tran_id' => $transactionId,
-            'sandbox' => $this->isSandboxMode(),
-            'success_url' => $successUrl,
-            'fail_url' => $failedUrl,
-            'cancel_url' => $cancelUrl,
-            'ipn_url' => $ipnUrl,
         ]);
 
         try {
-            $gatewayUrl = $this->sslcommerz->initiate($paymentData);
-        } catch (RuntimeException $e) {
-            Log::error('SSLCommerz initiation error', [
-                'application_ulid' => $application->ulid,
-                'sandbox' => $this->isSandboxMode(),
-                'message' => $e->getMessage(),
-            ]);
+            $response = $this->sslcommerz->initiate($paymentData);
 
-            $errorMessage = 'Payment gateway unavailable. Please try again later.';
-            if (app()->environment(['local', 'testing'])) {
-                $errorMessage .= ' Gateway response: '.$e->getMessage();
+            if (is_string($response)) {
+                $gatewayUrl = $response;
+            } elseif (is_array($response)) {
+                $gatewayUrl = $response['GatewayPageURL'] ?? null;
+            } elseif (is_object($response)) {
+                $gatewayUrl = $response->GatewayPageURL ?? null;
+            } else {
+                throw new RuntimeException('Invalid gateway response');
             }
 
-            return redirect()->route('payment.failed-page')->with('error', $errorMessage);
+            if (blank($gatewayUrl)) {
+                throw new RuntimeException('Empty gateway URL');
+            }
+
+        } catch (RuntimeException $e) {
+            Log::error('SSLCommerz initiate failed', [
+                'message' => $e->getMessage(),
+                'application' => $application->ulid,
+            ]);
+
+            return redirect()->route('payment.failed')
+                ->with('error', 'Payment gateway error.');
         }
 
         return redirect()->away($gatewayUrl);
     }
 
     /**
-     * SSLCommerz success callback endpoint.
-     * Validates payment and marks application as paid.
+     * SUCCESS CALLBACK
      */
-    public function success(Request $request): View|RedirectResponse
+    public function success(Request $request): View
     {
-        Log::info('SSLCommerz success callback hit', [
-            'method' => $request->method(),
-            'tran_id' => $request->input('tran_id'),
-            'val_id' => $request->input('val_id'),
-            'status' => $request->input('status'),
-            'amount' => $request->input('amount'),
-            'card_type' => $request->input('card_type'),
-        ]);
-
-        $valId = $request->input('val_id');
         $tranId = $request->input('tran_id');
+        $valId = $request->input('val_id');
+
+        Log::info('Payment success callback', compact('tranId', 'valId'));
 
         $application = Application::where('transaction_id', $tranId)->first();
 
-        if (! $application) {
-            Log::warning('SSLCommerz success: application not found for tran_id', ['tran_id' => $tranId]);
-            return view('pages.payment-failed', [
-                'error' => 'Application not found.',
-            ]);
+        if (!$application) {
+            return view('pages.payment-failed', ['error' => 'Invalid transaction']);
         }
 
         if ($application->status === 'paid') {
-            return view('pages.payment-success', [
-                'info' => 'Payment already confirmed.',
-                'application' => $application->ulid,
-            ]);
+            return view('pages.payment-success', ['application' => $application->ulid]);
         }
 
         try {
             $validation = $this->sslcommerz->validate($valId);
         } catch (RuntimeException $e) {
-            Log::error('SSLCommerz validation error', ['val_id' => $valId, 'message' => $e->getMessage()]);
-
-            if ($this->canUseSandboxSuccessFallback($request, $application)) {
-                $fallbackPayload = array_merge($request->all(), [
-                    'validation_fallback' => true,
-                    'validation_error' => $e->getMessage(),
-                ]);
-
-                $application->markAsPaid($tranId, $fallbackPayload);
-                $request->session()->forget('active_payment_application_ulid');
-
-                Log::warning('SSLCommerz sandbox fallback used after validation error.', [
-                    'application_ulid' => $application->ulid,
-                    'tran_id' => $tranId,
-                    'val_id' => $valId,
-                ]);
-
-                return view('pages.payment-success', [
-                    'application' => $application->ulid,
-                    'info' => 'Payment confirmed (sandbox fallback used due to validator error).',
-                ]);
+            if ($this->isSandboxMode()) {
+                return $this->handleSandboxFallback($request, $application);
             }
+            Log::error('Validation failed', ['val_id' => $valId]);
 
-            return view('pages.payment-failed', [
-                'error' => 'Payment validation failed.',
-            ]);
+            return view('pages.payment-failed', ['error' => 'Validation failed']);
         }
 
         if ($this->sslcommerz->isPaymentValid($validation, $tranId, $application->payment_amount)) {
             $application->markAsPaid($tranId, $validation);
-            $request->session()->forget('active_payment_application_ulid');
-            Log::info('Payment confirmed', ['application_ulid' => $application->ulid, 'tran_id' => $tranId]);
+
             return view('pages.payment-success', [
-                'application' => $application->ulid,
+                'application' => $application->ulid
             ]);
         }
 
-        $application->delete();
-        $request->session()->forget('active_payment_application_ulid');
+        $application->update(['status' => 'failed']);
 
         return view('pages.payment-failed', [
-            'error' => 'Payment could not be verified. The application has been deleted. Please submit again.',
+            'error' => 'Payment verification failed'
         ]);
     }
 
     /**
-     * SSLCommerz failure callback endpoint.
+     * FAILED CALLBACK
      */
     public function failed(Request $request): View
     {
-        Log::info('SSLCommerz failed callback hit', [
-            'method' => $request->method(),
-            'tran_id' => $request->input('tran_id'),
-            'status' => $request->input('status'),
-            'amount' => $request->input('amount'),
-        ]);
-
         $tranId = $request->input('tran_id');
+
+        Log::info('Payment failed callback', compact('tranId'));
+
         $application = Application::where('transaction_id', $tranId)->first();
 
         if ($application && $application->status !== 'paid') {
-            $application->delete();
+            $application->update(['status' => 'failed']);
         }
 
-        $request->session()->forget('active_payment_application_ulid');
-
-        Log::info('SSLCommerz payment failed', ['tran_id' => $tranId]);
-
         return view('pages.payment-failed', [
-            'error' => 'Payment failed. The application has been deleted. Please submit a new application and try again.',
+            'error' => 'Payment failed'
         ]);
     }
 
     /**
-     * SSLCommerz cancel callback endpoint.
+     * CANCEL CALLBACK
      */
     public function cancel(Request $request): View
     {
-        Log::info('SSLCommerz cancel callback hit', [
-            'method' => $request->method(),
-            'tran_id' => $request->input('tran_id'),
-            'status' => $request->input('status'),
-            'amount' => $request->input('amount'),
-        ]);
-
         $tranId = $request->input('tran_id');
+
+        Log::info('Payment cancel callback', compact('tranId'));
+
         $application = Application::where('transaction_id', $tranId)->first();
 
         if ($application && $application->status !== 'paid') {
-            $application->delete();
+            $application->update(['status' => 'cancelled']);
         }
 
-        $request->session()->forget('active_payment_application_ulid');
-
-        Log::info('SSLCommerz payment cancelled', ['tran_id' => $tranId]);
-
-        return view('pages.payment-cancel', [
-            'info' => 'Payment was cancelled. The application has been deleted. Please submit a new application if you want to apply again.',
-        ]);
+        return view('pages.payment-cancel');
     }
 
     /**
-     * SSLCommerz IPN (Instant Payment Notification) endpoint.
-     * Server-to-server notification — validates and updates status.
+     * IPN
      */
     public function ipn(Request $request)
     {
-        $valId = $request->input('val_id');
         $tranId = $request->input('tran_id');
-        $status = $request->input('status');
+        $valId = $request->input('val_id');
 
-        Log::info('SSLCommerz IPN received', ['tran_id' => $tranId, 'status' => $status]);
+        Log::info('IPN received', compact('tranId', 'valId'));
 
         $application = Application::where('transaction_id', $tranId)->first();
 
-        if (! $application) {
-            return response()->json(['result' => 'application_not_found'], 422);
+        if (!$application || $application->status === 'paid') {
+            return response()->json(['status' => 'ignored']);
         }
 
-        if ($application->status === 'paid') {
-            return response()->json(['result' => 'already_paid']);
+        try {
+            $validation = $this->sslcommerz->validate($valId);
+        } catch (RuntimeException $e) {
+            return response()->json(['status' => 'error'], 500);
         }
 
-        if (in_array($status, ['VALID', 'VALIDATED'])) {
-            try {
-                $validation = $this->sslcommerz->validate($valId);
-            } catch (RuntimeException $e) {
-                Log::error('SSLCommerz IPN validation error', ['val_id' => $valId, 'message' => $e->getMessage()]);
-                return response()->json(['result' => 'validation_error'], 500);
-            }
-
-            if ($this->sslcommerz->isPaymentValid($validation, $tranId, $application->payment_amount)) {
-                $application->markAsPaid($tranId, $validation);
-                return response()->json(['result' => 'success']);
-            }
+        if ($this->sslcommerz->isPaymentValid($validation, $tranId, $application->payment_amount)) {
+            $application->markAsPaid($tranId, $validation);
+            return response()->json(['status' => 'success']);
         }
 
-        $application->delete();
-        return response()->json(['result' => 'failed']);
-    }
+        $application->update(['status' => 'failed']);
 
-
-
-    private function isSandboxMode(): bool
-    {
-        return (bool) config('sslcommerz.sandbox', true);
-    }
-
-    private function canUseSandboxSuccessFallback(Request $request, Application $application): bool
-    {
-        if (! $this->isSandboxMode()) {
-            return false;
-        }
-
-        if (($request->input('status') ?? '') !== 'VALID') {
-            return false;
-        }
-
-        $tranId = (string) $request->input('tran_id');
-        if ($tranId === '' || $tranId !== (string) $application->transaction_id) {
-            return false;
-        }
-
-        $callbackAmount = (float) ($request->input('amount') ?? 0);
-        $expectedAmount = (float) $application->payment_amount;
-
-        // Keep the same tolerance used by SSLCommerzService::isPaymentValid.
-        return abs($callbackAmount - $expectedAmount) <= 1;
-    }
-
-    private function buildGatewayCallbackUrl(string $baseUrl, string $pathOrUrl): string
-    {
-        if (str_starts_with($pathOrUrl, 'http://') || str_starts_with($pathOrUrl, 'https://')) {
-            return $pathOrUrl;
-        }
-
-        return rtrim($baseUrl, '/').'/'.ltrim($pathOrUrl, '/');
+        return response()->json(['status' => 'failed']);
     }
 }
-

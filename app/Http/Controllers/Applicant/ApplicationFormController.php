@@ -10,6 +10,7 @@ use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Log;
 
 class ApplicationFormController extends Controller
 {
@@ -143,6 +144,7 @@ class ApplicationFormController extends Controller
             ],
         ]);
 
+        Log::debug($application);
         return redirect()
             ->route('payment.initiate', $application)
             ->with('status', 'Application submitted successfully. Please complete payment to finalize your submission.');

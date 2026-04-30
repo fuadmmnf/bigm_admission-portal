@@ -22,104 +22,127 @@ class SSLCommerzService
         $this->sandbox = (bool) config('sslcommerz.sandbox', true);
 
         $env = $this->sandbox ? 'sandbox' : 'production';
+
         $this->initiateUrl = config("sslcommerz.api.{$env}.initiate");
         $this->validateUrl = config("sslcommerz.api.{$env}.validate");
     }
 
     /**
-     * Initiate a payment session with SSLCommerz.
-     * Returns the gateway page URL to redirect the applicant to.
-     *
-     * @param  array{
-     *     tran_id: string,
-     *     total_amount: float|int|string,
-     *     cus_name: string,
-     *     cus_email: string,
-     *     cus_phone: string,
-     *     cus_add1?: string,
-     *     cus_city?: string,
-     *     cus_country?: string,
-     *     product_name?: string,
-     *     product_category?: string,
-     * } $data
-     * @throws RuntimeException
+     * Initiate SSLCommerz payment session
+     * Returns GatewayPageURL for redirect
      */
     public function initiate(array $data): string
     {
-        $callbackRoutes = (array) config($this->sandbox ? 'sslcommerz.sandbox_routes' : 'sslcommerz.routes', []);
+        // Ensure required credentials exist
+        if (!$this->storeId || !$this->storePassword) {
+            throw new RuntimeException('SSLCommerz credentials not configured');
+        }
 
+        // Build payload strictly from controller-provided data
         $payload = array_merge([
-            'store_id' => $this->storeId,
-            'store_passwd' => $this->storePassword,
-            'currency' => config('sslcommerz.currency', 'BDT'),
-            'success_url' => url((string) ($callbackRoutes['success'] ?? '/payment/success')),
-            'fail_url' => url((string) ($callbackRoutes['failed'] ?? '/payment/failed')),
-            'cancel_url' => url((string) ($callbackRoutes['cancel'] ?? '/payment/cancel')),
-            'ipn_url' => url((string) ($callbackRoutes['ipn'] ?? '/payment/ipn')),
+            'store_id'       => $this->storeId,
+            'store_passwd'   => $this->storePassword,
+            'currency'       => config('sslcommerz.currency', 'BDT'),
             'shipping_method' => 'NO',
-            'product_name' => 'Admission Application',
-            'product_category' => 'Admission',
-            'product_profile' => 'general',
-            'cus_add1' => 'N/A',
-            'cus_city' => 'Dhaka',
-            'cus_country' => 'Bangladesh',
+
+            // DO NOT set callback URLs here (controller owns them)
         ], $data);
 
-        $response = Http::asForm()->post($this->initiateUrl, $payload);
+        Log::info('SSLCommerz initiate request', [
+            'tran_id' => $data['tran_id'] ?? null,
+            'amount'   => $data['total_amount'] ?? null,
+        ]);
+
+        $response = Http::asForm()
+            ->timeout(30)
+            ->post($this->initiateUrl, $payload);
 
         $this->throwOnHttpError($response, 'Initiation');
 
         $json = $response->json();
 
-        if (($json['status'] ?? '') !== 'SUCCESS') {
-            Log::error('SSLCommerz initiation failed', ['response' => $json]);
-            throw new RuntimeException('SSLCommerz initiation failed: ' . ($json['failedreason'] ?? 'Unknown reason'));
+        Log::info('SSLCommerz initiate response', [
+            'response' => $json,
+        ]);
+
+        // Strict validation of gateway response
+        if (
+            ($json['status'] ?? '') !== 'SUCCESS' ||
+            empty($json['GatewayPageURL'])
+        ) {
+            Log::error('SSLCommerz initiation failed', [
+                'response' => $json,
+                'tran_id' => $data['tran_id'] ?? null,
+            ]);
+
+            throw new RuntimeException(
+                $json['failedreason'] ?? 'SSLCommerz initiation failed'
+            );
         }
 
         return $json['GatewayPageURL'];
     }
 
     /**
-     * Validate a payment callback using SSLCommerz's validation API.
-     * Pass the val_id received in the success/IPN callback.
+     * Validate payment using val_id from SSLCommerz
      */
     public function validate(string $valId): array
     {
-        $response = Http::asForm()->post($this->validateUrl, [
-            'val_id' => $valId,
-            'store_id' => $this->storeId,
-            'store_passwd' => $this->storePassword,
-            'v' => 1,
-            'format' => 'json',
-        ]);
+        if (blank($valId)) {
+            throw new RuntimeException('Missing val_id for validation');
+        }
+
+
+        $response = Http::asForm()
+            ->timeout(30)
+            ->post($this->validateUrl, [
+                'val_id'        => $valId,
+                'store_id'      => $this->storeId,
+                'store_passwd'  => $this->storePassword,
+                'v'             => 1,
+                'format'        => 'json',
+            ]);
 
         $this->throwOnHttpError($response, 'Validation');
 
-        return $response->json();
+        $json = $response->json();
+
+        Log::info('SSLCommerz validation response', [
+            'val_id' => $valId,
+            'response' => $json,
+        ]);
+
+        return $json;
     }
 
     /**
-     * Check that a validated response genuinely indicates a paid transaction.
+     * Verify payment authenticity and integrity
      */
-    public function isPaymentValid(array $validationResponse, string $transactionId, string|int|float $amount): bool
+    public function isPaymentValid(array $validation, string $transactionId, float|int|string $amount): bool
     {
-        if (($validationResponse['status'] ?? '') !== 'VALID' &&
-            ($validationResponse['status'] ?? '') !== 'VALIDATED') {
+        $status = $validation['status'] ?? null;
+
+        if (!in_array($status, ['VALID', 'VALIDATED'])) {
             return false;
         }
 
-        if (($validationResponse['tran_id'] ?? '') !== $transactionId) {
+        if (($validation['tran_id'] ?? null) !== $transactionId) {
             return false;
         }
 
-        // Allow small floating-point rounding tolerance
-        if (abs((float) ($validationResponse['amount'] ?? 0) - (float) $amount) > 1) {
+        $paidAmount = (float) ($validation['amount'] ?? 0);
+
+        // Allow small rounding tolerance
+        if (abs($paidAmount - (float) $amount) > 1) {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * Throw exception for HTTP failures
+     */
     private function throwOnHttpError(Response $response, string $context): void
     {
         if ($response->failed()) {
@@ -127,9 +150,10 @@ class SSLCommerzService
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
-            throw new RuntimeException("SSLCommerz {$context} request failed with HTTP {$response->status()}");
+
+            throw new RuntimeException(
+                "SSLCommerz {$context} request failed ({$response->status()})"
+            );
         }
     }
-
 }
-
