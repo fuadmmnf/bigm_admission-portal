@@ -172,6 +172,7 @@
 </head>
 <body>
 @php
+    $mailType = $mailType ?? 'admit_card';
     $exam = $application->exam;
     $additional = is_array($application->additional_info) ? $application->additional_info : [];
     $personal = data_get($additional, 'personal', []);
@@ -213,6 +214,14 @@
     if (!is_array($instructions)) {
         $instructions = array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', (string) $instructions) ?: []));
     }
+
+    $noticeTitle = match ($mailType) {
+        'viva_eligibility' => 'Viva Eligibility Notice',
+        'program_selection' => 'Program Selection Notice',
+        default => 'Admit Card',
+    };
+
+    $selectedProgram = $application->selectedCategory?->name ?? 'Not assigned yet';
 @endphp
 
 <div class="wrapper">
@@ -222,6 +231,20 @@
     </div>
 
     <div class="card">
+        @if ($mailType === 'viva_eligibility')
+            <div style="border:1px solid #f59e0b;background:#fffbeb;padding:10px 12px;margin-bottom:12px;font-size:13px;line-height:1.5;">
+                <strong>{{ $noticeTitle }}:</strong>
+                You are eligible for the viva examination for <strong>{{ $exam?->name ?? 'this exam' }}</strong>.
+                Please attend as per schedule and bring your required documents.
+            </div>
+        @elseif ($mailType === 'program_selection')
+            <div style="border:1px solid #16a34a;background:#f0fdf4;padding:10px 12px;margin-bottom:12px;font-size:13px;line-height:1.5;">
+                <strong>{{ $noticeTitle }}:</strong>
+                Congratulations. You have been selected for program <strong>{{ $selectedProgram }}</strong>
+                under <strong>{{ $exam?->name ?? 'this exam' }}</strong>.
+            </div>
+        @endif
+
         <div class="card-header">
             <div class="logo-text">BIGM</div>
             <h2>Bangladesh Institute of Governance and Management</h2>
@@ -229,7 +252,7 @@
         </div>
 
         <div class="admit-tag">
-            <span>Admit Card &nbsp;–&nbsp; Admission Test {{ $admissionSession }}</span>
+            <span>{{ $noticeTitle }} &nbsp;–&nbsp; Admission Test {{ $admissionSession }}</span>
         </div>
 
         <br>

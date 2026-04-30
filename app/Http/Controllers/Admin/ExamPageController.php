@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\Category;
 use App\Models\Exam;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +29,6 @@ class ExamPageController extends Controller
             ->where('status', $resolvedStatus)
             ->withCount([
                 'applications as paid_applications_count' => fn ($query) => $query->where('status', 'paid'),
-                'applications as unpaid_applications_count' => fn ($query) => $query->where('status', '!=', 'paid'),
             ])
             ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%'.$request->string('search').'%'))
             ->orderByDesc('created_at')
@@ -47,6 +47,13 @@ class ExamPageController extends Controller
         if (! in_array($activeTab, ['paid', 'viva', 'program'], true)) {
             $activeTab = 'paid';
         }
+        $search = trim($request->string('search')->toString());
+
+        $sort = $request->string('sort')->toString();
+        $allowedSorts = ['latest', 'written_desc', 'written_asc', 'viva_desc', 'viva_asc'];
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'latest';
+        }
 
         $applicationsQuery = $exam->applications()
             ->where('status', 'paid');
@@ -62,10 +69,43 @@ class ExamPageController extends Controller
             $applicationsQuery->where('selection_stage', Application::STAGE_PROGRAM_SELECTED);
         }
 
+        if ($search !== '') {
+            $applicationsQuery->where(function ($query) use ($search): void {
+                $query->where('applicant_name', 'like', '%'.$search.'%')
+                    ->orWhere('applicant_email', 'like', '%'.$search.'%')
+                    ->orWhere('applicant_phone', 'like', '%'.$search.'%');
+            });
+        }
+
+        match ($sort) {
+            'written_desc' => $applicationsQuery
+                ->orderByRaw('written_exam_marks IS NULL')
+                ->orderByDesc('written_exam_marks')
+                ->orderByDesc('created_at'),
+            'written_asc' => $applicationsQuery
+                ->orderByRaw('written_exam_marks IS NULL')
+                ->orderBy('written_exam_marks')
+                ->orderByDesc('created_at'),
+            'viva_desc' => $applicationsQuery
+                ->orderByRaw('viva_exam_marks IS NULL')
+                ->orderByDesc('viva_exam_marks')
+                ->orderByDesc('created_at'),
+            'viva_asc' => $applicationsQuery
+                ->orderByRaw('viva_exam_marks IS NULL')
+                ->orderBy('viva_exam_marks')
+                ->orderByDesc('created_at'),
+            default => $applicationsQuery->latest(),
+        };
+
         $applications = $applicationsQuery
-            ->latest()
+            ->with('selectedCategory:id,name')
             ->paginate(25)
             ->appends($request->query());
+
+        $programCategories = Category::query()
+            ->where('type', 'program')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         $totalPaid = $exam->applications()->where('status', 'paid')->count();
         $totalViva = $exam->applications()
@@ -84,6 +124,9 @@ class ExamPageController extends Controller
             'totalViva'    => $totalViva,
             'totalProgram' => $totalProgram,
             'activeTab'    => $activeTab,
+            'activeSort'   => $sort,
+            'activeSearch' => $search,
+            'programCategories' => $programCategories,
         ]);
     }
 

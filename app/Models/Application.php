@@ -67,6 +67,9 @@ class Application extends Model
         'payment_amount',
         'payment_method',
         'payment_response',
+        'written_exam_marks',
+        'viva_exam_marks',
+        'selected_category_id',
         'selection_stage',
         'additional_info',
     ];
@@ -78,6 +81,9 @@ class Application extends Model
             'gender' => 'string',
             'payment_amount' => 'decimal:2',
             'payment_response' => 'array',
+            'written_exam_marks' => 'decimal:2',
+            'viva_exam_marks' => 'decimal:2',
+            'selected_category_id' => 'integer',
             'selection_stage' => 'string',
             'additional_info' => 'array',
         ];
@@ -86,6 +92,11 @@ class Application extends Model
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
+    }
+
+    public function selectedCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'selected_category_id');
     }
 
     /**
@@ -164,9 +175,13 @@ class Application extends Model
             ->useLogName('application')
             ->logOnly([
                 'status',
+                'selection_stage',
                 'transaction_id',
                 'payment_amount',
                 'payment_method',
+                'written_exam_marks',
+                'viva_exam_marks',
+                'selected_category_id',
             ])
             ->logOnlyDirty();
     }

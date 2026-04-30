@@ -66,6 +66,7 @@
                 @csrf
                 <input type="hidden" name="send_scope" :value="sendScope">
                 <input type="hidden" name="target_stage" :value="targetStage">
+                <input type="hidden" name="active_tab" value="{{ $activeTab }}">
 
                 <section class="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
 
@@ -80,14 +81,34 @@
 
                         <div class="flex items-center gap-2 flex-wrap">
                             <div class="flex items-center gap-2">
+                                {{-- Save All Changes — appears when any row input is dirty --}}
+                                <button
+                                    type="submit"
+                                    x-show="$store.marksChanges.count > 0"
+                                    x-cloak
+                                    formaction="{{ route('admin.exams.applications.assessment.bulk', $exam) }}"
+                                    class="inline-flex items-center gap-1.5 rounded-md border border-yellow-500 bg-yellow-300 px-3 py-1.5 text-xs font-extrabold text-gray-900 shadow-md ring-1 ring-yellow-400 hover:bg-yellow-400"
+                                >
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 3H7a2 2 0 00-2 2v16l7-3 7 3V5a2 2 0 00-2-2z"/>
+                                    </svg>
+                                    Save All Changes
+                                    <span class="inline-flex items-center justify-center rounded-full bg-white/25 px-1.5 py-0.5 text-[10px] font-bold leading-none" x-text="$store.marksChanges.count"></span>
+                                </button>
                                 <button
                                     type="submit"
                                     class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
                                     formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
                                     x-on:click="sendScope = 'all_paid'"
-                                    onclick="return confirm('Send admit card emails to ALL paid applicants for this exam?')"
+                                    onclick="return confirm('Send email notification to ALL applicants visible on this tab?')"
                                 >
-                                    Send All Paid
+                                    @if ($activeTab === 'paid')
+                                        Send Admit Card to All
+                                    @elseif ($activeTab === 'viva')
+                                        Send Viva Notice to All
+                                    @else
+                                        Send Program Notice to All
+                                    @endif
                                 </button>
                             </div>
                             <div class="flex items-center gap-2" x-show="selected.length > 0" x-cloak>
@@ -97,12 +118,18 @@
                                     class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
                                     formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
                                     x-on:click="sendScope = 'selected'"
-                                    onclick="return confirm('Send admit card emails to the selected applicants?')"
+                                    onclick="return confirm('Send email notification to the selected applicants on this tab?')"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                                     </svg>
-                                    Send Admit Card(s)
+                                    @if ($activeTab === 'paid')
+                                        Send Admit Card(s)
+                                    @elseif ($activeTab === 'viva')
+                                        Send Viva Notice(s)
+                                    @else
+                                        Send Program Notice(s)
+                                    @endif
                                 </button>
 
                                 @if ($activeTab === 'paid')
@@ -133,12 +160,34 @@
                         </div>
                     </div>
 
-                    <div class="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                    <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
                         <div class="inline-flex rounded-md border border-gray-200 bg-white p-1 text-xs font-semibold">
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid']) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'paid' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Paid ({{ $totalPaid }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva']) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'viva' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Viva Selected ({{ $totalViva }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program']) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'program' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Program Selected ({{ $totalProgram }})</a>
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'sort' => $activeSort, 'search' => $activeSearch]) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'paid' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Paid ({{ $totalPaid }})</a>
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva', 'sort' => $activeSort, 'search' => $activeSearch]) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'viva' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Viva Selected ({{ $totalViva }})</a>
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program', 'sort' => $activeSort, 'search' => $activeSearch]) }}" class="rounded px-3 py-1.5 {{ $activeTab === 'program' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Program Selected ({{ $totalProgram }})</a>
                         </div>
+                        <form method="GET" action="{{ route('admin.exams.show', $exam) }}" class="ml-auto flex items-center gap-2 flex-wrap justify-end">
+                            <input type="hidden" name="tab" value="{{ $activeTab }}">
+                            <label for="sort" class="text-xs font-medium text-gray-600">Sort</label>
+                            <select id="sort" name="sort" class="w-20 rounded-md border-gray-300 text-xs" onchange="this.form.submit()">
+                                <option value="latest" @selected($activeSort === 'latest')>Latest</option>
+                                <option value="written_desc" @selected($activeSort === 'written_desc')>Written marks (high to low)</option>
+                                <option value="written_asc" @selected($activeSort === 'written_asc')>Written marks (low to high)</option>
+                                <option value="viva_desc" @selected($activeSort === 'viva_desc')>Viva marks (high to low)</option>
+                                <option value="viva_asc" @selected($activeSort === 'viva_asc')>Viva marks (low to high)</option>
+                            </select>
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ $activeSearch }}"
+                                placeholder="Search name, phone, email"
+                                class="w-100 rounded-md border-gray-300 text-xs"
+                            >
+                            <button type="submit" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">Apply</button>
+                            @if ($activeSearch !== '' || $activeSort !== 'latest')
+                                <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => $activeTab]) }}" class="inline-flex items-center rounded-md px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700" title="Clear filters">Clear</a>
+                            @endif
+                        </form>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -159,8 +208,8 @@
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Gender</th>
-                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection Stage</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Assessment</th>
                                     <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
                                 </tr>
                             </thead>
@@ -185,12 +234,80 @@
                                             <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
                                             <td class="px-4 py-3 text-sm text-gray-700">{{ $application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A') }}</td>
-                                            <td class="px-4 py-3 text-sm">
-                                                <span class="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                                                    Paid
-                                                </span>
-                                            </td>
                                             <td class="px-4 py-3 text-sm text-gray-700">{{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</td>
+                                            <td class="px-4 py-3 text-xs text-gray-600">
+                                                <div class="space-y-1 min-w-[14rem]">
+                                                    @if ($activeTab === 'paid')
+                                                        {{-- Per-row written marks tracker --}}
+                                                        <div x-data="trackableMarks(
+                                                            @js(old('written_marks.'.$application->ulid, $application->written_exam_marks)),
+                                                            @js($application->ulid)
+                                                        )">
+                                                            <div class="flex items-center gap-1.5 mb-1">
+                                                                <label class="text-[11px] font-semibold text-gray-700">Written</label>
+                                                            </div>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    min="0"
+                                                                    name="written_marks[{{ $application->ulid }}]"
+                                                                    x-model="current"
+                                                                    @input="onInput"
+                                                                    class="no-spinner w-16 rounded-md border-gray-300 text-xs"
+                                                                >
+                                                            </div>
+                                                        </div>
+                                                    @elseif ($activeTab === 'viva')
+                                                        <p><span class="font-semibold text-gray-700">Written:</span> {{ $application->written_exam_marks !== null ? number_format((float) $application->written_exam_marks, 2) : 'N/A' }}</p>
+                                                        {{-- Per-row viva marks tracker --}}
+                                                        <div x-data="trackableMarks(
+                                                            @js(old('viva_marks.'.$application->ulid, $application->viva_exam_marks)),
+                                                            @js($application->ulid)
+                                                        )">
+                                                            <div class="flex items-center gap-1.5 mb-1">
+                                                                <label class="text-[11px] font-semibold text-gray-700">Viva</label>
+                                                            </div>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <input
+                                                                    type="number"
+                                                                    step="0.01"
+                                                                    min="0"
+                                                                    name="viva_marks[{{ $application->ulid }}]"
+                                                                    x-model="current"
+                                                                    @input="onInput"
+                                                                    class="no-spinner w-16 rounded-md border-gray-300 text-xs"
+                                                                >
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <p><span class="font-semibold text-gray-700">Written:</span> {{ $application->written_exam_marks !== null ? number_format((float) $application->written_exam_marks, 2) : 'N/A' }}</p>
+                                                        <p><span class="font-semibold text-gray-700">Viva:</span> {{ $application->viva_exam_marks !== null ? number_format((float) $application->viva_exam_marks, 2) : 'N/A' }}</p>
+                                                        {{-- Per-row program selection tracker --}}
+                                                        <div x-data="trackableProgram(
+                                                            @js(old('selected_category_ids.'.$application->ulid, $application->selected_category_id)),
+                                                            @js($application->ulid)
+                                                        )">
+                                                            <div class="flex items-center gap-1.5 mb-1">
+                                                                <label class="text-[11px] font-semibold text-gray-700">Program</label>
+                                                            </div>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <select
+                                                                    name="selected_category_ids[{{ $application->ulid }}]"
+                                                                    x-model="current"
+                                                                    @change="onInput"
+                                                                    class="w-full rounded-md border-gray-300 text-xs"
+                                                                >
+                                                                    <option value="">Not selected</option>
+                                                                    @foreach ($programCategories as $category)
+                                                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                                                    @endforeach
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </td>
                                             <td class="px-4 py-3 text-sm whitespace-nowrap">
                                                 <div class="flex items-center gap-2">
                                                     <a
@@ -261,7 +378,32 @@
         @method('DELETE')
     </form>
 
+    <style>
+        input.no-spinner::-webkit-outer-spin-button,
+        input.no-spinner::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input.no-spinner[type='number'] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+    </style>
+
     <script>
+
+        // Global store: tracks which row ULIDs have unsaved changes.
+        // The toolbar "Save All Changes" badge reads count from here.
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('marksChanges', {
+                dirty: new Set(),
+                markDirty(id) { this.dirty.add(id); },
+                markClean(id) { this.dirty.delete(id); },
+                get count() { return this.dirty.size; },
+            });
+        });
+
         function admitCardForm() {
             const pageUlids = @js($applications->pluck('ulid')->toArray());
 
@@ -288,7 +430,6 @@
                     this.selected = this.selected.filter(u => !pageUlids.includes(u));
                 },
 
-
                 removeApplication(deleteUrl) {
                     if (!confirm('Confirm delete of this application? This action can be restored only from soft-deleted records.')) return;
 
@@ -297,6 +438,63 @@
 
                     form.action = deleteUrl;
                     form.submit();
+                },
+            };
+        }
+
+        /**
+         * Per-row marks tracker (written / viva).
+         * Tracks dirty state only; bulk save is done from the navbar button.
+         *
+         * @param {number|null} initialValue  – Raw value from DB (may be null)
+         * @param {string}      ulid          – Application ULID
+         */
+        function trackableMarks(initialValue, ulid) {
+            const normalize = (v) => (v !== null && v !== undefined && v !== '') ? String(parseFloat(v)) : '';
+            const normalizedInitial = normalize(initialValue);
+
+            return {
+                initial: normalizedInitial,
+                current: normalizedInitial,
+                ulid,
+                dirty: false,
+
+                onInput() {
+                    const normalized = normalize(this.current);
+                    this.dirty = normalized !== this.initial;
+                    if (this.dirty) {
+                        Alpine.store('marksChanges').markDirty(this.ulid);
+                    } else {
+                        Alpine.store('marksChanges').markClean(this.ulid);
+                    }
+                },
+            };
+        }
+
+        /**
+         * Per-row program selection tracker.
+         * Tracks dirty state only; bulk save is done from the navbar button.
+         *
+         * @param {number|string|null} initialValue  – selected_category_id from DB
+         * @param {string}             ulid          – Application ULID
+         */
+        function trackableProgram(initialValue, ulid) {
+            const normalize = (v) => (v !== null && v !== undefined) ? String(v) : '';
+            const normalizedInitial = normalize(initialValue);
+
+            return {
+                initial: normalizedInitial,
+                current: normalizedInitial,
+                ulid,
+                dirty: false,
+
+                onInput() {
+                    this.dirty = this.current !== this.initial;
+                    if (this.dirty) {
+                        Alpine.store('marksChanges').markDirty(this.ulid);
+                    } else {
+                        Alpine.store('marksChanges').markClean(this.ulid);
+                    }
                 },
             };
         }

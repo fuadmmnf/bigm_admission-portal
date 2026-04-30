@@ -13,14 +13,20 @@ class AdmitCardMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public Application $application) {}
+    public function __construct(public Application $application, public string $mailType = 'admit_card') {}
 
     public function envelope(): Envelope
     {
         $examName = $this->application->exam?->name ?? 'Admission Exam';
 
+        $subject = match ($this->mailType) {
+            'viva_eligibility' => 'Viva Eligibility Notice - '.$examName.' | BIGM',
+            'program_selection' => 'Program Selection Notice - '.$examName.' | BIGM',
+            default => 'Admit Card - '.$examName.' | BIGM',
+        };
+
         return new Envelope(
-            subject: 'Admit Card – ' . $examName . ' | BIGM',
+            subject: $subject,
         );
     }
 
@@ -28,6 +34,9 @@ class AdmitCardMail extends Mailable
     {
         return new Content(
             view: 'emails.admit-card',
+            with: [
+                'mailType' => $this->mailType,
+            ],
         );
     }
 }

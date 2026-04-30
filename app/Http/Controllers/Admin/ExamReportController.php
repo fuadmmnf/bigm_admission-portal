@@ -67,6 +67,8 @@ class ExamReportController extends Controller
                 'applicant_name',
                 'applicant_phone',
                 'applicant_email',
+                'written_exam_marks',
+                'viva_exam_marks',
                 'selection_stage',
             ]);
 
@@ -139,7 +141,8 @@ class ExamReportController extends Controller
     {
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->where('selection_stage', Application::STAGE_PROGRAM_SELECTED)
-            ->get(['ulid', 'applicant_name', 'applicant_phone', 'applicant_email']);
+            ->with('selectedCategory:id,name')
+            ->get(['ulid', 'applicant_name', 'applicant_phone', 'applicant_email', 'selected_category_id']);
 
         $pdf = Pdf::loadView('reports.enrolled-students', [
             'exam' => $exam,
@@ -153,6 +156,7 @@ class ExamReportController extends Controller
     public function allApplicantCvs(Exam $exam): Response
     {
         $applications = $exam->applications()
+            ->with('selectedCategory:id,name')
             ->orderBy('applicant_name')
             ->get([
                 'ulid',
@@ -162,6 +166,9 @@ class ExamReportController extends Controller
                 'applicant_id_number',
                 'gender',
                 'status',
+                'written_exam_marks',
+                'viva_exam_marks',
+                'selected_category_id',
                 'selection_stage',
                 'additional_info',
             ])

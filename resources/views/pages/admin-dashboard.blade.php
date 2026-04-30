@@ -39,27 +39,27 @@ new #[Layout('layouts.app')] class extends Component {
     </section>
 
 
-    <!-- Stats Cards -->
-    <section class="grid grid-cols-1 md:grid-cols-2 md:gap-6">
-        @php($labels = [
-            'total_exams' => 'Total Exams',
-            'active_exams' => 'Active Exams',
-            'draft_exams' => 'Draft Exams',
-            'paid_applications' => 'Paid Applications',
-        ])
-        @php($styles = [
-            'total_exams' => 'bg-slate-50 border-slate-200',
-            'active_exams' => 'bg-indigo-50 border-indigo-200',
-            'draft_exams' => 'bg-blue-50 border-blue-200',
-            'paid_applications' => 'bg-emerald-50 border-emerald-200',
-        ])
-
-        @foreach ($this->getStats() as $key => $value)
-            <article class="rounded-xl border {{ $styles[$key] ?? 'bg-gray-50 border-gray-200' }} p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-600">{{ $labels[$key] ?? $key }}</p>
-                <p class="mt-3 text-3xl font-bold text-gray-900">{{ $value }}</p>
-            </article>
-        @endforeach
+    <!-- Stats Row -->
+    <section class="bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+        <div class="overflow-x-auto">
+            <dl class="min-w-max flex items-center gap-2 text-xs whitespace-nowrap">
+                @php
+                    $stats = $this->getStats();
+                    $statConfig = [
+                        'total_exams'       => ['label' => 'Total Exams',       'cls' => 'border-gray-200 bg-gray-50     text-gray-700'],
+                        'active_exams'      => ['label' => 'Active Exams',      'cls' => 'border-indigo-200 bg-indigo-50  text-indigo-700'],
+                        'draft_exams'       => ['label' => 'Draft Exams',       'cls' => 'border-blue-200 bg-blue-50     text-blue-700'],
+                        'paid_applications' => ['label' => 'Paid Applications', 'cls' => 'border-emerald-200 bg-emerald-50 text-emerald-700'],
+                    ];
+                @endphp
+                @foreach ($statConfig as $key => $config)
+                    <div class="inline-flex items-center gap-1.5 rounded-md border {{ $config['cls'] }} px-2 py-1">
+                        <dt>{{ $config['label'] }}:</dt>
+                        <dd class="font-semibold">{{ $stats[$key] ?? 0 }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        </div>
     </section>
 
     <!-- Recent Items Section -->

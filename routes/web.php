@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Admin\ExamPageController;
 use App\Http\Controllers\Admin\ApplicationAdmitCardController;
+use App\Http\Controllers\Admin\ApplicationBulkMarksUpdateController;
+use App\Http\Controllers\Admin\ApplicationAssessmentUpdateController;
 use App\Http\Controllers\Admin\ApplicationDeleteController;
 use App\Http\Controllers\Admin\ApplicationShowController;
 use App\Http\Controllers\Admin\ApplicationStageUpdateController;
@@ -46,6 +48,8 @@ Route::middleware([
         ->name('admin.applications.admit-card');
     Route::get('/admin/applications/{application:ulid}', ApplicationShowController::class)
         ->name('admin.applications.show');
+    Route::patch('/admin/applications/{application:ulid}/assessment', ApplicationAssessmentUpdateController::class)
+        ->name('admin.applications.assessment.update');
     Route::delete('/admin/applications/{application:ulid}', ApplicationDeleteController::class)
         ->middleware('role:admin')
         ->name('admin.applications.destroy');
@@ -55,6 +59,15 @@ Route::middleware([
         ->whereUlid('exam');
     Route::post('/admin/exams/{exam}/applications/stage', ApplicationStageUpdateController::class)
         ->name('admin.exams.applications.stage-update')
+        ->whereUlid('exam');
+    Route::match(['post', 'patch'], '/admin/exams/{exam}/applications/assessment', [ApplicationBulkMarksUpdateController::class, 'updateAssessment'])
+        ->name('admin.exams.applications.assessment.bulk')
+        ->whereUlid('exam');
+    Route::patch('/admin/exams/{exam}/applications/marks/written', [ApplicationBulkMarksUpdateController::class, 'updateWritten'])
+        ->name('admin.exams.applications.marks.written')
+        ->whereUlid('exam');
+    Route::patch('/admin/exams/{exam}/applications/marks/viva', [ApplicationBulkMarksUpdateController::class, 'updateViva'])
+        ->name('admin.exams.applications.marks.viva')
         ->whereUlid('exam');
 
     Route::get('/admin/exams/{exam}/reports', [ExamReportController::class, 'index'])

@@ -22,12 +22,20 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @forelse ($exams as $exam)
+                @php
+                    $now = now();
+                    $withinWindow = ($exam->start_date === null || $now->gte($exam->start_date))
+                                 && ($exam->end_date === null || $now->lte($exam->end_date));
+                @endphp
                 <article class="bg-white rounded-lg border border-gray-200 shadow-sm p-5">
                     <div class="flex items-center justify-between mb-2 gap-2">
-                        <span class="text-xs font-semibold px-2 py-1 rounded bg-green-100 text-green-700">Active</span>
+                        @if ($withinWindow)
+                            <span class="text-xs font-semibold px-2 py-1 rounded bg-green-100 text-green-700">Active</span>
+                        @else
+                            <span class="text-xs font-semibold px-2 py-1 rounded bg-yellow-100 text-yellow-700">Not Yet Open</span>
+                        @endif
                         <span class="text-xs text-gray-500 text-right">
-                            Apply: {{ optional($exam->start_date)->format('d M Y h:i A') ?? 'Now' }}<br>
-                            to {{ optional($exam->end_date)->format('d M Y h:i A') ?? 'Until closed' }}
+                            <b>Apply:</b> {{ optional($exam->start_date)->format('d M Y') ?? 'Now' }} - {{ optional($exam->end_date)->format('d M Y') ?? 'Until closed' }}
                         </span>
                     </div>
                     <h3 class="font-semibold text-lg mb-1">{{ $exam->name }}</h3>

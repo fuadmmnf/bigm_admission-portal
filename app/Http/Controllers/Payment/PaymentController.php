@@ -25,17 +25,8 @@ class PaymentController extends Controller
             return redirect()->route('payment.success-page')->with('info', 'This application has already been paid.');
         }
 
-        $sessionPaymentKey = (string) $request->session()->get('active_payment_application_ulid', '');
-        if ($application->status === 'pending' && $sessionPaymentKey === (string) $application->ulid) {
-            $application->delete();
-
-            $request->session()->forget('active_payment_application_ulid');
-
-            return redirect()->route('payment.failed-page')->with(
-                'error',
-                'Application deleted because the payment page was reloaded before payment completion. Please submit a new application.'
-            );
-        }
+        // Keep pending applications on repeated initiate hits.
+        // Some browsers or retries can trigger this endpoint more than once.
 
         // Generate a unique transaction ID and persist it before redirect
         $transactionId = 'TXN-' . strtoupper($application->ulid) . '-' . now()->format('YmdHis');

@@ -64,6 +64,17 @@
 
     <div class="py-5">
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8 space-y-4">
+            @if (session('status'))
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                    {{ session('status') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <section class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
                 <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                     <div>
@@ -99,6 +110,68 @@
                             @endif
                         </div>
                     </div>
+                </div>
+            </section>
+
+            <section class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
+                <div class="flex flex-col xl:flex-row gap-6 xl:items-start xl:justify-between">
+                    <div class="flex-1">
+                        <h4 class="text-base font-semibold text-gray-900">Assessment &amp; Selection</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Written Exam Marks</p>
+                                <p class="mt-2 text-lg font-semibold text-gray-900">{{ $application->written_exam_marks !== null ? number_format((float) $application->written_exam_marks, 2) : 'N/A' }}</p>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Viva Exam Marks</p>
+                                <p class="mt-2 text-lg font-semibold text-gray-900">{{ $application->viva_exam_marks !== null ? number_format((float) $application->viva_exam_marks, 2) : 'N/A' }}</p>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Selected Program / Course</p>
+                                <p class="mt-2 text-sm font-semibold text-gray-900">{{ $application->selectedCategory?->name ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ route('admin.applications.assessment.update', $application) }}" class="w-full xl:max-w-xl rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-4">
+                        @csrf
+                        @method('PATCH')
+
+                        <div>
+                            <h5 class="text-sm font-semibold text-gray-900">Update Assessment</h5>
+                            <p class="mt-1 text-xs text-gray-500">All fields are optional and can be updated later.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="written_exam_marks" class="block text-sm font-medium text-gray-700">Written Exam Marks</label>
+                                <input id="written_exam_marks" name="written_exam_marks" type="number" step="0.01" min="0" value="{{ old('written_exam_marks', $application->written_exam_marks) }}" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm">
+                                @error('written_exam_marks')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                            <div>
+                                <label for="viva_exam_marks" class="block text-sm font-medium text-gray-700">Viva Exam Marks</label>
+                                <input id="viva_exam_marks" name="viva_exam_marks" type="number" step="0.01" min="0" value="{{ old('viva_exam_marks', $application->viva_exam_marks) }}" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm">
+                                @error('viva_exam_marks')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="selected_category_id" class="block text-sm font-medium text-gray-700">Selected Program / Course</label>
+                            <select id="selected_category_id" name="selected_category_id" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm">
+                                <option value="">Not selected yet</option>
+                                @foreach ($programCategories as $category)
+                                    <option value="{{ $category->id }}" @selected((string) old('selected_category_id', $application->selected_category_id) === (string) $category->id)>{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            @error('selected_category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                                Save Assessment
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </section>
 

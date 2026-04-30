@@ -17,30 +17,55 @@ class SendAdmitCardController extends Controller
     {
         $request->validate([
             'send_scope' => ['required', 'in:selected,all_paid'],
+            'active_tab' => ['nullable', 'in:paid,viva,program'],
             'application_ids' => ['nullable', 'array'],
             'application_ids.*' => ['required_with:application_ids', 'string'],
         ]);
 
         $scope = (string) $request->input('send_scope', 'selected');
+        $activeTab = (string) $request->input('active_tab', 'paid');
         $selectedUlids = array_values(array_filter((array) $request->input('application_ids', [])));
 
         if ($scope === 'selected' && count($selectedUlids) === 0) {
-            return back()->with('error', 'Select at least one paid applicant to send admit cards.');
+            return back()->with('error', 'Select at least one applicant to send email notifications.');
         }
 
         $applicationQuery = Application::query()
             ->where('exam_id', $exam->id)
             ->where('status', 'paid');
 
+        if ($activeTab === 'viva') {
+            $applicationQuery->whereIn('selection_stage', [
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+            ]);
+        }
+
+        if ($activeTab === 'program') {
+            $applicationQuery->where('selection_stage', Application::STAGE_PROGRAM_SELECTED);
+        }
+
         if ($scope === 'selected') {
             $applicationQuery->whereIn('ulid', $selectedUlids);
         }
 
-        $applications = $applicationQuery->with('exam')->get();
+        $applications = $applicationQuery->with(['exam', 'selectedCategory:id,name'])->get();
 
         if ($applications->isEmpty()) {
-            return back()->with('error', 'No matching paid applicants found for this action.');
+            return back()->with('error', 'No matching applicants found for this tab and action.');
         }
+
+        $mailType = match ($activeTab) {
+            'viva' => 'viva_eligibility',
+            'program' => 'program_selection',
+            default => 'admit_card',
+        };
+
+        $notificationLabel = match ($mailType) {
+            'viva_eligibility' => 'Viva eligibility email',
+            'program_selection' => 'Program selection email',
+            default => 'Admit card email',
+        };
 
         $dryRun = filter_var(
             config('admit_card_mail.dry_run', true),
@@ -60,10 +85,11 @@ class SendAdmitCardController extends Controller
                     'exam_ulid' => $exam->ulid,
                     'application_ulid' => $application->ulid,
                     'recipient' => $application->applicant_email,
+                    'mail_type' => $mailType,
                 ]);
             } else {
                 Mail::to($application->applicant_email)
-                    ->queue(new AdmitCardMail($application));
+                    ->queue(new AdmitCardMail($application, $mailType));
             }
 
             $sent++;
@@ -72,13 +98,13 @@ class SendAdmitCardController extends Controller
         if ($dryRun) {
             return back()->with(
                 'status',
-                "DRY RUN complete for {$sent} applicant(s). No real email was sent."
+                "DRY RUN complete for {$sent} applicant(s). {$notificationLabel} was simulated only."
             );
         }
 
         return back()->with(
             'status',
-            "Admit card dispatch queued for {$sent} applicant(s). Emails will be delivered shortly."
+            "{$notificationLabel} queued for {$sent} applicant(s). Emails will be delivered shortly."
         );
     }
 }

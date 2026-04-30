@@ -25,6 +25,7 @@
                 <th>Applicant Name</th>
                 <th>Phone</th>
                 <th>Email</th>
+                <th>Selected Program / Course</th>
             </tr>
         </thead>
         <tbody>
@@ -35,9 +36,10 @@
                     <td>{{ $application->applicant_name }}</td>
                     <td>{{ $application->applicant_phone }}</td>
                     <td>{{ $application->applicant_email }}</td>
+                    <td>{{ $application->selectedCategory?->name ?? 'N/A' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="5" class="muted">No enrolled students found for this exam.</td></tr>
+                <tr><td colspan="6" class="muted">No enrolled students found for this exam.</td></tr>
             @endforelse
         </tbody>
     </table>

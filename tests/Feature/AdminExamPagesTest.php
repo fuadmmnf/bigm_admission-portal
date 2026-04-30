@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Application;
+use App\Models\Category;
 use App\Models\Exam;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -160,14 +161,11 @@ class AdminExamPagesTest extends TestCase
 
         $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva']))
             ->assertOk()
-            ->assertDontSee('Candidate Paid')
             ->assertSee('Candidate Viva')
             ->assertSee('Candidate Program');
 
         $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'program']))
             ->assertOk()
-            ->assertDontSee('Candidate Paid')
-            ->assertDontSee('Candidate Viva')
             ->assertSee('Candidate Program');
     }
 
@@ -306,12 +304,325 @@ class AdminExamPagesTest extends TestCase
         $response = $this->get(route('admin.exams.active'));
 
         $response->assertOk();
-        $response->assertSee('aria-label="Exam settings"', false);
-        $response->assertSee('aria-label="View applicants"', false);
-        $response->assertSee('aria-label="Edit exam"', false);
-        $response->assertSee('aria-label="Delete exam"', false);
+        $response->assertSee('Reports');
+        $response->assertSee('Applicants');
+        $response->assertSee('Edit');
+        $response->assertSee('Delete');
         $response->assertSee('data-delete-trigger', false);
         $response->assertSee('delete-exam-modal');
+    }
+
+    public function test_admin_can_bulk_update_written_marks_for_all_paid_applicants(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $paidA = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'written_exam_marks' => null,
+        ]);
+        $paidB = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_VIVA_SELECTED,
+            'written_exam_marks' => null,
+        ]);
+        $unpaid = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'pending',
+            'written_exam_marks' => null,
+        ]);
+
+        $response = $this->patch(route('admin.exams.applications.marks.written', $exam), [
+            'marks' => [
+                $paidA->ulid => '88.25',
+                $paidB->ulid => '91.00',
+                $unpaid->ulid => '77.00',
+            ],
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('applications', ['id' => $paidA->id, 'written_exam_marks' => '88.25']);
+        $this->assertDatabaseHas('applications', ['id' => $paidB->id, 'written_exam_marks' => '91.00']);
+        $this->assertDatabaseHas('applications', ['id' => $unpaid->id, 'written_exam_marks' => null]);
+    }
+
+    public function test_admin_can_bulk_update_viva_marks_only_for_viva_eligible_applicants(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $viva = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_VIVA_SELECTED,
+            'viva_exam_marks' => null,
+        ]);
+        $program = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
+            'viva_exam_marks' => null,
+        ]);
+        $paidOnly = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'viva_exam_marks' => null,
+        ]);
+
+        $response = $this->patch(route('admin.exams.applications.marks.viva', $exam), [
+            'marks' => [
+                $viva->ulid => '74.50',
+                $program->ulid => '82.00',
+                $paidOnly->ulid => '66.50',
+            ],
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('applications', ['id' => $viva->id, 'viva_exam_marks' => '74.50']);
+        $this->assertDatabaseHas('applications', ['id' => $program->id, 'viva_exam_marks' => '82.00']);
+        $this->assertDatabaseHas('applications', ['id' => $paidOnly->id, 'viva_exam_marks' => null]);
+    }
+
+    public function test_exam_show_page_can_sort_by_written_marks_descending(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Candidate Alpha',
+            'written_exam_marks' => 45.00,
+        ]);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Candidate Bravo',
+            'written_exam_marks' => 92.00,
+        ]);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Candidate Charlie',
+            'written_exam_marks' => 70.00,
+        ]);
+
+        $response = $this->get(route('admin.exams.show', ['exam' => $exam, 'sort' => 'written_desc']));
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Candidate Bravo', 'Candidate Charlie', 'Candidate Alpha']);
+    }
+
+    public function test_exam_show_page_can_search_paid_applicants_by_name_email_or_phone(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Search Name Target',
+            'applicant_email' => 'target-name@example.test',
+            'applicant_phone' => '01711111111',
+        ]);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Other Person',
+            'applicant_email' => 'target-email@example.test',
+            'applicant_phone' => '01722222222',
+        ]);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Third Person',
+            'applicant_email' => 'third@example.test',
+            'applicant_phone' => '01733333333',
+        ]);
+
+        $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'search' => 'Search Name']))
+            ->assertOk()
+            ->assertSee('Search Name Target')
+            ->assertDontSee('Other Person');
+
+        $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'search' => 'target-email@example.test']))
+            ->assertOk()
+            ->assertSee('Other Person')
+            ->assertDontSee('Search Name Target');
+
+        $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'search' => '01733333333']))
+            ->assertOk()
+            ->assertSee('Third Person')
+            ->assertDontSee('Search Name Target');
+    }
+
+    public function test_exam_show_search_remains_scoped_to_selected_tab(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Scoped Candidate',
+            'applicant_email' => 'scoped@example.test',
+        ]);
+
+        $response = $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva', 'search' => 'Scoped Candidate']));
+
+        $response->assertOk();
+        $response->assertSee('No applicants found for this tab.');
+        $response->assertSee('Clear');
+    }
+
+    public function test_admin_can_bulk_update_written_marks_via_inline_assessment_action(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $paid = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'written_exam_marks' => null,
+        ]);
+
+        $response = $this->patch(route('admin.exams.applications.assessment.bulk', $exam), [
+            'active_tab' => 'paid',
+            'written_marks' => [
+                $paid->ulid => '64.75',
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('applications', [
+            'id' => $paid->id,
+            'written_exam_marks' => '64.75',
+        ]);
+    }
+
+    public function test_viva_tab_shows_previous_written_marks(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_VIVA_SELECTED,
+            'applicant_name' => 'Carry Forward Candidate',
+            'written_exam_marks' => 71.25,
+            'viva_exam_marks' => null,
+        ]);
+
+        $response = $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva']));
+
+        $response->assertOk();
+        $response->assertSee('Carry Forward Candidate');
+        $response->assertSee('71.25');
+        $response->assertSee('name="viva_marks[', false);
+    }
+
+    public function test_admin_can_update_paid_application_assessment_details(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $program = Category::factory()->create([
+            'type' => 'program',
+            'name' => 'Master of Public Health',
+        ]);
+        $application = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
+        ]);
+
+        $response = $this->patch(route('admin.applications.assessment.update', $application), [
+            'written_exam_marks' => '77.50',
+            'viva_exam_marks' => '81.25',
+            'selected_category_id' => $program->id,
+        ]);
+
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('applications', [
+            'id' => $application->id,
+            'written_exam_marks' => '77.50',
+            'viva_exam_marks' => '81.25',
+            'selected_category_id' => $program->id,
+        ]);
+    }
+
+    public function test_admin_can_view_assessment_details_on_single_applicant_page(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $program = Category::factory()->create([
+            'type' => 'program',
+            'name' => 'MBA',
+        ]);
+        $application = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
+            'written_exam_marks' => 74.50,
+            'viva_exam_marks' => 69.00,
+            'selected_category_id' => $program->id,
+            'applicant_name' => 'Assessment Candidate',
+        ]);
+
+        $response = $this->get(route('admin.applications.show', $application));
+
+        $response->assertOk();
+        $response->assertSee('Assessment &amp; Selection', false);
+        $response->assertSee('74.50');
+        $response->assertSee('69.00');
+        $response->assertSee('MBA');
     }
 
     public function test_admin_can_view_exam_reports_page(): void

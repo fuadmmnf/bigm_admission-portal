@@ -5,7 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationAssessmentUpdateController.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationBulkMarksUpdateController.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/database/migrations/2026_04_30_120000_add_assessment_fields_to_applications_table.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Feature/Payment/PaymentGatewayIntegrationRegressionTest.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Feature/PaymentCallbackTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationShowController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationShowController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/SendAdmitCardController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/SendAdmitCardController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Mail/AdmitCardMail.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Mail/AdmitCardMail.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Models/Application.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Application.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Models/Category.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Category.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/sslcommerz.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/sslcommerz.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/emails/admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/emails/admit-card.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-application-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-application-show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-dashboard.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-dashboard.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exams-index.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exams-index.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/home.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/home.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/profile/show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/profile/show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/all-applicant-cvs.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/all-applicant-cvs.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/enrolled-students.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/enrolled-students.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Payment/PaymentTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Payment/PaymentTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/SendAdmitCardControllerTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/SendAdmitCardControllerTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,8 +63,8 @@
   </component>
   <component name="CopilotUserSelectedModel">
     <selectedModels>
-      <entry key="agent-panel" value="Auto" />
-      <entry key="chat-panel" value="Auto" />
+      <entry key="agent-panel" value="Claude Sonnet 4.6" />
+      <entry key="chat-panel" value="Claude Sonnet 4.6" />
     </selectedModels>
   </component>
   <component name="Git.Settings">
@@ -255,6 +287,7 @@
       <workItem from="1777089456444" duration="18000" />
       <workItem from="1777089921186" duration="17971000" />
       <workItem from="1777127474206" duration="27238000" />
+      <workItem from="1777515783024" duration="20177000" />
     </task>
     <servers />
   </component>

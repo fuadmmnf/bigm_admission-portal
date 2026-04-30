@@ -221,8 +221,17 @@ class PaymentTest extends TestCase
         ]);
     }
 
-    public function test_reloading_payment_initiate_deletes_pending_application(): void
+    public function test_reloading_payment_initiate_keeps_pending_application_and_redirects_to_gateway(): void
     {
+        config()->set('sslcommerz.sandbox', true);
+
+        Http::fake([
+            'sandbox.sslcommerz.com/*' => Http::response([
+                'status' => 'SUCCESS',
+                'GatewayPageURL' => 'https://sandbox.sslcommerz.com/pay/retry-safe-session',
+            ], 200),
+        ]);
+
         $application = Application::factory()->create([
             'status' => 'pending',
             'transaction_id' => 'TXN-RELOAD-001',
@@ -232,12 +241,11 @@ class PaymentTest extends TestCase
             ->withSession(['active_payment_application_ulid' => $application->ulid])
             ->get(route('payment.initiate', $application));
 
-        $response->assertRedirect(route('payment.failed-page'));
-        $response->assertSessionHas('error');
+        $response->assertRedirect('https://sandbox.sslcommerz.com/pay/retry-safe-session');
 
-        $this->assertSoftDeleted('applications', [
-            'id' => $application->id,
-        ]);
+        $application->refresh();
+        $this->assertSame('pending', $application->status);
+        $this->assertNull($application->deleted_at);
     }
 
     public function test_ipn_validates_and_marks_application_as_paid(): void

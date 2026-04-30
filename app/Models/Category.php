@@ -6,6 +6,7 @@ use App\Models\Concerns\HasPublicUlid;
 use Database\Factories\CategoryFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Kalnoy\Nestedset\NodeTrait;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
@@ -36,6 +37,11 @@ class Category extends Model
         return [
             'additional_info' => 'array',
         ];
+    }
+
+    public function selectedApplications(): HasMany
+    {
+        return $this->hasMany(Application::class, 'selected_category_id');
     }
 
     public function getActivitylogOptions(): LogOptions

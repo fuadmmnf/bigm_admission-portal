@@ -54,7 +54,7 @@
     <div
         x-show="showIntroModal"
         x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm p-4"
     >
         <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl border border-gray-200">
             <div class="px-6 py-5 border-b border-gray-200">
@@ -115,7 +115,7 @@
         </div>
     </div>
 
-    <div :class="showIntroModal ? 'pointer-events-none select-none opacity-70 blur-[1px]' : ''">
+    <div :class="showIntroModal ? 'pointer-events-none select-none opacity-65 blur-[2px]' : ''">
     <header class="bg-white border-b border-gray-200">
         <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
             <div>
@@ -163,6 +163,7 @@
                 permanentUpazilaId: @js(old('permanent_address.upazila_id')),
                 initialDob: @js(old('date_of_birth')),
                 initialAge: @js(old('age_as_of_reference')),
+                initialSameAsPresent: @js((bool) old('same_as_present_address')),
                 programs: @js($formOptions['programs']),
                 initialCourseChoices: @js([
                     old('course_preferences.first_choice', ''),
@@ -260,13 +261,23 @@
                     </div>
 
                     <div>
-                        <label for="applicant_photo" class="block text-sm font-medium text-gray-700">Applicant Photo * (300x300 pixels, max 1MB)</label>
-                        <input id="applicant_photo" name="applicant_photo" type="file" accept="image/*" class="mt-1 block w-full text-sm" required>
+                        <div class="flex items-center justify-between">
+                            <label for="applicant_photo" class="block text-sm font-medium text-gray-700">Applicant Photo * (300x300 pixels, max 1MB)</label>
+                            <div x-show="photoPreviewUrl" x-cloak class="rounded border border-gray-200 bg-gray-50 p-1">
+                                <img :src="photoPreviewUrl" alt="Applicant photo preview" class="h-10 w-10 rounded object-cover border border-gray-200">
+                            </div>
+                        </div>
+                        <input id="applicant_photo" name="applicant_photo" type="file" accept="image/*" x-on:change="handleImagePreview($event, 'photo')" class="mt-1 block w-full text-sm" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Signature * (300x80 pixels, max 1MB)</label>
-                        <input id="signature_input" name="signature" type="file" accept="image/*" class="mt-1 block w-full text-sm" required>
+                        <div class="flex items-center justify-between">
+                            <label for="signature_input" class="block text-sm font-medium text-gray-700">Signature * (300x80 pixels, max 1MB)</label>
+                            <div x-show="signaturePreviewUrl" x-cloak class="rounded border border-gray-200 bg-gray-50 p-1">
+                                <img :src="signaturePreviewUrl" alt="Applicant signature preview" class="h-8 w-24 rounded object-contain border border-gray-200 bg-white">
+                            </div>
+                        </div>
+                        <input id="signature_input" name="signature" type="file" accept="image/*" x-on:change="handleImagePreview($event, 'signature')" class="mt-1 block w-full text-sm" required>
                     </div>
                 </div>
             </section>
@@ -281,6 +292,7 @@
 
                             {{-- District combobox --}}
                             <div class="relative" :class="presentDistrictOpen ? 'pb-52' : ''">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">District *</label>
                                 <input
                                     type="text"
                                     x-model="presentDistrictText"
@@ -308,6 +320,7 @@
 
                             {{-- Upazila combobox --}}
                             <div class="relative" :class="presentUpazilaOpen ? 'pb-52' : ''">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana *</label>
                                 <input
                                     type="text"
                                     x-model="presentUpazilaText"
@@ -325,7 +338,7 @@
                                             type="button"
                                             class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
                                             :class="presentUpazilaId === String(upazila.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
-                                            x-on:mousedown.prevent="presentUpazilaId = String(upazila.id); presentUpazilaText = upazila.name; presentUpazilaOpen = false"
+                                            x-on:mousedown.prevent="presentUpazilaId = String(upazila.id); presentUpazilaText = upazila.name; presentUpazilaOpen = false; if (sameAsPresentAddress) syncPermanentFromPresent()"
                                             x-text="upazila.name"
                                         ></button>
                                     </template>
@@ -334,27 +347,43 @@
                                 <input type="hidden" name="present_address[upazila_id]" :value="presentUpazilaId">
                             </div>
 
-                            <input name="present_address[post_office]" type="text" value="{{ old('present_address.post_office') }}" placeholder="Post Office" class="rounded-md border-gray-300" required>
-                            <input name="present_address[post_code]" type="text" value="{{ old('present_address.post_code') }}" placeholder="Post Code" class="rounded-md border-gray-300" required>
-                            <input name="present_address[address_line]" type="text" value="{{ old('present_address.address_line') }}" placeholder="Village/Road/House/Flat" class="rounded-md border-gray-300" required>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Post Office *</label>
+                                <input name="present_address[post_office]" type="text" value="{{ old('present_address.post_office') }}" x-on:input="if (sameAsPresentAddress) syncPermanentFromPresent()" placeholder="Post Office" class="rounded-md border-gray-300 w-full" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Post Code *</label>
+                                <input name="present_address[post_code]" type="text" value="{{ old('present_address.post_code') }}" x-on:input="if (sameAsPresentAddress) syncPermanentFromPresent()" placeholder="Post Code" class="rounded-md border-gray-300 w-full" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Village / Road / House / Flat *</label>
+                                <input name="present_address[address_line]" type="text" value="{{ old('present_address.address_line') }}" x-on:input="if (sameAsPresentAddress) syncPermanentFromPresent()" placeholder="Village/Road/House/Flat" class="rounded-md border-gray-300 w-full" required>
+                            </div>
                         </div>
                     </fieldset>
 
                     <fieldset class="rounded-lg border border-gray-200 p-4">
                         <legend class="px-2 text-sm font-semibold text-gray-700">Permanent Address *</legend>
+                        <label class="mt-2 inline-flex items-center gap-2 rounded-md border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm text-indigo-900">
+                            <input type="checkbox" name="same_as_present_address" value="1" x-model="sameAsPresentAddress" x-on:change="toggleSameAsPresentAddress()" class="rounded border-gray-300 text-indigo-600">
+                            <span>Same as present address</span>
+                        </label>
                         <div class="grid grid-cols-1 gap-3 mt-2">
 
                             {{-- District combobox --}}
                             <div class="relative" :class="permanentDistrictOpen ? 'pb-52' : ''">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">District *</label>
                                 <input
                                     type="text"
                                     x-model="permanentDistrictText"
-                                    x-on:focus="closeAddressDropdowns(); permanentDistrictOpen = true"
-                                    x-on:input="permanentDistrictId = ''; permanentDistrictOpen = true"
+                                    :readonly="sameAsPresentAddress"
+                                    x-on:focus="if (sameAsPresentAddress) return; closeAddressDropdowns(); permanentDistrictOpen = true"
+                                    x-on:input="if (sameAsPresentAddress) return; permanentDistrictId = ''; permanentDistrictOpen = true"
                                     x-on:blur="setTimeout(() => { permanentDistrictOpen = false; restoreLabel('permanentDistrict') }, 150)"
                                     placeholder="Search and select district..."
                                     autocomplete="off"
                                     class="rounded-md border-gray-300 w-full"
+                                    :class="sameAsPresentAddress ? 'bg-gray-100 cursor-not-allowed' : ''"
                                 >
                                 <div x-show="permanentDistrictOpen" x-cloak class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                                     <template x-for="district in filteredDistricts(permanentDistrictText)" :key="district.id">
@@ -373,16 +402,19 @@
 
                             {{-- Upazila combobox --}}
                             <div class="relative" :class="permanentUpazilaOpen ? 'pb-52' : ''">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana *</label>
                                 <input
                                     type="text"
                                     x-model="permanentUpazilaText"
-                                    x-on:focus="if (permanentDistrictId) { closeAddressDropdowns(); permanentUpazilaOpen = true }"
-                                    x-on:input="permanentUpazilaId = ''; permanentUpazilaOpen = true"
+                                    :readonly="sameAsPresentAddress"
+                                    x-on:focus="if (sameAsPresentAddress) return; if (permanentDistrictId) { closeAddressDropdowns(); permanentUpazilaOpen = true }"
+                                    x-on:input="if (sameAsPresentAddress) return; permanentUpazilaId = ''; permanentUpazilaOpen = true"
                                     x-on:blur="setTimeout(() => { permanentUpazilaOpen = false; restoreLabel('permanentUpazila') }, 150)"
                                     placeholder="Search and select upazila/thana..."
                                     autocomplete="off"
                                     :disabled="!permanentDistrictId"
                                     class="rounded-md border-gray-300 w-full disabled:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                                    :class="sameAsPresentAddress ? 'bg-gray-100 cursor-not-allowed' : ''"
                                 >
                                 <div x-show="permanentUpazilaOpen" x-cloak class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                                     <template x-for="upazila in filteredUpazilas(permanentDistrictId, permanentUpazilaText)" :key="upazila.id">
@@ -399,9 +431,18 @@
                                 <input type="hidden" name="permanent_address[upazila_id]" :value="permanentUpazilaId">
                             </div>
 
-                            <input name="permanent_address[post_office]" type="text" value="{{ old('permanent_address.post_office') }}" placeholder="Post Office" class="rounded-md border-gray-300" required>
-                            <input name="permanent_address[post_code]" type="text" value="{{ old('permanent_address.post_code') }}" placeholder="Post Code" class="rounded-md border-gray-300" required>
-                            <input name="permanent_address[address_line]" type="text" value="{{ old('permanent_address.address_line') }}" placeholder="Village/Road/House/Flat" class="rounded-md border-gray-300" required>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Post Office *</label>
+                                <input name="permanent_address[post_office]" type="text" value="{{ old('permanent_address.post_office') }}" :readonly="sameAsPresentAddress" placeholder="Post Office" class="rounded-md border-gray-300 w-full" :class="sameAsPresentAddress ? 'bg-gray-100' : ''" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Post Code *</label>
+                                <input name="permanent_address[post_code]" type="text" value="{{ old('permanent_address.post_code') }}" :readonly="sameAsPresentAddress" placeholder="Post Code" class="rounded-md border-gray-300 w-full" :class="sameAsPresentAddress ? 'bg-gray-100' : ''" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Village / Road / House / Flat *</label>
+                                <input name="permanent_address[address_line]" type="text" value="{{ old('permanent_address.address_line') }}" :readonly="sameAsPresentAddress" placeholder="Village/Road/House/Flat" class="rounded-md border-gray-300 w-full" :class="sameAsPresentAddress ? 'bg-gray-100' : ''" required>
+                            </div>
                         </div>
                     </fieldset>
                 </div>
@@ -413,36 +454,21 @@
                 <fieldset class="rounded-lg border border-gray-200 p-4">
                     <legend class="px-2 text-sm font-semibold text-gray-700">SSC / Equivalent *</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-                        <select name="education[ssc][examination]" class="rounded-md border-gray-300" required>
-                            <option value="">Examination</option>
-                            @foreach ($formOptions['ssc_examinations'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.ssc.examination') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <select name="education[ssc][education_board]" class="rounded-md border-gray-300" required>
-                            <option value="">Education Board</option>
-                            @foreach ($formOptions['education_boards'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.ssc.education_board') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="education[ssc][result]" type="text" value="{{ old('education.ssc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300" required>
-                        <input name="education[ssc][result_scale]" type="text" value="{{ old('education.ssc.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300" required>
-                        <select name="education[ssc][group]" class="rounded-md border-gray-300" required>
-                            <option value="">Group</option>
-                            @foreach ($formOptions['groups'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.ssc.group') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="education[ssc][passing_year]" type="number" value="{{ old('education.ssc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300" required>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[ssc][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['ssc_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label><select name="education[ssc][education_board]" class="rounded-md border-gray-300 w-full" required><option value="">Select Education Board</option>@foreach ($formOptions['education_boards'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.education_board') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[ssc][result]" type="text" value="{{ old('education.ssc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[ssc][result_scale]" type="text" value="{{ old('education.ssc.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Group *</label><select name="education[ssc][group]" class="rounded-md border-gray-300 w-full" required><option value="">Select Group</option>@foreach ($formOptions['groups'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.group') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[ssc][passing_year]" type="number" value="{{ old('education.ssc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
-                            <label for="ssc_marksheet" class="block text-sm font-medium text-gray-700">SSC Marksheet PDF *</label>
-                            <input id="ssc_marksheet" name="education_documents[ssc][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                            <label for="ssc_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">SSC Marksheet PDF *<a x-show="pdfPreviewUrls.ssc_marksheet" x-cloak :href="pdfPreviewUrls.ssc_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="ssc_marksheet" name="education_documents[ssc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_marksheet')" class="mt-1 block w-full text-sm" required>
                         </div>
                         <div>
-                            <label for="ssc_certificate" class="block text-sm font-medium text-gray-700">SSC Certificate PDF *</label>
-                            <input id="ssc_certificate" name="education_documents[ssc][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                            <label for="ssc_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">SSC Certificate PDF *<a x-show="pdfPreviewUrls.ssc_certificate" x-cloak :href="pdfPreviewUrls.ssc_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="ssc_certificate" name="education_documents[ssc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_certificate')" class="mt-1 block w-full text-sm" required>
                         </div>
                     </div>
                 </fieldset>
@@ -450,36 +476,21 @@
                 <fieldset class="rounded-lg border border-gray-200 p-4">
                     <legend class="px-2 text-sm font-semibold text-gray-700">HSC / Equivalent *</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-                        <select name="education[hsc][examination]" class="rounded-md border-gray-300" required>
-                            <option value="">Examination</option>
-                            @foreach ($formOptions['hsc_examinations'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.hsc.examination') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <select name="education[hsc][education_board]" class="rounded-md border-gray-300" required>
-                            <option value="">Education Board</option>
-                            @foreach ($formOptions['education_boards'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.hsc.education_board') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="education[hsc][result]" type="text" value="{{ old('education.hsc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300" required>
-                        <input name="education[hsc][result_scale]" type="text" value="{{ old('education.hsc.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300" required>
-                        <select name="education[hsc][group]" class="rounded-md border-gray-300" required>
-                            <option value="">Group</option>
-                            @foreach ($formOptions['groups'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.hsc.group') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="education[hsc][passing_year]" type="number" value="{{ old('education.hsc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300" required>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[hsc][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['hsc_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label><select name="education[hsc][education_board]" class="rounded-md border-gray-300 w-full" required><option value="">Select Education Board</option>@foreach ($formOptions['education_boards'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.education_board') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[hsc][result]" type="text" value="{{ old('education.hsc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[hsc][result_scale]" type="text" value="{{ old('education.hsc.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Group *</label><select name="education[hsc][group]" class="rounded-md border-gray-300 w-full" required><option value="">Select Group</option>@foreach ($formOptions['groups'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.group') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[hsc][passing_year]" type="number" value="{{ old('education.hsc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
-                            <label for="hsc_marksheet" class="block text-sm font-medium text-gray-700">HSC Marksheet PDF *</label>
-                            <input id="hsc_marksheet" name="education_documents[hsc][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                            <label for="hsc_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">HSC Marksheet PDF *<a x-show="pdfPreviewUrls.hsc_marksheet" x-cloak :href="pdfPreviewUrls.hsc_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="hsc_marksheet" name="education_documents[hsc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_marksheet')" class="mt-1 block w-full text-sm" required>
                         </div>
                         <div>
-                            <label for="hsc_certificate" class="block text-sm font-medium text-gray-700">HSC Certificate PDF *</label>
-                            <input id="hsc_certificate" name="education_documents[hsc][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                            <label for="hsc_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">HSC Certificate PDF *<a x-show="pdfPreviewUrls.hsc_certificate" x-cloak :href="pdfPreviewUrls.hsc_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="hsc_certificate" name="education_documents[hsc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_certificate')" class="mt-1 block w-full text-sm" required>
                         </div>
                     </div>
                 </fieldset>
@@ -487,27 +498,22 @@
                 <fieldset class="rounded-lg border border-gray-200 p-4">
                     <legend class="px-2 text-sm font-semibold text-gray-700">Graduation / Equivalent *</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-                        <select name="education[graduation][examination]" class="rounded-md border-gray-300" required>
-                            <option value="">Examination</option>
-                            @foreach ($formOptions['graduation_examinations'] as $option)
-                                <option value="{{ $option }}" @selected(old('education.graduation.examination') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="education[graduation][subject]" type="text" value="{{ old('education.graduation.subject') }}" placeholder="Subject" class="rounded-md border-gray-300" required>
-                        <input name="education[graduation][institution]" type="text" value="{{ old('education.graduation.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300" required>
-                        <input name="education[graduation][result]" type="text" value="{{ old('education.graduation.result') }}" placeholder="Result (CGPA/Class/Division)" class="rounded-md border-gray-300" required>
-                        <input name="education[graduation][result_scale]" type="text" value="{{ old('education.graduation.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300" required>
-                        <input name="education[graduation][passing_year]" type="number" value="{{ old('education.graduation.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300" required>
-                        <input name="education[graduation][course_duration_years]" type="number" step="0.1" value="{{ old('education.graduation.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300" required>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[graduation][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['graduation_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.graduation.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject *</label><input name="education[graduation][subject]" type="text" value="{{ old('education.graduation.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute *</label><input name="education[graduation][institution]" type="text" value="{{ old('education.graduation.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[graduation][result]" type="text" value="{{ old('education.graduation.result') }}" placeholder="Result (CGPA/Class/Division)" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[graduation][result_scale]" type="text" value="{{ old('education.graduation.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[graduation][passing_year]" type="number" value="{{ old('education.graduation.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years) *</label><input name="education[graduation][course_duration_years]" type="number" step="0.1" value="{{ old('education.graduation.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
-                            <label for="graduation_marksheet" class="block text-sm font-medium text-gray-700">Graduation Marksheet PDF *</label>
-                            <input id="graduation_marksheet" name="education_documents[graduation][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                            <label for="graduation_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">Graduation Marksheet PDF *<a x-show="pdfPreviewUrls.graduation_marksheet" x-cloak :href="pdfPreviewUrls.graduation_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="graduation_marksheet" name="education_documents[graduation][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_marksheet')" class="mt-1 block w-full text-sm" required>
                         </div>
                         <div>
-                            <label for="graduation_certificate" class="block text-sm font-medium text-gray-700">Graduation Certificate PDF *</label>
-                            <input id="graduation_certificate" name="education_documents[graduation][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm" required>
+                            <label for="graduation_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">Graduation Certificate PDF *<a x-show="pdfPreviewUrls.graduation_certificate" x-cloak :href="pdfPreviewUrls.graduation_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="graduation_certificate" name="education_documents[graduation][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_certificate')" class="mt-1 block w-full text-sm" required>
                         </div>
                     </div>
                 </fieldset>
@@ -515,22 +521,22 @@
                 <fieldset class="rounded-lg border border-gray-200 p-4">
                     <legend class="px-2 text-sm font-semibold text-gray-700">Masters / Equivalent (If Applicable)</legend>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-                        <input name="education[masters][examination]" type="text" value="{{ old('education.masters.examination') }}" placeholder="Examination" class="rounded-md border-gray-300">
-                        <input name="education[masters][subject]" type="text" value="{{ old('education.masters.subject') }}" placeholder="Subject" class="rounded-md border-gray-300">
-                        <input name="education[masters][institution]" type="text" value="{{ old('education.masters.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300">
-                        <input name="education[masters][result]" type="text" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300">
-                        <input name="education[masters][result_scale]" type="text" value="{{ old('education.masters.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300">
-                        <input name="education[masters][passing_year]" type="number" value="{{ old('education.masters.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300">
-                        <input name="education[masters][course_duration_years]" type="number" step="0.1" value="{{ old('education.masters.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination</label><input name="education[masters][examination]" type="text" value="{{ old('education.masters.examination') }}" placeholder="Examination" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input name="education[masters][subject]" type="text" value="{{ old('education.masters.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label><input name="education[masters][institution]" type="text" value="{{ old('education.masters.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result</label><input name="education[masters][result]" type="text" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label><input name="education[masters][result_scale]" type="text" value="{{ old('education.masters.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year</label><input name="education[masters][passing_year]" type="number" value="{{ old('education.masters.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years)</label><input name="education[masters][course_duration_years]" type="number" step="0.1" value="{{ old('education.masters.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full"></div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
-                            <label for="masters_marksheet" class="block text-sm font-medium text-gray-700">Masters Marksheet PDF (Optional)</label>
-                            <input id="masters_marksheet" name="education_documents[masters][marksheet]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm">
+                            <label for="masters_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">Masters Marksheet PDF (Optional)<a x-show="pdfPreviewUrls.masters_marksheet" x-cloak :href="pdfPreviewUrls.masters_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="masters_marksheet" name="education_documents[masters][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'masters_marksheet')" class="mt-1 block w-full text-sm">
                         </div>
                         <div>
-                            <label for="masters_certificate" class="block text-sm font-medium text-gray-700">Masters Certificate PDF (Optional)</label>
-                            <input id="masters_certificate" name="education_documents[masters][certificate]" type="file" accept="application/pdf" class="mt-1 block w-full text-sm">
+                            <label for="masters_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">Masters Certificate PDF (Optional)<a x-show="pdfPreviewUrls.masters_certificate" x-cloak :href="pdfPreviewUrls.masters_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
+                            <input id="masters_certificate" name="education_documents[masters][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'masters_certificate')" class="mt-1 block w-full text-sm">
                         </div>
                     </div>
                 </fieldset>
@@ -542,35 +548,71 @@
                 <fieldset class="rounded-lg border border-gray-200 p-4 space-y-3">
                     <legend class="px-2 text-sm font-semibold text-gray-700">Job Experience</legend>
 
-                    <input name="job_experience[total_years]" type="number" step="0.1" value="{{ old('job_experience.total_years') }}" placeholder="Total Job Experience (Years) *" class="rounded-md border-gray-300 w-full" required>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total Job Experience (Years) *</label>
+                        <input name="job_experience[total_years]" type="number" step="0.1" value="{{ old('job_experience.total_years') }}" placeholder="Total Job Experience (Years)" class="rounded-md border-gray-300 w-full" required>
+                    </div>
 
                     <h3 class="text-sm font-semibold text-gray-700 pt-2">Current Job (If Applicable)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <select name="job_experience[current][job_category]" class="rounded-md border-gray-300">
-                            <option value="">Job Category</option>
-                            @foreach ($formOptions['job_categories'] as $option)
-                                <option value="{{ $option }}" @selected(old('job_experience.current.job_category') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="job_experience[current][organization_name]" type="text" value="{{ old('job_experience.current.organization_name') }}" placeholder="Organization Name" class="rounded-md border-gray-300">
-                        <input name="job_experience[current][designation]" type="text" value="{{ old('job_experience.current.designation') }}" placeholder="Current Designation / Position" class="rounded-md border-gray-300">
-                        <input name="job_experience[current][starting_date]" type="date" value="{{ old('job_experience.current.starting_date') }}" class="rounded-md border-gray-300">
-                        <input name="job_experience[current][address]" type="text" value="{{ old('job_experience.current.address') }}" placeholder="Address" class="rounded-md border-gray-300 md:col-span-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Job Category</label>
+                            <select name="job_experience[current][job_category]" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Job Category</option>
+                                @foreach ($formOptions['job_categories'] as $option)
+                                    <option value="{{ $option }}" @selected(old('job_experience.current.job_category') === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
+                            <input name="job_experience[current][organization_name]" type="text" value="{{ old('job_experience.current.organization_name') }}" placeholder="Organization Name" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Current Designation / Position</label>
+                            <input name="job_experience[current][designation]" type="text" value="{{ old('job_experience.current.designation') }}" placeholder="Current Designation / Position" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Starting Date</label>
+                            <input name="job_experience[current][starting_date]" type="date" value="{{ old('job_experience.current.starting_date') }}" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <input name="job_experience[current][address]" type="text" value="{{ old('job_experience.current.address') }}" placeholder="Address" class="rounded-md border-gray-300 w-full">
+                        </div>
                     </div>
 
                     <h3 class="text-sm font-semibold text-gray-700 pt-2">Previous Job (If Applicable)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <select name="job_experience[previous][job_category]" class="rounded-md border-gray-300">
-                            <option value="">Job Category</option>
-                            @foreach ($formOptions['job_categories'] as $option)
-                                <option value="{{ $option }}" @selected(old('job_experience.previous.job_category') === $option)>{{ $option }}</option>
-                            @endforeach
-                        </select>
-                        <input name="job_experience[previous][organization_name]" type="text" value="{{ old('job_experience.previous.organization_name') }}" placeholder="Organization Name" class="rounded-md border-gray-300">
-                        <input name="job_experience[previous][designation]" type="text" value="{{ old('job_experience.previous.designation') }}" placeholder="Designation / Post" class="rounded-md border-gray-300">
-                        <input name="job_experience[previous][starting_date]" type="date" value="{{ old('job_experience.previous.starting_date') }}" class="rounded-md border-gray-300">
-                        <input name="job_experience[previous][ending_date]" type="date" value="{{ old('job_experience.previous.ending_date') }}" class="rounded-md border-gray-300">
-                        <input name="job_experience[previous][address]" type="text" value="{{ old('job_experience.previous.address') }}" placeholder="Address" class="rounded-md border-gray-300 md:col-span-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Job Category</label>
+                            <select name="job_experience[previous][job_category]" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Job Category</option>
+                                @foreach ($formOptions['job_categories'] as $option)
+                                    <option value="{{ $option }}" @selected(old('job_experience.previous.job_category') === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Organization Name</label>
+                            <input name="job_experience[previous][organization_name]" type="text" value="{{ old('job_experience.previous.organization_name') }}" placeholder="Organization Name" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Designation / Post</label>
+                            <input name="job_experience[previous][designation]" type="text" value="{{ old('job_experience.previous.designation') }}" placeholder="Designation / Post" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Starting Date</label>
+                            <input name="job_experience[previous][starting_date]" type="date" value="{{ old('job_experience.previous.starting_date') }}" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Ending Date</label>
+                            <input name="job_experience[previous][ending_date]" type="date" value="{{ old('job_experience.previous.ending_date') }}" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <input name="job_experience[previous][address]" type="text" value="{{ old('job_experience.previous.address') }}" placeholder="Address" class="rounded-md border-gray-300 w-full">
+                        </div>
                     </div>
                 </fieldset>
             </section>
@@ -683,6 +725,7 @@
             permanentUpazilaId,
             initialDob,
             initialAge,
+            initialSameAsPresent,
             programs,
             initialCourseChoices,
         }) {
@@ -703,7 +746,20 @@
                 presentUpazilaOpen: false,
                 permanentDistrictOpen: false,
                 permanentUpazilaOpen: false,
+                sameAsPresentAddress: !!initialSameAsPresent,
                 ageDisplay: initialAge ?? '',
+                photoPreviewUrl: null,
+                signaturePreviewUrl: null,
+                pdfPreviewUrls: {
+                    ssc_marksheet: null,
+                    ssc_certificate: null,
+                    hsc_marksheet: null,
+                    hsc_certificate: null,
+                    graduation_marksheet: null,
+                    graduation_certificate: null,
+                    masters_marksheet: null,
+                    masters_certificate: null,
+                },
                 allPrograms: programs,
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
                     ? initialCourseChoices.map(v => v ?? '')
@@ -739,6 +795,10 @@
 
                     if (initialDob) {
                         this.calculateAge(initialDob);
+                    }
+
+                    if (this.sameAsPresentAddress) {
+                        this.syncPermanentFromPresent();
                     }
 
                     const dobInput = document.getElementById('date_of_birth');
@@ -786,6 +846,47 @@
                     this.presentUpazilaOpen = false;
                     this.permanentDistrictOpen = false;
                     this.permanentUpazilaOpen = false;
+                },
+                toggleSameAsPresentAddress() {
+                    if (this.sameAsPresentAddress) {
+                        this.syncPermanentFromPresent();
+                    }
+                },
+                syncPermanentFromPresent() {
+                    this.permanentDistrictId = this.presentDistrictId;
+                    this.permanentDistrictText = this.presentDistrictText;
+                    this.permanentUpazilaId = this.presentUpazilaId;
+                    this.permanentUpazilaText = this.presentUpazilaText;
+
+                    this.setInputValue('permanent_address[post_office]', document.querySelector('[name="present_address[post_office]"]')?.value ?? '');
+                    this.setInputValue('permanent_address[post_code]', document.querySelector('[name="present_address[post_code]"]')?.value ?? '');
+                    this.setInputValue('permanent_address[address_line]', document.querySelector('[name="present_address[address_line]"]')?.value ?? '');
+                },
+                handleImagePreview(event, type) {
+                    const file = event?.target?.files?.[0] ?? null;
+                    if (!file) {
+                        if (type === 'photo') this.photoPreviewUrl = null;
+                        if (type === 'signature') this.signaturePreviewUrl = null;
+                        return;
+                    }
+
+                    const nextUrl = URL.createObjectURL(file);
+                    if (type === 'photo') {
+                        if (this.photoPreviewUrl) URL.revokeObjectURL(this.photoPreviewUrl);
+                        this.photoPreviewUrl = nextUrl;
+                    }
+
+                    if (type === 'signature') {
+                        if (this.signaturePreviewUrl) URL.revokeObjectURL(this.signaturePreviewUrl);
+                        this.signaturePreviewUrl = nextUrl;
+                    }
+                },
+                handlePdfPreview(event, key) {
+                    const file = event?.target?.files?.[0] ?? null;
+                    if (this.pdfPreviewUrls[key]) {
+                        URL.revokeObjectURL(this.pdfPreviewUrls[key]);
+                    }
+                    this.pdfPreviewUrls[key] = file ? URL.createObjectURL(file) : null;
                 },
                 setInputValue(name, value) {
                     const input = document.querySelector(`[name="${name}"]`);
@@ -969,22 +1070,36 @@
                         return;
                     }
 
-                    const dob = new Date(dobValue);
+                    // Parse as LOCAL date (not UTC) to prevent midnight-UTC shifting
+                    // the date by one day for negative-offset timezones.
+                    const segs = String(dobValue).split('-').map(Number);
+                    if (segs.length < 3 || segs.some(isNaN)) {
+                        this.ageDisplay = '';
+                        return;
+                    }
+                    const dob = new Date(segs[0], segs[1] - 1, segs[2]);
                     if (Number.isNaN(dob.getTime())) {
                         this.ageDisplay = '';
                         return;
                     }
 
                     const today = new Date();
-                    let years = today.getFullYear() - dob.getFullYear();
-                    let months = today.getMonth() - dob.getMonth();
+                    let years  = today.getFullYear() - dob.getFullYear();
+                    let months = today.getMonth()     - dob.getMonth();
 
-                    if (today.getDate() < dob.getDate()) {
-                        months -= 1;
+                    // End-of-month aware birthday check:
+                    // Clamp the birth-day to the last day of the current month so that
+                    // e.g. being born on the 31st is treated as "birthday passed" when
+                    // today is the last day of a 30-day month (April 30, etc.).
+                    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                    const effectiveBirthDay = Math.min(dob.getDate(), lastDayOfMonth);
+
+                    if (today.getDate() < effectiveBirthDay) {
+                        months--;
                     }
 
                     if (months < 0) {
-                        years -= 1;
+                        years--;
                         months += 12;
                     }
 
@@ -1018,6 +1133,9 @@
                     if (addressType === 'present') {
                         this.presentUpazilaId = '';
                         this.presentUpazilaText = '';
+                        if (this.sameAsPresentAddress) {
+                            this.syncPermanentFromPresent();
+                        }
                     }
 
                     if (addressType === 'permanent') {

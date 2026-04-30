@@ -14,7 +14,7 @@ return [
     | Sandbox Mode
     |--------------------------------------------------------------------------
     */
-    'sandbox' => env('SSLCOMMERZ_SANDBOX', true),
+    'sandbox' => filter_var(env('SSLCOMMERZ_SANDBOX', true), FILTER_VALIDATE_BOOL, FILTER_NULL_ON_FAILURE) ?? true,
 
     /*
     |--------------------------------------------------------------------------
