@@ -13,13 +13,16 @@ use RuntimeException;
 
 class PaymentController extends Controller
 {
-    public function __construct(private SSLCommerzService $sslcommerz) {}
+    public function __construct(private SSLCommerzService $sslcommerz)
+    {
+    }
+
     /**
      * Determine if SSLCommerz is running in sandbox mode.
      */
     private function isSandboxMode(): bool
     {
-        return (bool) config('sslcommerz.sandbox', true);
+        return (bool)config('sslcommerz.sandbox', true);
     }
 
     /**
@@ -67,7 +70,7 @@ class PaymentController extends Controller
                 ->with('info', 'Already paid.');
         }
 
-        $amount = (float) config('sslcommerz.default_amount', 0);
+        $amount = (float)config('sslcommerz.default_amount', 0);
 
         if ($amount <= 0) {
             Log::error('Invalid payment amount', [
@@ -124,9 +127,9 @@ class PaymentController extends Controller
 
             // CALLBACKS (ONLY HERE, NOT IN SERVICE)
             'success_url' => $baseUrl . '/payment/callback/success',
-            'fail_url'    => $baseUrl . '/payment/callback/failed',
-            'cancel_url'  => $baseUrl . '/payment/callback/cancel',
-            'ipn_url'     => $baseUrl . '/payment/ipn',
+            'fail_url' => $baseUrl . '/payment/callback/failed',
+            'cancel_url' => $baseUrl . '/payment/callback/cancel',
+            'ipn_url' => $baseUrl . '/payment/ipn',
         ];
 
         Log::info('SSLCommerz initiate request', [
@@ -223,6 +226,7 @@ class PaymentController extends Controller
 
         if ($application && $application->status !== 'paid') {
             $application->update(['status' => 'failed']);
+            $application->delete();
         }
 
         return view('pages.payment-failed', [
@@ -243,6 +247,7 @@ class PaymentController extends Controller
 
         if ($application && $application->status !== 'paid') {
             $application->update(['status' => 'cancelled']);
+            $application->delete();
         }
 
         return view('pages.payment-cancel');
