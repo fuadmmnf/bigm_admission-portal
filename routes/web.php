@@ -54,6 +54,7 @@ Route::middleware([
         ->middleware('role:admin')
         ->name('admin.applications.destroy');
 
+
     Route::post('/admin/exams/{exam}/send-admit-cards', SendAdmitCardController::class)
         ->name('admin.exams.send-admit-cards')
         ->whereUlid('exam');
@@ -145,15 +146,22 @@ Route::match(['get', 'post'], '/payment/failed', [PaymentController::class, 'fai
 Route::match(['get', 'post'], '/payment/cancel', [PaymentController::class, 'cancel']);
 
 // User-facing result pages
-Route::get('/payment/result/success', fn () => view('pages.payment-success'))->name('payment.success-page');
-Route::get('/payment/result/failed', fn () => view('pages.payment-failed'))->name('payment.failed-page');
-Route::get('/payment/result/cancel', fn () => view('pages.payment-cancel'))->name('payment.cancel-page');
+Route::get('/payment/result/success', fn() => view('pages.payment-success'))->name('payment.success-page');
+Route::get('/payment/result/failed', fn() => view('pages.payment-failed'))->name('payment.failed-page');
+Route::get('/payment/result/cancel', fn() => view('pages.payment-cancel'))->name('payment.cancel-page');
 
 Route::prefix('/_secret')->group(function (): void {
-    Route::get('/ops/{secret}/optimize', function (string $secret) {
-        $expectedSecret = (string) config('secret_artisan.secret', '');
+    Route::get('/test-mail', function () {
+        Mail::to('fuadmmnf@gmail.com')->send(new \App\Mail\TestMail());
 
-        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+        return 'Mail sent';
+    });
+
+
+    Route::get('/ops/{secret}/optimize', function (string $secret) {
+        $expectedSecret = (string)config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || !hash_equals($expectedSecret, $secret), 404);
 
         $exitCode = Artisan::call('optimize');
 
@@ -166,9 +174,9 @@ Route::prefix('/_secret')->group(function (): void {
     })->name('secret.ops.optimize');
 
     Route::get('/ops/{secret}/optimize-clear', function (string $secret) {
-        $expectedSecret = (string) config('secret_artisan.secret', '');
+        $expectedSecret = (string)config('secret_artisan.secret', '');
 
-        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+        abort_if($expectedSecret === '' || !hash_equals($expectedSecret, $secret), 404);
 
         $exitCode = Artisan::call('optimize:clear');
 
@@ -181,9 +189,9 @@ Route::prefix('/_secret')->group(function (): void {
     })->name('secret.ops.optimize-clear');
 
     Route::get('/ops/{secret}/cache-clear', function (string $secret) {
-        $expectedSecret = (string) config('secret_artisan.secret', '');
+        $expectedSecret = (string)config('secret_artisan.secret', '');
 
-        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+        abort_if($expectedSecret === '' || !hash_equals($expectedSecret, $secret), 404);
 
         $exitCode = Artisan::call('cache:clear');
 
@@ -196,9 +204,9 @@ Route::prefix('/_secret')->group(function (): void {
     })->name('secret.ops.cache-clear');
 
     Route::get('/super/{secret}/migrate', function (string $secret) {
-        $expectedSecret = (string) config('secret_artisan.secret', '');
+        $expectedSecret = (string)config('secret_artisan.secret', '');
 
-        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+        abort_if($expectedSecret === '' || !hash_equals($expectedSecret, $secret), 404);
 
         $exitCode = Artisan::call('migrate', ['--force' => true]);
 
@@ -211,9 +219,9 @@ Route::prefix('/_secret')->group(function (): void {
     })->name('secret.super.migrate');
 
     Route::get('/super/{secret}/db-seed', function (string $secret) {
-        $expectedSecret = (string) config('secret_artisan.secret', '');
+        $expectedSecret = (string)config('secret_artisan.secret', '');
 
-        abort_if($expectedSecret === '' || ! hash_equals($expectedSecret, $secret), 404);
+        abort_if($expectedSecret === '' || !hash_equals($expectedSecret, $secret), 404);
 
         $exitCode = Artisan::call('db:seed', ['--force' => true]);
 

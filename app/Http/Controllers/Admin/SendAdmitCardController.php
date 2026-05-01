@@ -22,9 +22,11 @@ class SendAdmitCardController extends Controller
             'application_ids.*' => ['required_with:application_ids', 'string'],
         ]);
 
-        $scope = (string) $request->input('send_scope', 'selected');
-        $activeTab = (string) $request->input('active_tab', 'paid');
-        $selectedUlids = array_values(array_filter((array) $request->input('application_ids', [])));
+        Log::debug('SendAdmitCard request', $request->all());
+
+        $scope = (string)$request->input('send_scope', 'selected');
+        $activeTab = (string)$request->input('active_tab', 'paid');
+        $selectedUlids = array_values(array_filter((array)$request->input('application_ids', [])));
 
         if ($scope === 'selected' && count($selectedUlids) === 0) {
             return back()->with('error', 'Select at least one applicant to send email notifications.');
@@ -76,7 +78,7 @@ class SendAdmitCardController extends Controller
 
         $sent = 0;
         foreach ($applications as $application) {
-            if (! $application->applicant_email) {
+            if (!$application->applicant_email) {
                 continue;
             }
 

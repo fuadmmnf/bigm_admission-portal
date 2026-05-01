@@ -111,9 +111,9 @@
                                 <button
                                     type="submit"
                                     class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
-                                    formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
-                                    x-on:click="sendScope = 'all_paid'"
-                                    onclick="return confirm('Send email notification to ALL applicants visible on this tab?')"
+                                     formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
+                                     x-on:click="sendScope = 'all_paid'; targetStage = ''"
+                                     onclick="return confirm('Send email notification to ALL applicants visible on this tab?')"
                                 >
                                     @if ($activeTab === 'paid')
                                         Send Admit Card to All
@@ -129,9 +129,9 @@
                                 <button
                                     type="submit"
                                     class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700"
-                                    formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
-                                    x-on:click="sendScope = 'selected'"
-                                    onclick="return confirm('Send email notification to the selected applicants on this tab?')"
+                                     formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
+                                     x-on:click="sendScope = 'selected'; targetStage = ''"
+                                     onclick="return confirm('Send email notification to the selected applicants on this tab?')"
                                 >
                                     {{--                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"--}}
                                     {{--                                         viewBox="0 0 24 24">--}}
@@ -479,7 +479,7 @@
             return {
                 selected: [],
                 sendScope: 'selected',
-                targetStage: 'viva_selected',
+                targetStage: '',  // only set by stage-update buttons — never by admit-card buttons
 
                 get allSelected() {
                     return pageUlids.length > 0 && pageUlids.every(u => this.selected.includes(u));
