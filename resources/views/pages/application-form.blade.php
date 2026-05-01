@@ -9,7 +9,40 @@
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900" x-data="{ showIntroModal: true }">
+<body class="bg-gray-50 text-gray-900" x-data="{ showIntroModal: {{ old('applicant_name') ? 'false' : 'true' }} }">
+
+    {{-- Payment failure / cancel flash banner – bottom-centre, solid colours --}}
+    @if(session('payment_error') || session('payment_info'))
+    <div
+        x-data="{ show: true }"
+        x-show="show"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-4"
+        x-transition:enter-end="opacity-100 translate-y-0"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0"
+        x-transition:leave-end="opacity-0 translate-y-4"
+        class="fixed bottom-6 inset-x-0 z-[9999] flex justify-center px-4 pointer-events-none"
+    >
+        @if(session('payment_error'))
+        <div class="pointer-events-auto flex items-start gap-3 w-full max-w-xl rounded-xl shadow-2xl px-5 py-4 text-sm bg-red-600 text-white ring-1 ring-red-700">
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <span class="flex-1 font-semibold">{{ session('payment_error') }}</span>
+            <button @click="show = false" class="opacity-80 hover:opacity-100 transition text-lg leading-none">&times;</button>
+        </div>
+        @else
+        <div class="pointer-events-auto flex items-start gap-3 w-full max-w-xl rounded-xl shadow-2xl px-5 py-4 text-sm bg-amber-500 text-white ring-1 ring-amber-600">
+            <svg class="mt-0.5 h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+            <span class="flex-1 font-semibold">{{ session('payment_info') }}</span>
+            <button @click="show = false" class="opacity-80 hover:opacity-100 transition text-lg leading-none">&times;</button>
+        </div>
+        @endif
+    </div>
+    @endif
     @php
         $errorKeys = $errors->keys();
         $initialStep = 1;
@@ -19,6 +52,17 @@
         $certificateRules = $uploadRules['certificate_pdf'] ?? [];
         $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
         $applicationEndAt = optional($exam->end_date)->format('d M Y, h:i A');
+
+        // No prefill upload paths — files are always deleted on failed/cancelled payment.
+        $existingPhoto     = '';
+        $existingSignature = '';
+        $existingEduDocs   = [];
+        $initialPhotoUrl     = null;
+        $initialSignatureUrl = null;
+        $initialPdfUrls      = array_fill_keys([
+            'ssc_marksheet','ssc_certificate','hsc_marksheet','hsc_certificate',
+            'graduation_marksheet','graduation_certificate','masters_marksheet','masters_certificate',
+        ], null);
 
         foreach ($errorKeys as $errorKey) {
             if (
@@ -127,14 +171,10 @@
     </header>
 
     <main class="max-w-6xl mx-auto px-4 py-8">
-        <div class="rounded-lg border border-blue-200 bg-blue-50 p-4 mb-6 text-sm text-blue-900">
-            <span class="font-semibold">Application period:</span>
-            {{ $applicationStartAt ?? 'Now' }} to {{ $applicationEndAt ?? 'Until exam closes' }}
-        </div>
-        <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4 mb-6">
-            <p class="text-sm text-indigo-900">
-                Fill out all required fields from the original PDF form. After submission, you will be redirected to payment.
-            </p>
+        <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 mb-6 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <span class="text-sm font-semibold text-blue-900">Application period:</span>
+            <span class="text-sm text-blue-800">{{ $applicationStartAt ?? 'Now' }} to {{ $applicationEndAt ?? 'Until exam closes' }}</span>
+            <span class="text-xs text-blue-500">&middot; Fill out all required fields from the original PDF form. After submission, you will be redirected to payment.</span>
         </div>
 
         @if ($errors->any())
@@ -173,10 +213,14 @@
                     old('course_preferences.fifth_choice', ''),
                     old('course_preferences.sixth_choice', ''),
                 ]),
+                initialPhotoUrl: @js($initialPhotoUrl),
+                initialSignatureUrl: @js($initialSignatureUrl),
+                initialPdfUrls: @js($initialPdfUrls),
             })"
             class="space-y-6"
         >
             @csrf
+
 
             <div class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
                 <div class="flex flex-wrap items-center gap-2 sm:gap-3" role="list" aria-label="Form steps">
@@ -267,6 +311,9 @@
                                 <img :src="photoPreviewUrl" alt="Applicant photo preview" class="h-10 w-10 rounded object-cover border border-gray-200">
                             </div>
                         </div>
+                        @if($existingPhoto)
+                            <p class="mt-1 text-xs text-emerald-700 font-medium">✓ Previously uploaded photo retained. Upload a new file below to replace it.</p>
+                        @endif
                         <input id="applicant_photo" name="applicant_photo" type="file" accept="image/*" x-on:change="handleImagePreview($event, 'photo')" class="mt-1 block w-full text-sm" required>
                     </div>
 
@@ -277,6 +324,9 @@
                                 <img :src="signaturePreviewUrl" alt="Applicant signature preview" class="h-8 w-24 rounded object-contain border border-gray-200 bg-white">
                             </div>
                         </div>
+                        @if($existingSignature)
+                            <p class="mt-1 text-xs text-emerald-700 font-medium">✓ Previously uploaded signature retained. Upload a new file below to replace it.</p>
+                        @endif
                         <input id="signature_input" name="signature" type="file" accept="image/*" x-on:change="handleImagePreview($event, 'signature')" class="mt-1 block w-full text-sm" required>
                     </div>
                 </div>
@@ -294,6 +344,7 @@
                             <div class="relative" :class="presentDistrictOpen ? 'pb-52' : ''">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">District *</label>
                                 <input
+                                    id="present_district_input"
                                     type="text"
                                     x-model="presentDistrictText"
                                     x-on:focus="closeAddressDropdowns(); presentDistrictOpen = true"
@@ -322,6 +373,7 @@
                             <div class="relative" :class="presentUpazilaOpen ? 'pb-52' : ''">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana *</label>
                                 <input
+                                    id="present_upazila_input"
                                     type="text"
                                     x-model="presentUpazilaText"
                                     x-on:focus="if (presentDistrictId) { closeAddressDropdowns(); presentUpazilaOpen = true }"
@@ -374,6 +426,7 @@
                             <div class="relative" :class="permanentDistrictOpen ? 'pb-52' : ''">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">District *</label>
                                 <input
+                                    id="permanent_district_input"
                                     type="text"
                                     x-model="permanentDistrictText"
                                     :readonly="sameAsPresentAddress"
@@ -404,6 +457,7 @@
                             <div class="relative" :class="permanentUpazilaOpen ? 'pb-52' : ''">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana *</label>
                                 <input
+                                    id="permanent_upazila_input"
                                     type="text"
                                     x-model="permanentUpazilaText"
                                     :readonly="sameAsPresentAddress"
@@ -464,11 +518,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
                             <label for="ssc_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">SSC Marksheet PDF *<a x-show="pdfPreviewUrls.ssc_marksheet" x-cloak :href="pdfPreviewUrls.ssc_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="ssc_marksheet" name="education_documents[ssc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_marksheet')" class="mt-1 block w-full text-sm" required>
+                             <input id="ssc_marksheet" name="education_documents[ssc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_marksheet')" class="mt-1 block w-full text-sm" required>
                         </div>
                         <div>
                             <label for="ssc_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">SSC Certificate PDF *<a x-show="pdfPreviewUrls.ssc_certificate" x-cloak :href="pdfPreviewUrls.ssc_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="ssc_certificate" name="education_documents[ssc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_certificate')" class="mt-1 block w-full text-sm" required>
+                             <input id="ssc_certificate" name="education_documents[ssc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_certificate')" class="mt-1 block w-full text-sm" required>
                         </div>
                     </div>
                 </fieldset>
@@ -486,11 +540,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
                             <label for="hsc_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">HSC Marksheet PDF *<a x-show="pdfPreviewUrls.hsc_marksheet" x-cloak :href="pdfPreviewUrls.hsc_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="hsc_marksheet" name="education_documents[hsc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_marksheet')" class="mt-1 block w-full text-sm" required>
+                             <input id="hsc_marksheet" name="education_documents[hsc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_marksheet')" class="mt-1 block w-full text-sm" required>
                         </div>
                         <div>
                             <label for="hsc_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">HSC Certificate PDF *<a x-show="pdfPreviewUrls.hsc_certificate" x-cloak :href="pdfPreviewUrls.hsc_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="hsc_certificate" name="education_documents[hsc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_certificate')" class="mt-1 block w-full text-sm" required>
+                             <input id="hsc_certificate" name="education_documents[hsc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_certificate')" class="mt-1 block w-full text-sm" required>
                         </div>
                     </div>
                 </fieldset>
@@ -509,11 +563,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                         <div>
                             <label for="graduation_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">Graduation Marksheet PDF *<a x-show="pdfPreviewUrls.graduation_marksheet" x-cloak :href="pdfPreviewUrls.graduation_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="graduation_marksheet" name="education_documents[graduation][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_marksheet')" class="mt-1 block w-full text-sm" required>
+                             <input id="graduation_marksheet" name="education_documents[graduation][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_marksheet')" class="mt-1 block w-full text-sm" required>
                         </div>
                         <div>
                             <label for="graduation_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">Graduation Certificate PDF *<a x-show="pdfPreviewUrls.graduation_certificate" x-cloak :href="pdfPreviewUrls.graduation_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="graduation_certificate" name="education_documents[graduation][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_certificate')" class="mt-1 block w-full text-sm" required>
+                             <input id="graduation_certificate" name="education_documents[graduation][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_certificate')" class="mt-1 block w-full text-sm" required>
                         </div>
                     </div>
                 </fieldset>
@@ -680,6 +734,16 @@
                 </label>
             </section>
 
+            {{-- Per-step client-side validation errors --}}
+            <div x-show="stepErrors.length > 0" x-cloak class="rounded-lg border border-red-200 bg-red-50 p-4">
+                <p class="text-sm font-semibold text-red-800 mb-1">Please complete the required fields before continuing:</p>
+                <ul class="list-disc list-inside text-sm text-red-700 space-y-0.5">
+                    <template x-for="err in stepErrors" :key="err">
+                        <li x-text="err"></li>
+                    </template>
+                </ul>
+            </div>
+
             <div class="flex items-center justify-between">
                 <button
                     type="button"
@@ -728,6 +792,9 @@
             initialSameAsPresent,
             programs,
             initialCourseChoices,
+            initialPhotoUrl,
+            initialSignatureUrl,
+            initialPdfUrls,
         }) {
             return {
                 step: initialStep,
@@ -748,17 +815,17 @@
                 permanentUpazilaOpen: false,
                 sameAsPresentAddress: !!initialSameAsPresent,
                 ageDisplay: initialAge ?? '',
-                photoPreviewUrl: null,
-                signaturePreviewUrl: null,
+                photoPreviewUrl: initialPhotoUrl ?? null,
+                signaturePreviewUrl: initialSignatureUrl ?? null,
                 pdfPreviewUrls: {
-                    ssc_marksheet: null,
-                    ssc_certificate: null,
-                    hsc_marksheet: null,
-                    hsc_certificate: null,
-                    graduation_marksheet: null,
-                    graduation_certificate: null,
-                    masters_marksheet: null,
-                    masters_certificate: null,
+                    ssc_marksheet:          (initialPdfUrls && initialPdfUrls.ssc_marksheet)          ? initialPdfUrls.ssc_marksheet          : null,
+                    ssc_certificate:        (initialPdfUrls && initialPdfUrls.ssc_certificate)        ? initialPdfUrls.ssc_certificate        : null,
+                    hsc_marksheet:          (initialPdfUrls && initialPdfUrls.hsc_marksheet)          ? initialPdfUrls.hsc_marksheet          : null,
+                    hsc_certificate:        (initialPdfUrls && initialPdfUrls.hsc_certificate)        ? initialPdfUrls.hsc_certificate        : null,
+                    graduation_marksheet:   (initialPdfUrls && initialPdfUrls.graduation_marksheet)   ? initialPdfUrls.graduation_marksheet   : null,
+                    graduation_certificate: (initialPdfUrls && initialPdfUrls.graduation_certificate) ? initialPdfUrls.graduation_certificate : null,
+                    masters_marksheet:      (initialPdfUrls && initialPdfUrls.masters_marksheet)      ? initialPdfUrls.masters_marksheet      : null,
+                    masters_certificate:    (initialPdfUrls && initialPdfUrls.masters_certificate)    ? initialPdfUrls.masters_certificate    : null,
                 },
                 allPrograms: programs,
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
@@ -790,6 +857,7 @@
                     return this.courseChoices.filter(c => c === val).length > 1;
                 },
                 stepTitles: ['Personal', 'Address', 'Education', 'Career', 'Course Choice', 'Confirm'],
+                stepErrors: [],
                 init() {
                     this._initComboboxLabels();
 
@@ -807,6 +875,12 @@
                             this.calculateAge(event.target.value);
                         });
                     }
+
+                    // Clear combobox highlights as soon as a value is selected
+                    this.$watch('presentDistrictId',  v => { if (v) this._clearInvalid(document.getElementById('present_district_input')); });
+                    this.$watch('presentUpazilaId',   v => { if (v) this._clearInvalid(document.getElementById('present_upazila_input')); });
+                    this.$watch('permanentDistrictId',v => { if (v) this._clearInvalid(document.getElementById('permanent_district_input')); });
+                    this.$watch('permanentUpazilaId', v => { if (v) this._clearInvalid(document.getElementById('permanent_upazila_input')); });
                 },
                 _initComboboxLabels() {
                     if (this.presentDistrictId) {
@@ -1144,10 +1218,13 @@
                     }
                 },
                 next() {
-                    if (this.step === 5 && this.courseErrors.length > 0) {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const errors = this.validateStep(this.step);
+                    if (errors.length > 0) {
+                        this.stepErrors = errors;
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return;
                     }
+                    this.stepErrors = [];
                     if (this.step < this.totalSteps) {
                         this.step += 1;
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1156,12 +1233,175 @@
                 previous() {
                     if (this.step > 1) {
                         this.step -= 1;
+                        this.stepErrors = [];
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 },
-                goTo(step) {
-                    this.step = step;
+                goTo(targetStep) {
+                    if (targetStep < this.step) {
+                        // Always allow stepping backward
+                        this.step = targetStep;
+                        this.stepErrors = [];
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
+                    // Validate every step from current up to (but not including) target
+                    for (let s = this.step; s < targetStep; s++) {
+                        const errors = this.validateStep(s);
+                        if (errors.length > 0) {
+                            this.stepErrors = errors;
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                            return;
+                        }
+                    }
+                    this.stepErrors = [];
+                    this.step = targetStep;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                validateStep(stepNum) {
+                    const errors = [];
+
+                    // Helper: check a named input is non-empty, mark red if not
+                    const req = (name, label) => {
+                        const el = document.querySelector(`[name="${name}"]`);
+                        if (!el || !String(el.value ?? '').trim()) {
+                            errors.push(`${label} is required.`);
+                            this._markInvalid(el);
+                        }
+                    };
+                    const reqSel = (name, label) => {
+                        const el = document.querySelector(`[name="${name}"]`);
+                        if (!el || !el.value) {
+                            errors.push(`${label} is required.`);
+                            this._markInvalid(el);
+                        }
+                    };
+                    const reqCombo = (id, hasValue, label) => {
+                        if (!hasValue) {
+                            errors.push(`${label} is required.`);
+                            this._markInvalid(document.getElementById(id));
+                        }
+                    };
+
+                    if (stepNum === 1) {
+                        req('applicant_name',     'Applicant Name');
+                        req('father_name',        "Father's Name");
+                        req('mother_name',        "Mother's Name");
+                        req('national_id_number', 'National ID / Birth Reg. / Passport');
+                        req('date_of_birth',      'Date of Birth');
+                        req('mobile_number',      'Mobile Number');
+                        req('email',              'Email');
+                        reqSel('gender', 'Gender');
+
+                        const photo = document.querySelector('[name="applicant_photo"]');
+                        if (photo && !photo.files?.length) {
+                            errors.push('Applicant Photo is required.');
+                            this._markInvalid(photo);
+                        }
+                        const sig = document.querySelector('[name="signature"]');
+                        if (sig && !sig.files?.length) {
+                            errors.push('Signature is required.');
+                            this._markInvalid(sig);
+                        }
+                    }
+
+                    if (stepNum === 2) {
+                        reqCombo('present_district_input',  this.presentDistrictId,  'Present address: District');
+                        reqCombo('present_upazila_input',   this.presentUpazilaId,   'Present address: Upazila / Thana');
+                        req('present_address[post_office]',  'Present address: Post Office');
+                        req('present_address[post_code]',    'Present address: Post Code');
+                        req('present_address[address_line]', 'Present address: Village / Road / House');
+                        reqCombo('permanent_district_input', this.permanentDistrictId, 'Permanent address: District');
+                        reqCombo('permanent_upazila_input',  this.permanentUpazilaId,  'Permanent address: Upazila / Thana');
+                        req('permanent_address[post_office]',  'Permanent address: Post Office');
+                        req('permanent_address[post_code]',    'Permanent address: Post Code');
+                        req('permanent_address[address_line]', 'Permanent address: Village / Road / House');
+                    }
+
+                    if (stepNum === 3) {
+                        req('education[ssc][examination]',    'SSC Examination');
+                        reqSel('education[ssc][education_board]', 'SSC Education Board');
+                        req('education[ssc][result]',          'SSC Result');
+                        req('education[ssc][result_scale]',    'SSC Result Scale');
+                        reqSel('education[ssc][group]',        'SSC Group');
+                        req('education[ssc][passing_year]',    'SSC Passing Year');
+                        this._checkDocRequired('education_documents[ssc][marksheet]',   'existing_education_documents[ssc][marksheet]',   'SSC Marksheet PDF',   errors);
+                        this._checkDocRequired('education_documents[ssc][certificate]', 'existing_education_documents[ssc][certificate]', 'SSC Certificate PDF', errors);
+
+                        req('education[hsc][examination]',    'HSC Examination');
+                        reqSel('education[hsc][education_board]', 'HSC Education Board');
+                        req('education[hsc][result]',          'HSC Result');
+                        req('education[hsc][result_scale]',    'HSC Result Scale');
+                        reqSel('education[hsc][group]',        'HSC Group');
+                        req('education[hsc][passing_year]',    'HSC Passing Year');
+                        this._checkDocRequired('education_documents[hsc][marksheet]',   'existing_education_documents[hsc][marksheet]',   'HSC Marksheet PDF',   errors);
+                        this._checkDocRequired('education_documents[hsc][certificate]', 'existing_education_documents[hsc][certificate]', 'HSC Certificate PDF', errors);
+
+                        reqSel('education[graduation][examination]',  'Graduation Examination');
+                        req('education[graduation][subject]',             'Graduation Subject');
+                        req('education[graduation][institution]',         'Graduation University / Institute');
+                        req('education[graduation][result]',              'Graduation Result');
+                        req('education[graduation][result_scale]',        'Graduation Result Scale');
+                        req('education[graduation][passing_year]',        'Graduation Passing Year');
+                        req('education[graduation][course_duration_years]','Graduation Course Duration');
+                        this._checkDocRequired('education_documents[graduation][marksheet]',   'existing_education_documents[graduation][marksheet]',   'Graduation Marksheet PDF',   errors);
+                        this._checkDocRequired('education_documents[graduation][certificate]', 'existing_education_documents[graduation][certificate]', 'Graduation Certificate PDF', errors);
+                    }
+
+                    if (stepNum === 4) {
+                        req('job_experience[total_years]', 'Total Job Experience (Years)');
+                    }
+
+                    if (stepNum === 5) {
+                        const courseErrs = this.courseErrors;
+                        if (courseErrs.length > 0) {
+                            errors.push(...courseErrs);
+                            // Highlight empty or duplicate choice selects
+                            document.querySelectorAll('select[name^="course_preferences"]').forEach((sel, idx) => {
+                                if (!sel.value || this.isDuplicateChoice(idx)) this._markInvalid(sel);
+                            });
+                        }
+                    }
+
+                    if (stepNum === 6) {
+                        const decl = document.querySelector('[name="declaration"]');
+                        if (!decl?.checked) {
+                            errors.push('You must accept the declaration to submit.');
+                            const lbl = decl?.closest('label');
+                            if (lbl) {
+                                lbl.style.borderColor = '#ef4444';
+                                lbl.style.boxShadow = '0 0 0 2px #fecaca';
+                                decl.addEventListener('change', () => {
+                                    lbl.style.borderColor = '';
+                                    lbl.style.boxShadow = '';
+                                }, { once: true });
+                            }
+                        }
+                    }
+
+                    return errors;
+                },
+                _checkDocRequired(fileInputName, hiddenInputName, label, errors) {
+                    const fileInput = document.querySelector(`[name="${fileInputName}"]`);
+                    if (fileInput && !fileInput.files?.length) {
+                        errors.push(`${label} is required.`);
+                        this._markInvalid(fileInput);
+                    }
+                },
+                _markInvalid(el) {
+                    if (!el) return;
+                    el.style.borderColor    = '#ef4444';
+                    el.style.boxShadow      = '0 0 0 2px #fecaca';
+                    el.style.backgroundColor = '#fef2f2';
+                    const clear = () => this._clearInvalid(el);
+                    el.addEventListener('input',  clear, { once: true });
+                    el.addEventListener('change', clear, { once: true });
+                },
+                _clearInvalid(el) {
+                    if (!el) return;
+                    el.style.borderColor     = '';
+                    el.style.boxShadow       = '';
+                    el.style.backgroundColor = '';
                 },
             };
         }

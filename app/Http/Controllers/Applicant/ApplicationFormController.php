@@ -67,23 +67,24 @@ class ApplicationFormController extends Controller
                 ]);
         }
 
-        $applicantPhotoPath = $request->file('applicant_photo')?->storePublicly('applicant_uploads/photos', 'public');
-        $signaturePath = $request->file('signature')?->storePublicly('applicant_uploads/signatures', 'public');
+        $applicantPhotoPath = $request->file('applicant_photo')->storePublicly('applicant_uploads/photos', 'public');
+        $signaturePath      = $request->file('signature')->storePublicly('applicant_uploads/signatures', 'public');
+
         $educationDocumentPaths = [
             'ssc' => [
-                'marksheet' => $request->file('education_documents.ssc.marksheet')?->storePublicly('applicant_uploads/education/ssc', 'public'),
+                'marksheet'   => $request->file('education_documents.ssc.marksheet')?->storePublicly('applicant_uploads/education/ssc', 'public'),
                 'certificate' => $request->file('education_documents.ssc.certificate')?->storePublicly('applicant_uploads/education/ssc', 'public'),
             ],
             'hsc' => [
-                'marksheet' => $request->file('education_documents.hsc.marksheet')?->storePublicly('applicant_uploads/education/hsc', 'public'),
+                'marksheet'   => $request->file('education_documents.hsc.marksheet')?->storePublicly('applicant_uploads/education/hsc', 'public'),
                 'certificate' => $request->file('education_documents.hsc.certificate')?->storePublicly('applicant_uploads/education/hsc', 'public'),
             ],
             'graduation' => [
-                'marksheet' => $request->file('education_documents.graduation.marksheet')?->storePublicly('applicant_uploads/education/graduation', 'public'),
+                'marksheet'   => $request->file('education_documents.graduation.marksheet')?->storePublicly('applicant_uploads/education/graduation', 'public'),
                 'certificate' => $request->file('education_documents.graduation.certificate')?->storePublicly('applicant_uploads/education/graduation', 'public'),
             ],
             'masters' => [
-                'marksheet' => $request->file('education_documents.masters.marksheet')?->storePublicly('applicant_uploads/education/masters', 'public'),
+                'marksheet'   => $request->file('education_documents.masters.marksheet')?->storePublicly('applicant_uploads/education/masters', 'public'),
                 'certificate' => $request->file('education_documents.masters.certificate')?->storePublicly('applicant_uploads/education/masters', 'public'),
             ],
         ];
@@ -144,7 +145,6 @@ class ApplicationFormController extends Controller
             ],
         ]);
 
-        Log::debug($application);
         return redirect()
             ->route('payment.initiate', $application)
             ->with('status', 'Application submitted successfully. Please complete payment to finalize your submission.');

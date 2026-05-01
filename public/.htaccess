@@ -3,6 +3,9 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    # Allow Apache to follow symlinks (required for storage:link on cPanel)
+    Options +FollowSymLinks
+
     RewriteEngine On
 
     # Handle Authorization Header

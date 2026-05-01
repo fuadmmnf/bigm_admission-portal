@@ -9,6 +9,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 class PaymentController extends Controller
@@ -214,9 +215,75 @@ class PaymentController extends Controller
     }
 
     /**
+     * Reconstruct the original form data from a stored Application for session prefill.
+     * Flattens additional_info back into the same shape the form submits.
+     * Upload paths are intentionally excluded — user must re-upload fresh files.
+     */
+    private function buildPrefillInput(Application $application): array
+    {
+        $info = $application->additional_info ?? [];
+
+        return [
+            'applicant_name'     => $application->applicant_name,
+            'email'              => $application->applicant_email,
+            'mobile_number'      => $application->applicant_phone,
+            'national_id_number' => $application->applicant_id_number,
+            'gender'             => $application->gender,
+            'father_name'        => data_get($info, 'personal.father_name'),
+            'mother_name'        => data_get($info, 'personal.mother_name'),
+            'date_of_birth'      => data_get($info, 'personal.date_of_birth'),
+            'present_address'    => data_get($info, 'present_address', []),
+            'permanent_address'  => data_get($info, 'permanent_address', []),
+            'education'          => data_get($info, 'education', []),
+            'job_experience'     => data_get($info, 'job_experience', []),
+            'course_preferences' => data_get($info, 'course_preferences', []),
+            // No existing_* upload keys — user must re-upload photo, signature, and documents.
+        ];
+    }
+
+    /**
+     * Delete all uploaded files associated with an application from storage.
+     * Paths are stored in additional_info.uploads on the public disk.
+     */
+    private function deleteUploadedFiles(Application $application): void
+    {
+        $uploads = data_get($application->additional_info ?? [], 'uploads', []);
+
+        $paths = array_filter([
+            data_get($uploads, 'applicant_photo'),
+            data_get($uploads, 'signature'),
+            data_get($uploads, 'education_documents.ssc.marksheet'),
+            data_get($uploads, 'education_documents.ssc.certificate'),
+            data_get($uploads, 'education_documents.hsc.marksheet'),
+            data_get($uploads, 'education_documents.hsc.certificate'),
+            data_get($uploads, 'education_documents.graduation.marksheet'),
+            data_get($uploads, 'education_documents.graduation.certificate'),
+            data_get($uploads, 'education_documents.masters.marksheet'),
+            data_get($uploads, 'education_documents.masters.certificate'),
+        ]);
+
+        foreach ($paths as $path) {
+            try {
+                Storage::disk('public')->delete($path);
+            } catch (\Throwable $e) {
+                Log::warning('Failed to delete uploaded file', [
+                    'path'            => $path,
+                    'application_ulid'=> $application->ulid,
+                    'error'           => $e->getMessage(),
+                ]);
+            }
+        }
+
+        Log::info('Deleted uploaded files for application', [
+            'application_ulid' => $application->ulid,
+            'count'            => count($paths),
+        ]);
+    }
+
+    /**
      * FAILED CALLBACK
      */
-    public function failed(Request $request): View
+    public function failed(Request $request): RedirectResponse
     {
         $tranId = $request->input('tran_id');
 
@@ -224,20 +291,32 @@ class PaymentController extends Controller
 
         $application = Application::where('transaction_id', $tranId)->first();
 
+        $examUlid = null;
+        $prefillInput = [];
+
         if ($application && $application->status !== 'paid') {
+            $examUlid     = $application->exam?->ulid;
+            $prefillInput = $this->buildPrefillInput($application);
             $application->update(['status' => 'failed']);
+            $this->deleteUploadedFiles($application);
             $application->delete();
         }
 
-        return view('pages.payment-failed', [
-            'error' => 'Payment failed'
-        ]);
+        if ($examUlid) {
+            return redirect()
+                ->route('applications.create', ['exam' => $examUlid])
+                ->withInput($prefillInput)
+                ->with('payment_error', 'Your payment could not be processed. Your previous entries have been restored — please re-upload your photo, signature, and documents, then resubmit.');
+        }
+
+        return redirect()->route('home')
+            ->with('payment_error', 'Payment failed. Please try again.');
     }
 
     /**
      * CANCEL CALLBACK
      */
-    public function cancel(Request $request): View
+    public function cancel(Request $request): RedirectResponse
     {
         $tranId = $request->input('tran_id');
 
@@ -245,12 +324,26 @@ class PaymentController extends Controller
 
         $application = Application::where('transaction_id', $tranId)->first();
 
+        $examUlid     = null;
+        $prefillInput = [];
+
         if ($application && $application->status !== 'paid') {
+            $examUlid     = $application->exam?->ulid;
+            $prefillInput = $this->buildPrefillInput($application);
             $application->update(['status' => 'cancelled']);
+            $this->deleteUploadedFiles($application);
             $application->delete();
         }
 
-        return view('pages.payment-cancel');
+        if ($examUlid) {
+            return redirect()
+                ->route('applications.create', ['exam' => $examUlid])
+                ->withInput($prefillInput)
+                ->with('payment_info', 'Payment was cancelled. Your previous entries have been restored — please re-upload your photo, signature, and documents, then resubmit whenever you are ready.');
+        }
+
+        return redirect()->route('home')
+            ->with('payment_info', 'Payment was cancelled.');
     }
 
     /**
