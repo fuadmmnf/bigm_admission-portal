@@ -230,5 +230,20 @@ Route::prefix('/_secret')->middleware('throttle:10,1')->group(function (): void 
             'output' => trim(Artisan::output()),
         ]);
     })->name('secret.super.db-seed');
+
+    Route::get('/super/{secret}/storage-link', function (string $secret) {
+        $expectedSecret = (string)config('secret_artisan.secret', '');
+
+        abort_if($expectedSecret === '' || !hash_equals($expectedSecret, $secret), 404);
+
+        $exitCode = Artisan::call('storage:link');
+
+        return response()->json([
+            'ok' => $exitCode === 0,
+            'command' => 'storage:link',
+            'exit_code' => $exitCode,
+            'output' => trim(Artisan::output()),
+        ]);
+    })->name('secret.super.storage-link');
 });
 

@@ -6,16 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamPageController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/factories/ApplicationFactory.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/choice-list-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/choice-list-wise-applicants.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/layouts/report.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/layouts/report.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -274,7 +264,7 @@
       <workItem from="1777089921186" duration="17971000" />
       <workItem from="1777127474206" duration="27238000" />
       <workItem from="1777515783024" duration="31883000" />
-      <workItem from="1777728802866" duration="4841000" />
+      <workItem from="1777728802866" duration="6376000" />
     </task>
     <servers />
   </component>
