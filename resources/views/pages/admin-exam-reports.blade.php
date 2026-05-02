@@ -16,27 +16,30 @@
 
     <div class="py-4">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-4">
-            <section class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
-                <h3 class="text-base font-semibold text-gray-900">Exam Details</h3>
-                <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <div class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Status</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ ucfirst($exam->status) }}</p>
-                    </div>
-                    <div class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Application Window</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">
-                            {{ optional($exam->start_date)->format('d M Y') ?? 'N/A' }} - {{ optional($exam->end_date)->format('d M Y') ?? 'N/A' }}
-                        </p>
-                    </div>
-                    <div class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Paid Applicants</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ $paidApplicantsCount }}</p>
-                    </div>
-                    <div class="rounded-md border border-gray-200 bg-gray-50 p-3">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Viva / Program</p>
-                        <p class="mt-1 text-sm font-semibold text-gray-900">{{ $vivaSelectedCount }} / {{ $programSelectedCount }}</p>
-                    </div>
+            <section class="bg-white border border-gray-200 rounded-lg px-3 py-2">
+                <div class="overflow-x-auto">
+                    <dl class="min-w-max flex items-center gap-2 text-xs whitespace-nowrap">
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1">
+                            <dt class="text-gray-500">Status:</dt>
+                            <dd class="font-semibold text-gray-900">{{ ucfirst($exam->status) }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1">
+                            <dt class="text-gray-500">Window:</dt>
+                            <dd class="font-semibold text-gray-900">{{ optional($exam->start_date)->format('d M Y') ?? 'N/A' }} – {{ optional($exam->end_date)->format('d M Y') ?? 'N/A' }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1">
+                            <dt class="text-emerald-700">Paid Applicants:</dt>
+                            <dd class="font-semibold text-emerald-700">{{ $paidApplicantsCount }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1">
+                            <dt class="text-amber-700">Shortlisted for Viva:</dt>
+                            <dd class="font-semibold text-amber-700">{{ $vivaSelectedCount }}</dd>
+                        </div>
+                        <div class="inline-flex items-center gap-1.5 rounded-md border border-purple-200 bg-purple-50 px-2 py-1">
+                            <dt class="text-purple-700">Program Enrolled:</dt>
+                            <dd class="font-semibold text-purple-700">{{ $programSelectedCount }}</dd>
+                        </div>
+                    </dl>
                 </div>
             </section>
 
@@ -44,6 +47,7 @@
                 <h3 class="text-base font-semibold text-gray-900">Available Reports</h3>
                 <p class="mt-1 text-sm text-gray-500">More reports can be added here one by one.</p>
 
+                {{-- Attendance List --}}
                 <div class="mt-4 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="text-sm font-semibold text-gray-900">Attendance List (Paid Applicants)</p>
@@ -66,6 +70,7 @@
                     @endif
                 </div>
 
+                {{-- Viva Selected List --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="text-sm font-semibold text-gray-900">Viva Selected List</p>
@@ -88,6 +93,7 @@
                     @endif
                 </div>
 
+                {{-- Gender Wise Report --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -112,14 +118,15 @@
                     </div>
                 </div>
 
+                {{-- Employer Wise — form on its own row, right-aligned --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex flex-col gap-3">
                         <div>
                             <p class="text-sm font-semibold text-gray-900">Employer Wise Report</p>
                             <p class="text-xs text-gray-500">Filter paid applicants by current employer category and stream as PDF.</p>
                         </div>
                         @if (auth()->user()?->hasRole('admin'))
-                            <form method="GET" action="{{ route('admin.exams.reports.employer-wise', $exam) }}" target="_blank" rel="noopener" class="flex items-center gap-2 flex-wrap">
+                            <form method="GET" action="{{ route('admin.exams.reports.employer-wise', $exam) }}" target="_blank" rel="noopener" class="flex items-center gap-2 flex-wrap justify-end">
                                 <select name="employer" class="rounded-md border-gray-300 text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 py-1.5">
                                     <option value="">All Employers</option>
                                     @foreach ($jobCategories as $cat)
@@ -131,11 +138,14 @@
                                 </button>
                             </form>
                         @else
-                            <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">Admin Only</span>
+                            <div class="flex justify-end">
+                                <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">Admin Only</span>
+                            </div>
                         @endif
                     </div>
                 </div>
 
+                {{-- Choice List Wise Report &mdash; Style 1 (All Applicants) --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -152,6 +162,7 @@
                     </div>
                 </div>
 
+                {{-- Choice List Wise Report &mdash; Style 2 (By Subject) --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
@@ -176,20 +187,6 @@
                     </div>
                 </div>
 
-                <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="text-sm font-semibold text-gray-900">Total Job-Experience Wise Report</p>
-                        <p class="text-xs text-gray-500">Placeholder format; content structure will be updated later.</p>
-                    </div>
-
-                    @if (auth()->user()?->hasRole('admin'))
-                        <a href="{{ route('admin.exams.reports.job-experience-wise', $exam) }}" target="_blank" rel="noopener" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
-                            Download Job-Experience Report
-                        </a>
-                    @else
-                        <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">Admin Only</span>
-                    @endif
-                </div>
 
                 <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>

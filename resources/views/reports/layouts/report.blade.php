@@ -6,7 +6,7 @@
     <style>
         @page {
             margin: 28mm 14mm 22mm 14mm;
-            size: @yield('paper-size', 'A4') @yield('paper-orientation', 'portrait');
+            size: A4 portrait;
         }
 
         * { box-sizing: border-box; }
@@ -23,12 +23,12 @@
         /* ── Fixed Header ──────────────────────────────────── */
         .pdf-header {
             position: fixed;
-            top: -22mm;
-            left: 0;
-            right: 0;
+            top: -28mm;
+            left: -14mm;
+            right: -14mm;
             background: #1e3a5f;
             color: #ffffff;
-            padding: 6pt 12pt 5pt;
+            padding: 6pt 14mm 5pt;
         }
         .pdf-header-inner {
             display: table;
@@ -77,11 +77,11 @@
         /* ── Fixed Footer ──────────────────────────────────── */
         .pdf-footer {
             position: fixed;
-            bottom: -18mm;
-            left: 0;
-            right: 0;
+            bottom: -22mm;
+            left: -14mm;
+            right: -14mm;
             border-top: 1px solid #c7d2e0;
-            padding-top: 4pt;
+            padding: 4pt 14mm 0;
             font-size: 8pt;
             color: #6b7280;
         }
@@ -103,9 +103,6 @@
             display: table-cell;
             vertical-align: middle;
             text-align: right;
-        }
-        .pdf-footer-right .page-number:before {
-            content: "Page " counter(page) " of " counter(pages);
         }
 
         /* ── Content area ──────────────────────────────────── */
@@ -129,7 +126,7 @@
         table.report-table th {
             background: #1e3a5f;
             color: #ffffff;
-            text-align: left;
+            text-align: center;
             font-weight: bold;
             font-size: 9px;
             text-transform: uppercase;
@@ -204,6 +201,21 @@
             <div class="pdf-footer-right"><span class="page-number"></span></div>
         </div>
     </div>
+
+    {{-- Page numbers via PHP (dompdf) --}}
+    <script type="text/php">
+        if (isset($pdf)) {
+            $font = $fontMetrics->getFont("DejaVu Sans", "normal");
+            $size = 7;
+            $color = array(107/255, 114/255, 128/255);
+            $width  = $pdf->get_width();
+            $height = $pdf->get_height();
+            // x: right-aligned ~14mm from right edge; y: near bottom of page footer area
+            $x = $width - 112;
+            $y = $height - 14;
+            $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);
+        }
+    </script>
 
     {{-- Main Content --}}
     <div class="report-content">

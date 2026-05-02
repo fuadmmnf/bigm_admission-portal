@@ -100,13 +100,13 @@
         x-cloak
         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70 backdrop-blur-sm p-4"
     >
-        <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-2xl border border-gray-200">
-            <div class="px-6 py-5 border-b border-gray-200">
+        <div class="w-full max-w-3xl max-h-[90vh] flex flex-col rounded-xl bg-white shadow-2xl border border-gray-200">
+            <div class="px-6 py-5 border-b border-gray-200 flex-shrink-0">
                 <h2 class="text-xl font-bold text-gray-900">Read Before You Start Application</h2>
                 <p class="text-sm text-gray-600 mt-1">Please review these instructions carefully. Application fields will be enabled after you confirm.</p>
             </div>
 
-            <div class="px-6 py-5 space-y-5 text-sm text-gray-700">
+            <div class="px-6 py-5 space-y-5 text-sm text-gray-700 overflow-y-auto flex-1">
                 <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
                     <p class="font-semibold text-indigo-900">Application Window</p>
                     <p class="mt-1 text-indigo-800">
@@ -130,7 +130,7 @@
                     <ol class="list-decimal list-inside space-y-1">
                         <li><strong>Personal</strong>: Applicant details, photo, and signature.</li>
                         <li><strong>Address</strong>: Present and permanent address.</li>
-                        <li><strong>Education</strong>: SSC, HSC, Graduation, and optional Masters details.</li>
+                        <li><strong>Education</strong>: SSC, HSC, Graduation, optional Masters, and optional MPhil/PhD details.</li>
                         <li><strong>Career</strong>: Job experience (current and previous).</li>
                         <li><strong>Course Choice</strong>: 6 program preferences without duplication.</li>
                         <li><strong>Confirm</strong>: Declaration and final submission for payment.</li>
@@ -146,7 +146,7 @@
                 </div>
             </div>
 
-            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2">
+            <div class="px-6 py-4 border-t border-gray-200 flex items-center justify-end gap-2 flex-shrink-0">
                 <a href="{{ route('home') }}" class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Back</a>
                 <button
                     type="button"
@@ -594,6 +594,23 @@
                         </div>
                     </div>
                 </fieldset>
+
+                <fieldset class="rounded-lg border border-gray-200 p-4">
+                    <legend class="px-2 text-sm font-semibold text-gray-700">MPhil / PhD (If Applicable)</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input name="education[mphil_phd][subject]" type="text" value="{{ old('education.mphil_phd.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label><input name="education[mphil_phd][institution]" type="text" value="{{ old('education.mphil_phd.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full"></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Degree Completion Status</label>
+                            <select name="education[mphil_phd][degree_completion]" class="rounded-md border-gray-300 w-full">
+                                <option value="">— Select Status —</option>
+                                <option value="degree_awarded" @selected(old('education.mphil_phd.degree_completion') === 'degree_awarded')>Degree Awarded</option>
+                                <option value="ongoing" @selected(old('education.mphil_phd.degree_completion') === 'ongoing')>Ongoing</option>
+                            </select>
+                        </div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Completion Year</label><input name="education[mphil_phd][completion_year]" type="number" value="{{ old('education.mphil_phd.completion_year') }}" placeholder="Year (optional)" class="rounded-md border-gray-300 w-full"></div>
+                    </div>
+                </fieldset>
             </section>
 
             <section x-show="step === 4" x-cloak class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-6">
@@ -673,6 +690,19 @@
 
             <section x-show="step === 5" x-cloak class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-6">
                 <h2 class="text-lg font-semibold text-gray-900">Step 5: Subject / Course Preferences</h2>
+
+                {{-- Program reference list --}}
+                <div class="rounded-lg border border-indigo-100 bg-indigo-50 p-4">
+                    <p class="text-sm font-semibold text-indigo-900 mb-2">Available Programs</p>
+                    <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-indigo-800">
+                        <li><span class="font-semibold">HRM</span> &mdash; Human Resource Management</li>
+                        <li><span class="font-semibold">GPP</span> &mdash; Governance and Public Policy</li>
+                        <li><span class="font-semibold">IER</span> &mdash; International Economic Relations</li>
+                        <li><span class="font-semibold">PM</span> &mdash; Project Management</li>
+                        <li><span class="font-semibold">PSCM</span> &mdash; Procurement and Supply Chain Management</li>
+                        <li><span class="font-semibold">PPFM</span> &mdash; Public Private Financial Management</li>
+                    </ul>
+                </div>
 
                 <div x-show="courseErrors.length > 0" class="rounded-lg border border-red-200 bg-red-50 p-3">
                     <p class="text-sm font-semibold text-red-800 mb-1">Please fix the following:</p>

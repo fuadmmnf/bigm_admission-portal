@@ -160,7 +160,7 @@
                             <select id="selected_category_id" name="selected_category_id" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm">
                                 <option value="">Not selected yet</option>
                                 @foreach ($programCategories as $category)
-                                    <option value="{{ $category->id }}" @selected((string) old('selected_category_id', $application->selected_category_id) === (string) $category->id)>{{ $category->name }}</option>
+                                    <option value="{{ $category->id }}" @selected((string) old('selected_category_id', $application->selected_category_id) === (string) $category->id)>{{ data_get($category->additional_info, 'code', $category->name) }} – {{ $category->name }}</option>
                                 @endforeach
                             </select>
                             @error('selected_category_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror

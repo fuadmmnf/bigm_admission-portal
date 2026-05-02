@@ -91,6 +91,11 @@ class StoreApplicationRequest extends FormRequest
             'education.masters.passing_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
             'education.masters.course_duration_years' => ['nullable', 'numeric', 'min:1', 'max:10'],
 
+            'education.mphil_phd.subject' => ['nullable', 'string', 'max:120'],
+            'education.mphil_phd.institution' => ['nullable', 'string', 'max:255'],
+            'education.mphil_phd.degree_completion' => ['nullable', 'string', Rule::in(['degree_awarded', 'ongoing'])],
+            'education.mphil_phd.completion_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
+
             'education_documents.ssc.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
             'education_documents.ssc.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
             'education_documents.hsc.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],

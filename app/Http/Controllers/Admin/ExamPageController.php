@@ -52,7 +52,6 @@ class ExamPageController extends Controller
         $sort = $request->string('sort')->toString();
         $allowedSorts = [
             'appid_asc',
-            'latest',
             'written_desc', 'written_asc',
             'viva_desc',    'viva_asc',
             'total_desc',   'total_asc',
@@ -73,7 +72,10 @@ class ExamPageController extends Controller
         }
 
         if ($activeTab === 'program') {
-            $applicationsQuery->where('selection_stage', Application::STAGE_PROGRAM_SELECTED);
+            $applicationsQuery->whereIn('selection_stage', [
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_ALUMNI,
+            ]);
         }
 
         if ($activeTab === 'alumni') {
@@ -132,7 +134,7 @@ class ExamPageController extends Controller
         $programCategories = Category::query()
             ->where('type', 'program')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'additional_info']);
 
         // Single conditional-aggregation query replaces the previous 4 separate COUNTs.
         $counts = $exam->applications()
@@ -140,12 +142,13 @@ class ExamPageController extends Controller
             ->selectRaw('
                 COUNT(*) as total_paid,
                 SUM(CASE WHEN selection_stage IN (?, ?) THEN 1 ELSE 0 END) as total_viva,
-                SUM(CASE WHEN selection_stage = ?             THEN 1 ELSE 0 END) as total_program,
+                SUM(CASE WHEN selection_stage IN (?, ?) THEN 1 ELSE 0 END) as total_program,
                 SUM(CASE WHEN selection_stage = ?             THEN 1 ELSE 0 END) as total_alumni
             ', [
                 Application::STAGE_VIVA_SELECTED,
                 Application::STAGE_PROGRAM_SELECTED,
                 Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_ALUMNI,
                 Application::STAGE_ALUMNI,
             ])
             ->first();

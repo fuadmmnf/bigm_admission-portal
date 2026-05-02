@@ -65,8 +65,7 @@
             </div>
 
             {{-- Paid applicant list + send-admit-card form --}}
-            <form
-                id="admit-card-form"
+    <form id="admit-card-form"
                 method="POST"
                 action="{{ route('admin.exams.send-admit-cards', $exam) }}"
                 x-data="admitCardForm()"
@@ -115,13 +114,15 @@
                                      formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
                                      x-on:click="sendScope = 'all_paid'; targetStage = ''"
                                      onclick="return confirm('Send email notification to ALL applicants visible on this tab?')"
-                                >
+                                 >
                                     @if ($activeTab === 'paid')
                                         Send Admit Card to All
                                     @elseif ($activeTab === 'viva')
                                         Send Viva Notice to All
-                                    @else
+                                    @elseif ($activeTab === 'program')
                                         Send Program Notice to All
+                                    @else
+                                        Send Alumni Notice to All
                                     @endif
                                 </button>
                             </div>
@@ -143,8 +144,10 @@
                                         Send Admit Card(s)
                                     @elseif ($activeTab === 'viva')
                                         Send Viva Notice(s)
-                                    @else
+                                    @elseif ($activeTab === 'program')
                                         Send Program Notice(s)
+                                    @else
+                                        Send Alumni Notice(s)
                                     @endif
                                 </button>
 
@@ -171,6 +174,18 @@
                                         Mark Program Selected
                                     </button>
                                 @endif
+
+                                @if ($activeTab === 'program')
+                                    <button
+                                        type="submit"
+                                        class="inline-flex items-center gap-1.5 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700"
+                                        formaction="{{ route('admin.exams.applications.stage-update', $exam) }}"
+                                        x-on:click="targetStage = 'alumni'"
+                                        onclick="return confirm('Mark selected applicants as Alumni?')"
+                                    >
+                                        Mark as Alumni
+                                    </button>
+                                @endif
                             </div>
                             <div x-show="selected.length === 0" class="text-xs text-gray-400 italic">Select applicants
                                 to apply bulk actions
@@ -190,6 +205,9 @@
                             <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'program' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Program
                                 Selected ({{ $totalProgram }})</a>
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'alumni', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
+                               class="rounded px-3 py-1.5 {{ $activeTab === 'alumni' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Alumni
+                                ({{ $totalAlumni }})</a>
                         </div>
                         <form method="GET" action="{{ route('admin.exams.show', $exam) }}"
                               class="ml-auto flex items-center gap-2 flex-wrap justify-end">
@@ -258,7 +276,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Gender</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection Stage</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Assessment</th>
-                                @if($activeTab === 'viva' || $activeTab === 'program')
+                                @if($activeTab === 'viva' || $activeTab === 'program' || $activeTab === 'alumni')
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total</th>
                                 @endif
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
@@ -290,7 +308,7 @@
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A') }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</td>
                                         <td class="px-4 py-3 text-xs text-gray-600">
-                                            <div class="space-y-1 min-w-[14rem]">
+                                             <div class="space-y-1">
                                                 @if ($activeTab === 'paid')
                                                     {{-- Per-row written marks tracker --}}
                                                     <div x-data="trackableMarks(
@@ -357,12 +375,12 @@
                                                                 name="selected_category_ids[{{ $application->ulid }}]"
                                                                 x-model="current"
                                                                 @change="onInput"
-                                                                class="w-full rounded-md border-gray-300 text-xs"
+                                                                class="w-28 rounded-md border-gray-300 text-xs"
                                                             >
-                                                                <option value="">Not selected</option>
+                                                                <option value="">—</option>
                                                                 @foreach ($programCategories as $category)
                                                                     <option
-                                                                        value="{{ $category->id }}">{{ $category->name }}</option>
+                                                                        value="{{ $category->id }}">{{ data_get($category->additional_info, 'code', $category->name) }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
@@ -370,7 +388,7 @@
                                                  @endif
                                             </div>
                                         </td>
-                                        @if($activeTab === 'viva' || $activeTab === 'program')
+                                        @if($activeTab === 'viva' || $activeTab === 'program' || $activeTab === 'alumni')
                                         @php
                                             $totalMarks = (float)($application->written_exam_marks ?? 0)
                                                         + (float)($application->viva_exam_marks ?? 0);
@@ -397,27 +415,13 @@
                                                 >
                                                     View Card
                                                 </a>
-                                                @if (optional(auth()->user())->hasRole('admin'))
-                                                    <button
-                                                        type="button"
-                                                        class="inline-flex items-center justify-center text-red-600 hover:text-red-700"
-                                                        title="Delete application"
-                                                        x-on:click="removeApplication('{{ route('admin.applications.destroy', $application) }}')"
-                                                    >
-                                                        <svg class="h-4 w-4" fill="none" stroke="currentColor"
-                                                             stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                  d="M6 7h12M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12"/>
-                                                        </svg>
-                                                    </button>
-                                                @endif
                                             </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="{{ $activeTab === 'viva' || $activeTab === 'program' ? 11 : 10 }}" class="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colspan="{{ ($activeTab === 'viva' || $activeTab === 'program' || $activeTab === 'alumni') ? 11 : 10 }}" class="px-4 py-8 text-center text-sm text-gray-500">
                                         No applicants found for this tab.
                                     </td>
                                 </tr>
@@ -455,10 +459,6 @@
         </div>
     </div>
 
-    <form id="delete-application-form" method="POST" style="display:none">
-        @csrf
-        @method('DELETE')
-    </form>
 
     <style>
         input.no-spinner::-webkit-outer-spin-button,
@@ -516,16 +516,6 @@
 
                 clearAll() {
                     this.selected = this.selected.filter(u => !pageUlids.includes(u));
-                },
-
-                removeApplication(deleteUrl) {
-                    if (!confirm('Confirm delete of this application? This action can be restored only from soft-deleted records.')) return;
-
-                    const form = document.getElementById('delete-application-form');
-                    if (!form) return;
-
-                    form.action = deleteUrl;
-                    form.submit();
                 },
             };
         }

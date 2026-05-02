@@ -17,7 +17,9 @@ class ApplicationFactory extends Factory
     {
         $boards = ['Dhaka', 'Chattogram', 'Rajshahi', 'Sylhet', 'Barishal', 'Khulna', 'Comilla', 'Mymensingh'];
         $resultScales = ['GPA', 'CGPA', 'Division'];
-        $programs = ['Computer Science', 'Business Administration', 'Public Health', 'Development Studies', 'Finance', 'Economics'];
+        // Use the canonical program codes from config so seeded data matches report filters.
+        $programs = collect(config('applicant_form.programs', ['HRM', 'GPP', 'IER', 'PM', 'PSCM', 'PPFM']))->shuffle()->values()->all();
+        $programSubjects = ['Computer Science', 'Business Administration', 'Public Health', 'Development Studies', 'Finance', 'Economics'];
         $designations = ['Software Engineer', 'Analyst', 'Manager', 'Officer', 'Executive', 'Coordinator'];
         $orgs = ['Government Hospital', 'Bangladesh Bank', 'A.C.I. Ltd', 'BRAC', 'Unilever Bangladesh', 'Robi Axiata'];
         $categories = ['Government', 'Private', 'NGO', 'Semi-Government', 'Autonomous'];
@@ -62,7 +64,7 @@ class ApplicationFactory extends Factory
                 ],
                 'graduation' => [
                     'examination'    => 'B.Sc.',
-                    'subject'        => fake()->randomElement($programs),
+                    'subject'        => fake()->randomElement($programSubjects),
                     'institution'    => fake()->randomElement(['Dhaka University', 'BUET', 'KUET', 'RUET', 'NSU']),
                     'result'         => number_format(fake()->randomFloat(2, 2.5, 4.0), 2),
                     'result_scale'   => 'CGPA',
@@ -70,7 +72,7 @@ class ApplicationFactory extends Factory
                 ],
                 'masters' => [
                     'examination'    => 'M.Sc.',
-                    'subject'        => fake()->randomElement($programs),
+                    'subject'        => fake()->randomElement($programSubjects),
                     'institution'    => fake()->randomElement(['Dhaka University', 'IBA', 'BRAC University', 'East West University']),
                     'result'         => number_format(fake()->randomFloat(2, 2.5, 4.0), 2),
                     'result_scale'   => 'CGPA',
@@ -90,12 +92,12 @@ class ApplicationFactory extends Factory
                 ],
             ],
             'course_preferences' => [
-                'first_choice'  => fake()->randomElement($programs),
-                'second_choice' => fake()->randomElement($programs),
-                'third_choice'  => fake()->randomElement($programs),
-                'fourth_choice' => fake()->randomElement($programs),
-                'fifth_choice'  => fake()->randomElement($programs),
-                'sixth_choice'  => fake()->randomElement($programs),
+                'first_choice'  => $programs[0],
+                'second_choice' => $programs[1],
+                'third_choice'  => $programs[2],
+                'fourth_choice' => $programs[3],
+                'fifth_choice'  => $programs[4],
+                'sixth_choice'  => $programs[5],
             ],
             'uploads' => [],
         ];

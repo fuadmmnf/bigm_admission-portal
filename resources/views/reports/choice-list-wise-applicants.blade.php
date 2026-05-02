@@ -6,8 +6,9 @@
 
 @section('extra-styles')
 <style>
-    .col-choice { width: 36pt; text-align: center; }
+    .col-choice { width: 36pt; text-align: center; font-size: 7.5pt; }
     .col-marks  { width: 34pt; text-align: center; }
+    .col-total  { width: 36pt; text-align: center; font-weight: bold; }
 </style>
 @endsection
 
@@ -25,33 +26,43 @@
             <th>Applicant Name</th>
             <th class="col-marks">Written</th>
             <th class="col-marks">Viva</th>
-            <th class="col-choice">1st</th>
-            <th class="col-choice">2nd</th>
-            <th class="col-choice">3rd</th>
-            <th class="col-choice">4th</th>
-            <th class="col-choice">5th</th>
-            <th class="col-choice">6th</th>
+            <th class="col-total">Total</th>
+            <th class="col-choice">1st Choice</th>
+            <th class="col-choice">2nd Choice</th>
+            <th class="col-choice">3rd Choice</th>
+            <th class="col-choice">4th Choice</th>
+            <th class="col-choice">5th Choice</th>
+            <th class="col-choice">6th Choice</th>
         </tr>
     </thead>
     <tbody>
         @forelse ($applications as $index => $application)
-            @php $pref = data_get($application->additional_info, 'course_preferences', []); @endphp
+            @php
+                $pref = data_get($application->additional_info, 'course_preferences', []);
+                $written = (float) ($application->written_exam_marks ?? 0);
+                $viva    = (float) ($application->viva_exam_marks ?? 0);
+                $total   = ($application->written_exam_marks !== null || $application->viva_exam_marks !== null)
+                           ? number_format($written + $viva, 2)
+                           : '—';
+                $shorten = fn(string $name): string => strlen($name) > 18 ? substr($name, 0, 17) . '…' : $name;
+            @endphp
             <tr>
                 <td class="col-sl">{{ $index + 1 }}</td>
                 <td>{{ $application->application_id ?? $application->ulid }}</td>
                 <td>{{ $application->applicant_name }}</td>
                 <td class="col-marks">{{ $application->written_exam_marks ?? '—' }}</td>
                 <td class="col-marks">{{ $application->viva_exam_marks ?? '—' }}</td>
-                <td class="col-choice">{{ data_get($pref, 'first_choice',  '—') }}</td>
-                <td class="col-choice">{{ data_get($pref, 'second_choice', '—') }}</td>
-                <td class="col-choice">{{ data_get($pref, 'third_choice',  '—') }}</td>
-                <td class="col-choice">{{ data_get($pref, 'fourth_choice', '—') }}</td>
-                <td class="col-choice">{{ data_get($pref, 'fifth_choice',  '—') }}</td>
-                <td class="col-choice">{{ data_get($pref, 'sixth_choice',  '—') }}</td>
+                <td class="col-total">{{ $total }}</td>
+                <td class="col-choice">{{ $shorten(data_get($pref, 'first_choice',  '—')) }}</td>
+                <td class="col-choice">{{ $shorten(data_get($pref, 'second_choice', '—')) }}</td>
+                <td class="col-choice">{{ $shorten(data_get($pref, 'third_choice',  '—')) }}</td>
+                <td class="col-choice">{{ $shorten(data_get($pref, 'fourth_choice', '—')) }}</td>
+                <td class="col-choice">{{ $shorten(data_get($pref, 'fifth_choice',  '—')) }}</td>
+                <td class="col-choice">{{ $shorten(data_get($pref, 'sixth_choice',  '—')) }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="11" class="muted" style="text-align:center;">No paid applicants found.</td>
+                <td colspan="12" class="muted" style="text-align:center;">No paid applicants found.</td>
             </tr>
         @endforelse
     </tbody>

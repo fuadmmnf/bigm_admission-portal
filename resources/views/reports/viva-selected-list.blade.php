@@ -18,7 +18,6 @@
             <th>Phone</th>
             <th>Email</th>
             <th class="col-marks">Written</th>
-            <th class="col-marks">Viva</th>
             <th>Stage</th>
         </tr>
     </thead>
@@ -31,12 +30,11 @@
                 <td>{{ $application->applicant_phone }}</td>
                 <td>{{ $application->applicant_email }}</td>
                 <td class="col-marks">{{ $application->written_exam_marks !== null ? number_format((float) $application->written_exam_marks, 2) : '—' }}</td>
-                <td class="col-marks">{{ $application->viva_exam_marks !== null ? number_format((float) $application->viva_exam_marks, 2) : '—' }}</td>
                 <td>{{ str($application->selection_stage)->replace('_', ' ')->title() }}</td>
             </tr>
         @empty
             <tr>
-                <td colspan="8" class="muted" style="text-align:center;">No viva-selected applicants found for this exam.</td>
+                <td colspan="7" class="muted" style="text-align:center;">No viva-selected applicants found for this exam.</td>
             </tr>
         @endforelse
     </tbody>

@@ -16,7 +16,7 @@ class ApplicationShowController extends Controller
             'programCategories' => Category::query()
                 ->where('type', 'program')
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'additional_info']),
         ]);
     }
 }
