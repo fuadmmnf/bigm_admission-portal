@@ -1,16 +1,6 @@
 <?php
 
 return [
-    'districts' => [
-        'Dhaka', 'Faridpur', 'Gazipur', 'Gopalganj', 'Jamalpur', 'Kishoreganj', 'Madaripur', 'Manikganj',
-        'Munshiganj', 'Mymensingh', 'Narayanganj', 'Narsingdi', 'Netrokona', 'Rajbari', 'Shariatpur', 'Sherpur',
-        'Tangail', 'Bogra', 'Joypurhat', 'Naogaon', 'Natore', 'Nawabganj', 'Pabna', 'Rajshahi', 'Sirajgonj',
-        'Dinajpur', 'Gaibandha', 'Kurigram', 'Lalmonirhat', 'Nilphamari', 'Panchagarh', 'Rangpur', 'Thakurgaon',
-        'Barguna', 'Barisal', 'Bhola', 'Jhalokati', 'Patuakhali', 'Pirojpur', 'Bandarban', 'Brahmanbaria',
-        'Chandpur', 'Chittagong', 'Comilla', 'Coxs Bazar', 'Feni', 'Khagrachari', 'Lakshmipur', 'Noakhali',
-        'Rangamati', 'Habiganj', 'Maulvibazar', 'Sunamganj', 'Sylhet', 'Bagerhat', 'Chuadanga', 'Jessore',
-        'Jhenaidah', 'Khulna', 'Kushtia', 'Magura', 'Meherpur', 'Narail', 'Satkhira',
-    ],
 
     'education_boards' => [
         'Barishal', 'Chittagong', 'Cumilla', 'Dhaka', 'Dinajpur', 'Jashore', 'Madrash', 'Mymensingh',
@@ -43,7 +33,8 @@ return [
     'payment_methods' => ['Card', 'Mobile Banking', 'Net Banking'],
 
     'job_categories' => [
-        'BSC Cadre Service / BJS Officials',
+        'BCS Cadre Service',
+        'BJS Officials',
         'Govt. Non-Cadre (9th grade and above)',
         'Defence (9th grade and above)',
         'Statutory / Autonomous / Semi-Autonomous Organization (9th grade and above)',

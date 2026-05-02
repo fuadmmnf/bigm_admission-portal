@@ -91,11 +91,12 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <div class="flex items-center gap-2">
                                 {{-- Save All Changes — appears when any row input is dirty --}}
-                                <button
-                                    type="submit"
-                                    x-show="$store.marksChanges.count > 0"
-                                    x-cloak
-                                    formaction="{{ route('admin.exams.applications.assessment.bulk', $exam) }}"
+                                 <button
+                                     type="submit"
+                                     x-show="$store.marksChanges.count > 0"
+                                     x-cloak
+                                     @if($activeTab === 'alumni') style="display:none" @endif
+                                     formaction="{{ route('admin.exams.applications.assessment.bulk', $exam) }}"
                                     class="inline-flex items-center gap-1.5 rounded-md border border-yellow-500 bg-yellow-300 px-3 py-1.5 text-xs font-extrabold text-gray-900 shadow-md ring-1 ring-yellow-400 hover:bg-yellow-400"
                                 >
                                     <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor"
@@ -180,13 +181,13 @@
                     <div
                         class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
                         <div class="inline-flex rounded-md border border-gray-200 bg-white p-1 text-xs font-semibold">
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'sort' => $activeSort, 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'paid' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Paid
                                 ({{ $totalPaid }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva', 'sort' => $activeSort, 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'viva' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Viva
                                 Selected ({{ $totalViva }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program', 'sort' => $activeSort, 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'program' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Program
                                 Selected ({{ $totalProgram }})</a>
                         </div>
@@ -194,34 +195,41 @@
                               class="ml-auto flex items-center gap-2 flex-wrap justify-end">
                             <input type="hidden" name="tab" value="{{ $activeTab }}">
                             <label for="sort" class="text-xs font-medium text-gray-600">Sort</label>
-                            <select id="sort" name="sort" class="w-20 rounded-md border-gray-300 text-xs"
+                            <select id="sort" name="sort" class="w-44 rounded-md border-gray-300 text-xs"
                                     onchange="this.form.submit()">
-                                <option value="latest" @selected($activeSort === 'latest')>Latest</option>
-                                <option value="written_desc" @selected($activeSort === 'written_desc')>Written marks
-                                    (high to low)
-                                </option>
-                                <option value="written_asc" @selected($activeSort === 'written_asc')>Written marks (low
-                                    to high)
-                                </option>
-                                <option value="viva_desc" @selected($activeSort === 'viva_desc')>Viva marks (high to
-                                    low)
-                                </option>
-                                <option value="viva_asc" @selected($activeSort === 'viva_asc')>Viva marks (low to
-                                    high)
-                                </option>
+                                {{-- Common: App ID --}}
+                                <option value="appid_asc" @selected($activeSort === 'appid_asc')>App ID (A → Z)</option>
+
+                                {{-- Written marks — all tabs --}}
+                                <option value="written_desc" @selected($activeSort === 'written_desc')>Written (High → Low)</option>
+                                <option value="written_asc"  @selected($activeSort === 'written_asc')>Written (Low → High)</option>
+
+                                @if ($activeTab === 'viva' || $activeTab === 'program')
+                                    {{-- Viva marks — viva + program tabs --}}
+                                    <option value="viva_desc" @selected($activeSort === 'viva_desc')>Viva (High → Low)</option>
+                                    <option value="viva_asc"  @selected($activeSort === 'viva_asc')>Viva (Low → High)</option>
+                                    {{-- Total — viva + program tabs --}}
+                                    <option value="total_desc" @selected($activeSort === 'total_desc')>Total (High → Low)</option>
+                                    <option value="total_asc"  @selected($activeSort === 'total_asc')>Total (Low → High)</option>
+                                @endif
+
+                                @if ($activeTab === 'program')
+                                    {{-- Group by program — program tab only --}}
+                                    <option value="program_asc" @selected($activeSort === 'program_asc')>Program (A → Z) + Total ↓</option>
+                                @endif
                             </select>
                             <input
                                 type="text"
                                 name="search"
                                 value="{{ $activeSearch }}"
-                                placeholder="Search name, phone, email"
-                                class="w-100 rounded-md border-gray-300 text-xs"
+                                placeholder="Name, phone, email, App ID"
+                                class="w-56 rounded-md border-gray-300 text-xs"
                             >
                             <button type="submit"
                                     class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
                                 Apply
                             </button>
-                            @if ($activeSearch !== '' || $activeSort !== 'latest')
+                            @if ($activeSearch !== '' || $activeSort !== 'appid_asc')
                                 <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => $activeTab]) }}"
                                    class="inline-flex items-center rounded-md px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700"
                                    title="Clear filters">Clear</a>
@@ -242,21 +250,18 @@
                                         title="Select / deselect all on this page"
                                     >
                                 </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-10">#
-                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase w-10">#</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">App ID</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Gender
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection
-                                    Stage
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
-                                    Assessment
-                                </th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions
-                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Gender</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection Stage</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Assessment</th>
+                                @if($activeTab === 'viva' || $activeTab === 'program')
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total</th>
+                                @endif
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
                             </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 bg-white">
@@ -276,6 +281,9 @@
                                             >
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-500">{{ $applications->firstItem() + $index }}</td>
+                                        <td class="px-4 py-3 text-sm font-mono font-semibold text-indigo-700 whitespace-nowrap">
+                                            {{ $application->application_id ?? '—' }}
+                                        </td>
                                         <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $application->applicant_name }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
@@ -359,9 +367,20 @@
                                                             </select>
                                                         </div>
                                                     </div>
-                                                @endif
+                                                 @endif
                                             </div>
                                         </td>
+                                        @if($activeTab === 'viva' || $activeTab === 'program')
+                                        @php
+                                            $totalMarks = (float)($application->written_exam_marks ?? 0)
+                                                        + (float)($application->viva_exam_marks ?? 0);
+                                        @endphp
+                                        <td class="px-4 py-3 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                            {{ $application->written_exam_marks !== null || $application->viva_exam_marks !== null
+                                                ? number_format($totalMarks, 2)
+                                                : '—' }}
+                                        </td>
+                                        @endif
                                         <td class="px-4 py-3 text-sm whitespace-nowrap">
                                             <div class="flex items-center gap-2">
                                                 <a
@@ -398,7 +417,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="9" class="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colspan="{{ $activeTab === 'viva' || $activeTab === 'program' ? 11 : 10 }}" class="px-4 py-8 text-center text-sm text-gray-500">
                                         No applicants found for this tab.
                                     </td>
                                 </tr>

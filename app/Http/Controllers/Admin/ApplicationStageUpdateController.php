@@ -12,22 +12,35 @@ class ApplicationStageUpdateController extends Controller
 {
     public function __invoke(Request $request, Exam $exam): RedirectResponse
     {
-        $validated = $request->validate([
-            'target_stage' => ['required', 'in:'.Application::STAGE_VIVA_SELECTED.','.Application::STAGE_PROGRAM_SELECTED],
-            'application_ids' => ['required', 'array', 'min:1'],
-            'application_ids.*' => ['required', 'string'],
+        $allowedTargets = implode(',', [
+            Application::STAGE_VIVA_SELECTED,
+            Application::STAGE_PROGRAM_SELECTED,
+            Application::STAGE_ALUMNI,
         ]);
 
-        $targetStage = (string) $validated['target_stage'];
-        $applicationIds = (array) $validated['application_ids'];
+        $validated = $request->validate([
+            'target_stage'     => ['required', 'in:'.$allowedTargets],
+            'application_ids'  => ['required', 'array', 'min:1'],
+            'application_ids.*'=> ['required', 'string'],
+        ]);
+
+        $targetStage    = (string) $validated['target_stage'];
+        $applicationIds = (array)  $validated['application_ids'];
 
         $query = Application::query()
             ->where('exam_id', $exam->id)
             ->where('status', 'paid')
             ->whereIn('ulid', $applicationIds);
 
+        // Restrict valid source stages per target
         if ($targetStage === Application::STAGE_PROGRAM_SELECTED) {
-            $query->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED]);
+            // Forward: viva_selected → program_selected
+            // Reverse: alumni → program_selected (remove from alumni)
+            $query->whereIn('selection_stage', [
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_ALUMNI,
+            ]);
         }
 
         if ($targetStage === Application::STAGE_VIVA_SELECTED) {
@@ -38,13 +51,23 @@ class ApplicationStageUpdateController extends Controller
             });
         }
 
+        if ($targetStage === Application::STAGE_ALUMNI) {
+            // Only program_selected applicants can be marked as alumni
+            $query->where('selection_stage', Application::STAGE_PROGRAM_SELECTED);
+        }
+
         $updated = $query->update(['selection_stage' => $targetStage]);
 
         if ($updated === 0) {
-            return back()->with('error', 'No eligible paid applicants were found for this update.');
+            return back()->with('error', 'No eligible applicants were found for this update.');
         }
 
-        $label = $targetStage === Application::STAGE_VIVA_SELECTED ? 'Viva Selected' : 'Program Selected';
+        $label = match ($targetStage) {
+            Application::STAGE_VIVA_SELECTED    => 'Viva Selected',
+            Application::STAGE_PROGRAM_SELECTED => 'Program Selected',
+            Application::STAGE_ALUMNI           => 'Alumni',
+            default => $targetStage,
+        };
 
         return back()->with('status', "Updated {$updated} applicant(s) to {$label}.");
     }

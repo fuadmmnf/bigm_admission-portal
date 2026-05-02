@@ -10,7 +10,9 @@ use App\Models\Exam;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ApplicationFormController extends Controller
 {
@@ -55,7 +57,7 @@ class ApplicationFormController extends Controller
             ->where(function ($q) use ($validated): void {
                 $q->where('applicant_email', $validated['email'])
                   ->orWhere('applicant_phone', $validated['mobile_number'])
-                  ->orWhere('applicant_id_number', $validated['national_id_number']);
+                   ->orWhere('applicant_nid', $validated['national_id_number']);
             })
             ->exists();
 
@@ -67,6 +69,8 @@ class ApplicationFormController extends Controller
                 ]);
         }
 
+        // Upload files first (filesystem operations must happen outside DB transaction).
+        // On any subsequent DB failure we delete these orphaned files in the catch block.
         $applicantPhotoPath = $request->file('applicant_photo')->storePublicly('applicant_uploads/photos', 'public');
         $signaturePath      = $request->file('signature')->storePublicly('applicant_uploads/signatures', 'public');
 
@@ -98,52 +102,73 @@ class ApplicationFormController extends Controller
         $permanentDistrict = Category::query()->find($validated['permanent_address']['district_id'], ['id', 'name']);
         $permanentUpazila = Category::query()->find($validated['permanent_address']['upazila_id'], ['id', 'name']);
 
-        $application = Application::create([
-            'exam_id' => $exam->id,
-            'applicant_name' => $validated['applicant_name'],
-            'applicant_email' => $validated['email'],
-            'applicant_phone' => $validated['mobile_number'],
-            'applicant_id_number' => $validated['national_id_number'],
-            'gender' => $validated['gender'],
-            'status' => 'submitted',
-            'additional_info' => [
-                'source' => 'homepage_stepper_form',
-                'exam_name' => $exam->name,
-                'personal' => [
-                    'father_name' => $validated['father_name'],
-                    'mother_name' => $validated['mother_name'],
-                    'gender' => $validated['gender'],
-                    'date_of_birth' => $validated['date_of_birth'],
-                    'age_as_of_reference' => $computedAge,
+        try {
+            $application = Application::create([
+                'exam_id' => $exam->id,
+                'applicant_name' => $validated['applicant_name'],
+                'applicant_email' => $validated['email'],
+                'applicant_phone' => $validated['mobile_number'],
+                'applicant_nid' => $validated['national_id_number'],
+                'gender' => $validated['gender'],
+                'status' => 'submitted',
+                'additional_info' => [
+                    'source' => 'homepage_stepper_form',
+                    'exam_name' => $exam->name,
+                    'personal' => [
+                        'father_name' => $validated['father_name'],
+                        'mother_name' => $validated['mother_name'],
+                        'gender' => $validated['gender'],
+                        'date_of_birth' => $validated['date_of_birth'],
+                        'age_as_of_reference' => $computedAge,
+                    ],
+                    'present_address' => [
+                        'district_id' => $validated['present_address']['district_id'],
+                        'district_name' => $presentDistrict?->name,
+                        'upazila_id' => $validated['present_address']['upazila_id'],
+                        'upazila_name' => $presentUpazila?->name,
+                        'post_office' => $validated['present_address']['post_office'],
+                        'post_code' => $validated['present_address']['post_code'],
+                        'address_line' => $validated['present_address']['address_line'],
+                    ],
+                    'permanent_address' => [
+                        'district_id' => $validated['permanent_address']['district_id'],
+                        'district_name' => $permanentDistrict?->name,
+                        'upazila_id' => $validated['permanent_address']['upazila_id'],
+                        'upazila_name' => $permanentUpazila?->name,
+                        'post_office' => $validated['permanent_address']['post_office'],
+                        'post_code' => $validated['permanent_address']['post_code'],
+                        'address_line' => $validated['permanent_address']['address_line'],
+                    ],
+                    'education' => $validated['education'],
+                    'job_experience' => $validated['job_experience'],
+                    'course_preferences' => $validated['course_preferences'],
+                    'uploads' => [
+                        'applicant_photo' => $applicantPhotoPath,
+                        'signature' => $signaturePath,
+                        'education_documents' => $educationDocumentPaths,
+                    ],
                 ],
-                'present_address' => [
-                    'district_id' => $validated['present_address']['district_id'],
-                    'district_name' => $presentDistrict?->name,
-                    'upazila_id' => $validated['present_address']['upazila_id'],
-                    'upazila_name' => $presentUpazila?->name,
-                    'post_office' => $validated['present_address']['post_office'],
-                    'post_code' => $validated['present_address']['post_code'],
-                    'address_line' => $validated['present_address']['address_line'],
-                ],
-                'permanent_address' => [
-                    'district_id' => $validated['permanent_address']['district_id'],
-                    'district_name' => $permanentDistrict?->name,
-                    'upazila_id' => $validated['permanent_address']['upazila_id'],
-                    'upazila_name' => $permanentUpazila?->name,
-                    'post_office' => $validated['permanent_address']['post_office'],
-                    'post_code' => $validated['permanent_address']['post_code'],
-                    'address_line' => $validated['permanent_address']['address_line'],
-                ],
-                'education' => $validated['education'],
-                'job_experience' => $validated['job_experience'],
-                'course_preferences' => $validated['course_preferences'],
-                'uploads' => [
-                    'applicant_photo' => $applicantPhotoPath,
-                    'signature' => $signaturePath,
-                    'education_documents' => $educationDocumentPaths,
-                ],
-            ],
-        ]);
+            ]);
+        } catch (\Throwable $e) {
+            // Delete all files that were uploaded before the DB failure to avoid permanent orphans.
+            $allUploadedPaths = array_values(array_filter(array_merge(
+                [$applicantPhotoPath, $signaturePath],
+                Arr::flatten($educationDocumentPaths)
+            )));
+            Storage::disk('public')->delete($allUploadedPaths);
+
+            Log::error('Application create failed; cleaned up uploaded files', [
+                'exam_id' => $exam->id,
+                'files_deleted' => count($allUploadedPaths),
+                'error' => $e->getMessage(),
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'applicant_name' => 'Your application could not be saved due to a server error. Please try again.',
+                ]);
+        }
 
         return redirect()
             ->route('payment.initiate', $application)

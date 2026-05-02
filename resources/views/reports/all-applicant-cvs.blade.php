@@ -95,7 +95,7 @@
                     <table class="kv">
                         <tr><td class="k">Email</td><td>{{ $toText($application->applicant_email) }}</td></tr>
                         <tr><td class="k">Phone</td><td>{{ $toText($application->applicant_phone) }}</td></tr>
-                        <tr><td class="k">ID / NID</td><td>{{ $toText($application->applicant_id_number) }}</td></tr>
+                        <tr><td class="k">NID / Passport</td><td>{{ $toText($application->applicant_nid) }}</td></tr>
                         <tr><td class="k">Gender</td><td>{{ $toText($application->gender ?? data_get($personal, 'gender')) }}</td></tr>
                         <tr><td class="k">Date of Birth</td><td>{{ $toText(data_get($personal, 'date_of_birth')) }}</td></tr>
                         <tr><td class="k">Age</td><td>{{ $toText(data_get($personal, 'age_as_of_reference')) }}</td></tr>

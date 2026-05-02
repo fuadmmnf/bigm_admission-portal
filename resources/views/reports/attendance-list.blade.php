@@ -1,99 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Attendance List - {{ $exam->name }}</title>
-    <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
-            color: #111827;
-        }
+@extends('reports.layouts.report')
 
-        .header {
-            margin-bottom: 16px;
-        }
+@section('title', 'Attendance Sheet')
+@section('report-subtitle', 'Attendance Sheet – Paid Applicants')
 
-        .title {
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0;
-        }
+@section('extra-styles')
+<style>
+    .col-sign { width: 120pt; }
+</style>
+@endsection
 
-        .meta {
-            margin: 4px 0;
-            color: #374151;
-        }
+@section('content')
+<div class="report-meta">
+    <span><span class="label">Exam:</span> {{ $exam->name }}</span>
+    <span><span class="label">Total Paid Applicants:</span><span class="summary-badge">{{ $applications->count() }}</span></span>
+</div>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-
-        th,
-        td {
-            border: 1px solid #d1d5db;
-            padding: 8px;
-            vertical-align: middle;
-        }
-
-        th {
-            background: #f3f4f6;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        .col-sl {
-            width: 42px;
-            text-align: center;
-        }
-
-        .col-sign {
-            width: 160px;
-        }
-
-        .muted {
-            color: #6b7280;
-        }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <p class="title">Attendance Sheet</p>
-        <p class="meta"><strong>Exam:</strong> {{ $exam->name }}</p>
-        <p class="meta"><strong>Total Paid Applicants:</strong> {{ $applications->count() }}</p>
-        <p class="meta muted"><strong>Generated At:</strong> {{ $generatedAt->format('d M Y, h:i A') }}</p>
-    </div>
-
-    <table>
-        <thead>
+<table class="report-table">
+    <thead>
+        <tr>
+            <th class="col-sl">SL</th>
+            <th class="col-appid">App. ID</th>
+            <th>Applicant Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th class="col-sign">Attendance Signature</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($applications as $index => $application)
             <tr>
-                <th class="col-sl">SL</th>
-                <th>Applicant ID</th>
-                <th>Applicant Name</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th class="col-sign">Attendance Signature</th>
+                <td class="col-sl">{{ $index + 1 }}</td>
+                <td>{{ $application->application_id ?? $application->ulid }}</td>
+                <td>{{ $application->applicant_name }}</td>
+                <td>{{ $application->applicant_phone }}</td>
+                <td>{{ $application->applicant_email }}</td>
+                <td class="col-sign"></td>
             </tr>
-        </thead>
-        <tbody>
-            @forelse ($applications as $index => $application)
-                <tr>
-                    <td class="col-sl">{{ $index + 1 }}</td>
-                    <td>{{ $application->ulid }}</td>
-                    <td>{{ $application->applicant_name }}</td>
-                    <td>{{ $application->applicant_phone }}</td>
-                    <td>{{ $application->applicant_email }}</td>
-                    <td class="col-sign"></td>
-                </tr>
-            @empty
-                <tr>
-                    <td colspan="6" style="text-align: center;" class="muted">No paid applicants found for this exam.</td>
-                </tr>
-            @endforelse
-        </tbody>
-    </table>
-</body>
-</html>
-
+        @empty
+            <tr>
+                <td colspan="6" class="muted" style="text-align:center;">No paid applicants found for this exam.</td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
+@endsection

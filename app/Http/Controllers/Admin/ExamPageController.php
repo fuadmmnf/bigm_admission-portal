@@ -44,15 +44,22 @@ class ExamPageController extends Controller
     public function show(Request $request, Exam $exam): View
     {
         $activeTab = $request->string('tab')->toString();
-        if (! in_array($activeTab, ['paid', 'viva', 'program'], true)) {
+        if (! in_array($activeTab, ['paid', 'viva', 'program', 'alumni'], true)) {
             $activeTab = 'paid';
         }
         $search = trim($request->string('search')->toString());
 
         $sort = $request->string('sort')->toString();
-        $allowedSorts = ['latest', 'written_desc', 'written_asc', 'viva_desc', 'viva_asc'];
+        $allowedSorts = [
+            'appid_asc',
+            'latest',
+            'written_desc', 'written_asc',
+            'viva_desc',    'viva_asc',
+            'total_desc',   'total_asc',
+            'program_asc',
+        ];
         if (! in_array($sort, $allowedSorts, true)) {
-            $sort = 'latest';
+            $sort = 'appid_asc';
         }
 
         $applicationsQuery = $exam->applications()
@@ -69,32 +76,52 @@ class ExamPageController extends Controller
             $applicationsQuery->where('selection_stage', Application::STAGE_PROGRAM_SELECTED);
         }
 
+        if ($activeTab === 'alumni') {
+            $applicationsQuery->where('selection_stage', Application::STAGE_ALUMNI);
+        }
+
         if ($search !== '') {
             $applicationsQuery->where(function ($query) use ($search): void {
-                $query->where('applicant_name', 'like', '%'.$search.'%')
-                    ->orWhere('applicant_email', 'like', '%'.$search.'%')
-                    ->orWhere('applicant_phone', 'like', '%'.$search.'%');
+                $query->where('applicant_name',  'like', '%'.$search.'%')
+                    ->orWhere('applicant_email',  'like', '%'.$search.'%')
+                    ->orWhere('applicant_phone',  'like', '%'.$search.'%')
+                    ->orWhere('application_id',   'like', '%'.$search.'%');
             });
         }
 
         match ($sort) {
+            'appid_asc' => $applicationsQuery
+                ->orderByRaw('application_id IS NULL')
+                ->orderBy('application_id'),
             'written_desc' => $applicationsQuery
                 ->orderByRaw('written_exam_marks IS NULL')
                 ->orderByDesc('written_exam_marks')
-                ->orderByDesc('created_at'),
+                ->orderBy('application_id'),
             'written_asc' => $applicationsQuery
                 ->orderByRaw('written_exam_marks IS NULL')
                 ->orderBy('written_exam_marks')
-                ->orderByDesc('created_at'),
+                ->orderBy('application_id'),
             'viva_desc' => $applicationsQuery
                 ->orderByRaw('viva_exam_marks IS NULL')
                 ->orderByDesc('viva_exam_marks')
-                ->orderByDesc('created_at'),
+                ->orderBy('application_id'),
             'viva_asc' => $applicationsQuery
                 ->orderByRaw('viva_exam_marks IS NULL')
                 ->orderBy('viva_exam_marks')
-                ->orderByDesc('created_at'),
-            default => $applicationsQuery->latest(),
+                ->orderBy('application_id'),
+            'total_desc' => $applicationsQuery
+                ->orderByRaw('(COALESCE(written_exam_marks, 0) + COALESCE(viva_exam_marks, 0)) DESC')
+                ->orderBy('application_id'),
+            'total_asc' => $applicationsQuery
+                ->orderByRaw('(COALESCE(written_exam_marks, 0) + COALESCE(viva_exam_marks, 0)) ASC')
+                ->orderBy('application_id'),
+            'program_asc' => $applicationsQuery
+                ->orderByRaw('selected_category_id IS NULL')
+                ->orderByRaw('(SELECT c.name FROM categories c WHERE c.id = applications.selected_category_id) ASC')
+                ->orderByRaw('(COALESCE(written_exam_marks, 0) + COALESCE(viva_exam_marks, 0)) DESC'),
+            default => $applicationsQuery
+                ->orderByRaw('application_id IS NULL')
+                ->orderBy('application_id'),
         };
 
         $applications = $applicationsQuery
@@ -107,25 +134,37 @@ class ExamPageController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $totalPaid = $exam->applications()->where('status', 'paid')->count();
-        $totalViva = $exam->applications()
+        // Single conditional-aggregation query replaces the previous 4 separate COUNTs.
+        $counts = $exam->applications()
             ->where('status', 'paid')
-            ->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED])
-            ->count();
-        $totalProgram = $exam->applications()
-            ->where('status', 'paid')
-            ->where('selection_stage', Application::STAGE_PROGRAM_SELECTED)
-            ->count();
+            ->selectRaw('
+                COUNT(*) as total_paid,
+                SUM(CASE WHEN selection_stage IN (?, ?) THEN 1 ELSE 0 END) as total_viva,
+                SUM(CASE WHEN selection_stage = ?             THEN 1 ELSE 0 END) as total_program,
+                SUM(CASE WHEN selection_stage = ?             THEN 1 ELSE 0 END) as total_alumni
+            ', [
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_ALUMNI,
+            ])
+            ->first();
+
+        $totalPaid    = (int) ($counts->total_paid    ?? 0);
+        $totalViva    = (int) ($counts->total_viva    ?? 0);
+        $totalProgram = (int) ($counts->total_program ?? 0);
+        $totalAlumni  = (int) ($counts->total_alumni  ?? 0);
 
         return view('pages.admin-exam-show', [
-            'exam'         => $exam,
-            'applications' => $applications,
-            'totalPaid'    => $totalPaid,
-            'totalViva'    => $totalViva,
-            'totalProgram' => $totalProgram,
-            'activeTab'    => $activeTab,
-            'activeSort'   => $sort,
-            'activeSearch' => $search,
+            'exam'              => $exam,
+            'applications'      => $applications,
+            'totalPaid'         => $totalPaid,
+            'totalViva'         => $totalViva,
+            'totalProgram'      => $totalProgram,
+            'totalAlumni'       => $totalAlumni,
+            'activeTab'         => $activeTab,
+            'activeSort'        => $sort,
+            'activeSearch'      => $search,
             'programCategories' => $programCategories,
         ]);
     }

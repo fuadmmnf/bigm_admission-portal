@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\Exam;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
@@ -36,6 +37,9 @@ class ExamReportController extends Controller
             'paidApplicantsCount' => $paidApplicantsCount,
             'vivaSelectedCount' => $vivaSelectedCount,
             'programSelectedCount' => $programSelectedCount,
+            'genders' => config('applicant_form.genders', []),
+            'jobCategories' => config('applicant_form.job_categories', []),
+            'programs' => config('applicant_form.programs', []),
         ]);
     }
 
@@ -44,6 +48,7 @@ class ExamReportController extends Controller
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->get([
                 'ulid',
+                'application_id',
                 'applicant_name',
                 'applicant_phone',
                 'applicant_email',
@@ -64,6 +69,7 @@ class ExamReportController extends Controller
             ->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED])
             ->get([
                 'ulid',
+                'application_id',
                 'applicant_name',
                 'applicant_phone',
                 'applicant_email',
@@ -81,28 +87,46 @@ class ExamReportController extends Controller
         return $pdf->stream('viva-selected-list-'.$exam->ulid.'.pdf');
     }
 
-    public function genderWiseApplicants(Exam $exam): Response
+    public function genderWiseApplicants(Exam $exam, Request $request): Response
     {
-        $applications = $this->paidApplicantsBaseQuery($exam)
-            ->get(['ulid', 'applicant_name', 'gender', 'additional_info']);
+        $gender = $request->query('gender');
+
+        $query = $this->paidApplicantsBaseQuery($exam)
+            ->select(['ulid', 'application_id', 'applicant_name', 'gender', 'additional_info']);
+
+        if ($gender) {
+            $query->where('gender', $gender);
+        }
+
+        $applications = $query->get();
 
         $pdf = Pdf::loadView('reports.gender-wise-applicants', [
             'exam' => $exam,
             'applications' => $applications,
+            'genderFilter' => $gender,
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream('gender-wise-applicants-'.$exam->ulid.'.pdf');
     }
 
-    public function employerWiseApplicants(Exam $exam): Response
+    public function employerWiseApplicants(Exam $exam, Request $request): Response
     {
-        $applications = $this->paidApplicantsBaseQuery($exam)
-            ->get(['ulid', 'applicant_name', 'additional_info']);
+        $employer = $request->query('employer');
+
+        $query = $this->paidApplicantsBaseQuery($exam)
+            ->select(['ulid', 'application_id', 'applicant_name', 'additional_info']);
+
+        if ($employer) {
+            $query->where('additional_info->job_experience->current->job_category', $employer);
+        }
+
+        $applications = $query->get();
 
         $pdf = Pdf::loadView('reports.employer-wise-applicants', [
             'exam' => $exam,
             'applications' => $applications,
+            'employerFilter' => $employer,
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
@@ -112,21 +136,61 @@ class ExamReportController extends Controller
     public function choiceListWiseApplicants(Exam $exam): Response
     {
         $applications = $this->paidApplicantsBaseQuery($exam)
-            ->get(['ulid', 'applicant_name', 'additional_info']);
+            ->select(['ulid', 'application_id', 'applicant_name', 'written_exam_marks', 'viva_exam_marks', 'additional_info'])
+            ->get();
 
         $pdf = Pdf::loadView('reports.choice-list-wise-applicants', [
             'exam' => $exam,
             'applications' => $applications,
             'generatedAt' => now(),
-        ])->setPaper('a4', 'portrait');
+        ])->setPaper('a4', 'landscape');
 
         return $pdf->stream('choice-list-wise-applicants-'.$exam->ulid.'.pdf');
+    }
+
+    public function choiceListBySubject(Exam $exam, Request $request): Response
+    {
+        $subject = $request->query('subject');
+        $programs = config('applicant_form.programs', []);
+
+        abort_if(! $subject || ! in_array($subject, $programs), 422, 'A valid subject must be selected.');
+
+        $choiceFields = [
+            'first_choice',
+            'second_choice',
+            'third_choice',
+            'fourth_choice',
+            'fifth_choice',
+            'sixth_choice',
+        ];
+
+        $byChoice = [];
+        $totalCount = 0;
+        foreach ($choiceFields as $field) {
+            $group = $this->paidApplicantsBaseQuery($exam)
+                ->select(['ulid', 'application_id', 'applicant_name', 'written_exam_marks', 'viva_exam_marks', 'additional_info'])
+                ->where('additional_info->course_preferences->'.$field, $subject)
+                ->get();
+
+            $byChoice[$field] = $group;
+            $totalCount += $group->count();
+        }
+
+        $pdf = Pdf::loadView('reports.choice-list-by-subject', [
+            'exam' => $exam,
+            'subject' => $subject,
+            'byChoice' => $byChoice,
+            'totalCount' => $totalCount,
+            'generatedAt' => now(),
+        ])->setPaper('a4', 'portrait');
+
+        return $pdf->stream('choice-list-by-subject-'.$subject.'-'.$exam->ulid.'.pdf');
     }
 
     public function jobExperienceWiseApplicants(Exam $exam): Response
     {
         $applications = $this->paidApplicantsBaseQuery($exam)
-            ->get(['ulid', 'applicant_name', 'additional_info']);
+            ->get(['ulid', 'application_id', 'applicant_name', 'additional_info']);
 
         $pdf = Pdf::loadView('reports.job-experience-wise-applicants', [
             'exam' => $exam,
@@ -142,7 +206,7 @@ class ExamReportController extends Controller
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->where('selection_stage', Application::STAGE_PROGRAM_SELECTED)
             ->with('selectedCategory:id,name')
-            ->get(['ulid', 'applicant_name', 'applicant_phone', 'applicant_email', 'selected_category_id']);
+            ->get(['ulid', 'application_id', 'applicant_name', 'applicant_phone', 'applicant_email', 'selected_category_id']);
 
         $pdf = Pdf::loadView('reports.enrolled-students', [
             'exam' => $exam,
@@ -153,33 +217,54 @@ class ExamReportController extends Controller
         return $pdf->stream('enrolled-students-'.$exam->ulid.'.pdf');
     }
 
-    public function allApplicantCvs(Exam $exam): Response
+    /**
+     * Generate a batch of applicant CVs as a single PDF.
+     *
+     * Loading every applicant's photo and signature as base64 all at once is a
+     * memory bomb for large exams.  Callers must paginate using ?from_id= and
+     * ?limit= (capped at 100) so each request covers at most 100 CVs at a time.
+     *
+     * Example:
+     *   /reports/all-applicant-cvs                          → first 50
+     *   /reports/all-applicant-cvs?from_id=20260051         → next batch starting at that ID
+     *   /reports/all-applicant-cvs?limit=25&from_id=20260076 → 25 CVs from ID onwards
+     */
+    public function allApplicantCvs(Exam $exam, Request $request): Response
     {
-        $applications = $exam->applications()
+        $limit  = min(max(1, (int) $request->query('limit', 50)), 100);
+        $fromId = $request->query('from_id');
+
+        $query = $exam->applications()
             ->with('selectedCategory:id,name')
-            ->orderBy('applicant_name')
-            ->get([
-                'ulid',
-                'applicant_name',
-                'applicant_email',
-                'applicant_phone',
-                'applicant_id_number',
-                'gender',
-                'status',
-                'written_exam_marks',
-                'viva_exam_marks',
-                'selected_category_id',
-                'selection_stage',
-                'additional_info',
-            ])
-            ->map(function (Application $application) {
-                $uploads = data_get($application->additional_info, 'uploads', []);
+            ->orderBy('application_id')
+            ->limit($limit);
 
-                $application->setAttribute('photo_data_uri', $this->fileToDataUri(data_get($uploads, 'applicant_photo')));
-                $application->setAttribute('signature_data_uri', $this->fileToDataUri(data_get($uploads, 'signature')));
+        if ($fromId !== null && $fromId !== '') {
+            $query->where('application_id', '>=', (string) $fromId);
+        }
 
-                return $application;
-            });
+        $applications = $query->get([
+            'ulid',
+            'application_id',
+            'applicant_name',
+            'applicant_email',
+            'applicant_phone',
+            'applicant_nid',
+            'gender',
+            'status',
+            'written_exam_marks',
+            'viva_exam_marks',
+            'selected_category_id',
+            'selection_stage',
+            'additional_info',
+        ])->map(function (Application $application) {
+            $uploads = data_get($application->additional_info, 'uploads', []);
+
+            $application->setAttribute('photo_data_uri', $this->fileToDataUri(data_get($uploads, 'applicant_photo')));
+            $application->setAttribute('signature_data_uri', $this->fileToDataUri(data_get($uploads, 'signature')));
+
+            return $application;
+        });
 
         $pdf = Pdf::loadView('reports.all-applicant-cvs', [
             'exam' => $exam,
@@ -187,7 +272,9 @@ class ExamReportController extends Controller
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('all-applicant-cvs-'.$exam->ulid.'.pdf');
+        $suffix = ($fromId !== null && $fromId !== '') ? '-from-'.$fromId : '';
+
+        return $pdf->stream('all-applicant-cvs-'.$exam->ulid.$suffix.'.pdf');
     }
 
     private function fileToDataUri(?string $path): ?string
@@ -225,5 +312,4 @@ class ExamReportController extends Controller
         return $normalized;
     }
 }
-
 

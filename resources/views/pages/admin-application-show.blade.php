@@ -87,7 +87,7 @@
                             <p><span class="font-semibold text-gray-700">Age:</span> {{ $toText(data_get($personal, 'age_as_of_reference')) }}</p>
                             <p><span class="font-semibold text-gray-700">Phone:</span> {{ $toText($application->applicant_phone) }}</p>
                             <p><span class="font-semibold text-gray-700">Email:</span> {{ $toText($application->applicant_email) }}</p>
-                            <p><span class="font-semibold text-gray-700">ID Number:</span> {{ $toText($application->applicant_id_number) }}</p>
+                            <p><span class="font-semibold text-gray-700">NID / Passport:</span> {{ $toText($application->applicant_nid) }}</p>
                             <p><span class="font-semibold text-gray-700">Status:</span> {{ ucfirst($application->status) }} / {{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</p>
                         </div>
                     </div>

@@ -178,8 +178,10 @@ class PaymentController extends Controller
 
         Log::info('Payment success callback', compact('tranId', 'valId'));
 
-        $application = Application::where('transaction_id', $tranId)->first();
-
+        $application = Application::withTrashed()->where('transaction_id', $tranId)->first();
+        if ($application?->trashed()) {
+            $application->restore();
+        }
         if (!$application) {
             return view('pages.payment-failed', ['error' => 'Invalid transaction']);
         }
@@ -224,18 +226,18 @@ class PaymentController extends Controller
         $info = $application->additional_info ?? [];
 
         return [
-            'applicant_name'     => $application->applicant_name,
-            'email'              => $application->applicant_email,
-            'mobile_number'      => $application->applicant_phone,
-            'national_id_number' => $application->applicant_id_number,
-            'gender'             => $application->gender,
-            'father_name'        => data_get($info, 'personal.father_name'),
-            'mother_name'        => data_get($info, 'personal.mother_name'),
-            'date_of_birth'      => data_get($info, 'personal.date_of_birth'),
-            'present_address'    => data_get($info, 'present_address', []),
-            'permanent_address'  => data_get($info, 'permanent_address', []),
-            'education'          => data_get($info, 'education', []),
-            'job_experience'     => data_get($info, 'job_experience', []),
+            'applicant_name' => $application->applicant_name,
+            'email' => $application->applicant_email,
+            'mobile_number' => $application->applicant_phone,
+            'national_id_number' => $application->applicant_nid,
+            'gender' => $application->gender,
+            'father_name' => data_get($info, 'personal.father_name'),
+            'mother_name' => data_get($info, 'personal.mother_name'),
+            'date_of_birth' => data_get($info, 'personal.date_of_birth'),
+            'present_address' => data_get($info, 'present_address', []),
+            'permanent_address' => data_get($info, 'permanent_address', []),
+            'education' => data_get($info, 'education', []),
+            'job_experience' => data_get($info, 'job_experience', []),
             'course_preferences' => data_get($info, 'course_preferences', []),
             // No existing_* upload keys — user must re-upload photo, signature, and documents.
         ];
@@ -267,16 +269,16 @@ class PaymentController extends Controller
                 Storage::disk('public')->delete($path);
             } catch (\Throwable $e) {
                 Log::warning('Failed to delete uploaded file', [
-                    'path'            => $path,
-                    'application_ulid'=> $application->ulid,
-                    'error'           => $e->getMessage(),
+                    'path' => $path,
+                    'application_ulid' => $application->ulid,
+                    'error' => $e->getMessage(),
                 ]);
             }
         }
 
         Log::info('Deleted uploaded files for application', [
             'application_ulid' => $application->ulid,
-            'count'            => count($paths),
+            'count' => count($paths),
         ]);
     }
 
@@ -295,7 +297,7 @@ class PaymentController extends Controller
         $prefillInput = [];
 
         if ($application && $application->status !== 'paid') {
-            $examUlid     = $application->exam?->ulid;
+            $examUlid = $application->exam?->ulid;
             $prefillInput = $this->buildPrefillInput($application);
             $application->update(['status' => 'failed']);
             $this->deleteUploadedFiles($application);
@@ -324,11 +326,11 @@ class PaymentController extends Controller
 
         $application = Application::where('transaction_id', $tranId)->first();
 
-        $examUlid     = null;
+        $examUlid = null;
         $prefillInput = [];
 
         if ($application && $application->status !== 'paid') {
-            $examUlid     = $application->exam?->ulid;
+            $examUlid = $application->exam?->ulid;
             $prefillInput = $this->buildPrefillInput($application);
             $application->update(['status' => 'cancelled']);
             $this->deleteUploadedFiles($application);

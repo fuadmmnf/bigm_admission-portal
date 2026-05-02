@@ -1,44 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Gender Wise Applicants - {{ $exam->name }}</title>
-    <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #111827; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { border: 1px solid #d1d5db; padding: 8px; }
-        th { background: #f3f4f6; text-align: left; }
-        .muted { color: #6b7280; }
-    </style>
-</head>
-<body>
-    <h2>Gender Wise Applicant Report (Placeholder)</h2>
-    <p><strong>Exam:</strong> {{ $exam->name }}</p>
-    <p><strong>Total Paid Applicants:</strong> {{ $applications->count() }}</p>
-    <p class="muted"><strong>Generated At:</strong> {{ $generatedAt->format('d M Y, h:i A') }}</p>
+@extends('reports.layouts.report')
 
-    <table>
-        <thead>
+@section('title', 'Gender Wise Applicant Report')
+@section('report-subtitle', 'Gender Wise Report' . (isset($genderFilter) && $genderFilter ? ' – ' . $genderFilter : ' – All Genders'))
+
+@section('content')
+<div class="report-meta">
+    <span><span class="label">Exam:</span> {{ $exam->name }}</span>
+    <span><span class="label">Gender Filter:</span> {{ $genderFilter ?? 'All' }}</span>
+    <span><span class="label">Total Applicants:</span><span class="summary-badge">{{ $applications->count() }}</span></span>
+</div>
+
+<table class="report-table">
+    <thead>
+        <tr>
+            <th class="col-sl">SL</th>
+            <th class="col-appid">App. ID</th>
+            <th>Applicant Name</th>
+            <th>Gender</th>
+        </tr>
+    </thead>
+    <tbody>
+        @forelse ($applications as $index => $application)
             <tr>
-                <th>SL</th>
-                <th>Applicant ID</th>
-                <th>Applicant Name</th>
-                <th>Gender</th>
+                <td class="col-sl">{{ $index + 1 }}</td>
+                <td>{{ $application->application_id ?? $application->ulid }}</td>
+                <td>{{ $application->applicant_name }}</td>
+                <td>{{ ucfirst($application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A')) }}</td>
             </tr>
-        </thead>
-        <tbody>
-            @forelse ($applications as $index => $application)
-                <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $application->ulid }}</td>
-                    <td>{{ $application->applicant_name }}</td>
-                    <td>{{ $application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A') }}</td>
-                </tr>
-            @empty
-                <tr><td colspan="4" class="muted">No paid applicants found.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
-</body>
-</html>
-
+        @empty
+            <tr>
+                <td colspan="4" class="muted" style="text-align:center;">No paid applicants found for the selected gender.</td>
+            </tr>
+        @endforelse
+    </tbody>
+</table>
+@endsection

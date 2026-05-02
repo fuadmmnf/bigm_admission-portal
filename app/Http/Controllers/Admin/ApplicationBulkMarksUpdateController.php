@@ -8,6 +8,7 @@ use App\Models\Exam;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ApplicationBulkMarksUpdateController extends Controller
@@ -40,11 +41,13 @@ class ApplicationBulkMarksUpdateController extends Controller
                 ->whereIn('ulid', $marksByUlid->keys()->all())
                 ->get(['id', 'ulid']);
 
-            foreach ($eligible as $application) {
-                $application->update([
-                    'written_exam_marks' => $marksByUlid->get($application->ulid),
-                ]);
-            }
+            DB::transaction(function () use ($eligible, $marksByUlid): void {
+                foreach ($eligible as $application) {
+                    $application->update([
+                        'written_exam_marks' => $marksByUlid->get($application->ulid),
+                    ]);
+                }
+            });
 
             $message = 'Written marks updated for '.$eligible->count().' paid applicant(s).';
 
@@ -64,11 +67,13 @@ class ApplicationBulkMarksUpdateController extends Controller
                 ->whereIn('ulid', $marksByUlid->keys()->all())
                 ->get(['id', 'ulid']);
 
-            foreach ($eligible as $application) {
-                $application->update([
-                    'viva_exam_marks' => $marksByUlid->get($application->ulid),
-                ]);
-            }
+            DB::transaction(function () use ($eligible, $marksByUlid): void {
+                foreach ($eligible as $application) {
+                    $application->update([
+                        'viva_exam_marks' => $marksByUlid->get($application->ulid),
+                    ]);
+                }
+            });
 
             $message = 'Viva marks updated for '.$eligible->count().' viva-eligible applicant(s).';
 
@@ -77,6 +82,7 @@ class ApplicationBulkMarksUpdateController extends Controller
                 : back()->with('status', $message);
         }
 
+        // program tab — update selected category
         $categoryByUlid = collect((array) ($validated['selected_category_ids'] ?? []))
             ->map(fn ($value) => $value === '' ? null : $value);
 
@@ -87,11 +93,13 @@ class ApplicationBulkMarksUpdateController extends Controller
             ->whereIn('ulid', $categoryByUlid->keys()->all())
             ->get(['id', 'ulid']);
 
-        foreach ($eligible as $application) {
-            $application->update([
-                'selected_category_id' => $categoryByUlid->get($application->ulid),
-            ]);
-        }
+        DB::transaction(function () use ($eligible, $categoryByUlid): void {
+            foreach ($eligible as $application) {
+                $application->update([
+                    'selected_category_id' => $categoryByUlid->get($application->ulid),
+                ]);
+            }
+        });
 
         $message = 'Program selections updated for '.$eligible->count().' enrolled applicant(s).';
 
@@ -99,64 +107,4 @@ class ApplicationBulkMarksUpdateController extends Controller
             ? response()->json(['message' => $message])
             : back()->with('status', $message);
     }
-
-    public function updateWritten(Request $request, Exam $exam): RedirectResponse|JsonResponse
-    {
-        $validated = $request->validate([
-            'marks' => ['required', 'array', 'min:1'],
-            'marks.*' => ['nullable', 'numeric', 'min:0'],
-        ]);
-
-        $marksByUlid = collect((array) ($validated['marks'] ?? []))
-            ->map(fn ($value) => $value === '' ? null : $value);
-
-        $eligible = Application::query()
-            ->where('exam_id', $exam->id)
-            ->where('status', 'paid')
-            ->whereIn('ulid', $marksByUlid->keys()->all())
-            ->get(['id', 'ulid']);
-
-        foreach ($eligible as $application) {
-            $application->update([
-                'written_exam_marks' => $marksByUlid->get($application->ulid),
-            ]);
-        }
-
-        $message = 'Written marks updated for '.$eligible->count().' paid applicant(s).';
-
-        return $request->expectsJson()
-            ? response()->json(['message' => $message])
-            : back()->with('status', $message);
-    }
-
-    public function updateViva(Request $request, Exam $exam): RedirectResponse|JsonResponse
-    {
-        $validated = $request->validate([
-            'marks' => ['required', 'array', 'min:1'],
-            'marks.*' => ['nullable', 'numeric', 'min:0'],
-        ]);
-
-        $marksByUlid = collect((array) ($validated['marks'] ?? []))
-            ->map(fn ($value) => $value === '' ? null : $value);
-
-        $eligible = Application::query()
-            ->where('exam_id', $exam->id)
-            ->where('status', 'paid')
-            ->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED])
-            ->whereIn('ulid', $marksByUlid->keys()->all())
-            ->get(['id', 'ulid']);
-
-        foreach ($eligible as $application) {
-            $application->update([
-                'viva_exam_marks' => $marksByUlid->get($application->ulid),
-            ]);
-        }
-
-        $message = 'Viva marks updated for '.$eligible->count().' viva-eligible applicant(s).';
-
-        return $request->expectsJson()
-            ? response()->json(['message' => $message])
-            : back()->with('status', $message);
-    }
 }
-

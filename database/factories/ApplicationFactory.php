@@ -120,7 +120,7 @@ class ApplicationFactory extends Factory
             'applicant_name' => fake()->name(),
             'applicant_email' => fake()->unique()->safeEmail(),
             'applicant_phone' => fake()->phoneNumber(),
-            'applicant_id_number' => fake()->numerify('###########'),
+            'applicant_nid' => fake()->numerify('###########'),
             'gender' => $gender,
             'status' => $status,
             'selection_stage' => $selectionStage,

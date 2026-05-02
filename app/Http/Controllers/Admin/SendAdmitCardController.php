@@ -17,7 +17,7 @@ class SendAdmitCardController extends Controller
     {
         $request->validate([
             'send_scope' => ['required', 'in:selected,all_paid'],
-            'active_tab' => ['nullable', 'in:paid,viva,program'],
+            'active_tab' => ['nullable', 'in:paid,viva,program,alumni'],
             'application_ids' => ['nullable', 'array'],
             'application_ids.*' => ['required_with:application_ids', 'string'],
         ]);

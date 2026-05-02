@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -18,35 +20,13 @@ class Application extends Model
     use LogsActivity;
     use SoftDeletes;
 
-    /**
-     * Fields retained as first-class searchable columns.
-     *
-     * @var array<int, string>
-     */
-    public const SEARCHABLE_FIELDS = [
-        'applicant_name',
-        'applicant_email',
-        'applicant_phone',
-        'applicant_id_number',
-    ];
-
-    /**
-     * Google Form labels (normalized) to searchable application column mapping.
-     *
-     * @var array<string, string>
-     */
-    public const GOOGLE_FORM_SEARCHABLE_FIELD_MAP = [
-        'applicant_s_name' => 'applicant_name',
-        'email' => 'applicant_email',
-        'mobile_number' => 'applicant_phone',
-        'national_id_birth_registration_passport_number' => 'applicant_id_number',
-    ];
-
     public const STAGE_PAID = 'paid';
 
     public const STAGE_VIVA_SELECTED = 'viva_selected';
 
     public const STAGE_PROGRAM_SELECTED = 'program_selected';
+
+    public const STAGE_ALUMNI = 'alumni';
 
     /** @use HasFactory<ApplicationFactory> */
     protected static function newFactory(): ApplicationFactory
@@ -57,10 +37,11 @@ class Application extends Model
     protected $fillable = [
         'ulid',
         'exam_id',
+        'application_id',
         'applicant_name',
         'applicant_email',
         'applicant_phone',
-        'applicant_id_number',
+        'applicant_nid',
         'gender',
         'status',
         'transaction_id',
@@ -100,74 +81,48 @@ class Application extends Model
     }
 
     /**
-     * Split a Google Form payload into searchable columns and JSON metadata.
+     * Mark this application as paid, assigning a unique sequential application ID.
      *
-     * @param  array<string, mixed>  $payload
-     * @param  array<string, mixed>  $baseAttributes
-     * @return array<string, mixed>
+     * Application ID format: YYYYXXXX
+     *   YYYY = exam start year (fallback: current year)
+     *   XXXX = 4-digit zero-padded sequence per exam (0001, 0002, …)
+     *
+     * A row-level lock on the exam record serialises concurrent payments for the
+     * same exam so that no two applicants can ever receive the same application ID.
      */
-    public static function fromGoogleFormPayload(array $payload, array $baseAttributes = []): array
-    {
-        $attributes = $baseAttributes;
-        $metadata = [];
-
-        foreach ($payload as $key => $value) {
-            $normalizedKey = static::normalizeGoogleFormFieldLabel((string) $key);
-            $mappedColumn = static::GOOGLE_FORM_SEARCHABLE_FIELD_MAP[$normalizedKey] ?? null;
-
-            if ($mappedColumn !== null) {
-                $attributes[$mappedColumn] = $value;
-                continue;
-            }
-
-            $metadata[$normalizedKey !== '' ? $normalizedKey : (string) $key] = $value;
-        }
-
-        $existingMetadata = data_get($baseAttributes, 'additional_info', []);
-
-        $attributes['additional_info'] = array_merge(
-            is_array($existingMetadata) ? $existingMetadata : [],
-            $metadata
-        );
-
-        return $attributes;
-    }
-
-    private static function normalizeGoogleFormFieldLabel(string $label): string
-    {
-        $normalized = str_replace(['*', "\n", "\r"], '', trim($label));
-        $normalized = strtolower($normalized);
-        $normalized = preg_replace('/[^a-z0-9]+/', '_', $normalized) ?? '';
-
-        return trim($normalized, '_');
-    }
-
     public function markAsPaid(string $transactionId, array $response = []): void
     {
-        $this->update([
-            'status' => 'paid',
-            'selection_stage' => self::STAGE_PAID,
-            'transaction_id' => $transactionId,
-            'payment_method' => $response['card_type'] ?? null,
-            'payment_response' => $response,
+        DB::transaction(function () use ($transactionId, $response): void {
+            // Lock the exam row — serialises all concurrent payments for this exam.
+            $exam = Exam::where('id', $this->exam_id)->lockForUpdate()->first();
+
+            $year = $exam?->start_date?->year ?? now()->year;
+
+            // Count already-paid applications for this exam (excluding this one).
+            $paidCount = self::where('exam_id', $this->exam_id)
+                ->where('status', 'paid')
+                ->whereNotNull('application_id')
+                ->count();
+
+            $sequence    = $paidCount + 1;
+            $applicationId = (string) $year . sprintf('%04d', $sequence);
+
+            $this->update([
+                'status'          => 'paid',
+                'selection_stage' => self::STAGE_PAID,
+                'transaction_id'  => $transactionId,
+                'payment_method'  => $response['card_type'] ?? null,
+                'payment_response'=> $response,
+                'application_id'  => $applicationId,
+            ]);
+        });
+
+        Log::info('Application marked as paid', [
+            'application_ulid' => $this->ulid,
+            'application_id'   => $this->application_id,
         ]);
     }
 
-    public function markPaymentFailed(array $response = []): void
-    {
-        $this->update([
-            'status' => 'failed',
-            'payment_response' => $response,
-        ]);
-    }
-
-    public function markPaymentCancelled(array $response = []): void
-    {
-        $this->update([
-            'status' => 'cancelled',
-            'payment_response' => $response,
-        ]);
-    }
 
     public function getActivitylogOptions(): LogOptions
     {
@@ -175,6 +130,7 @@ class Application extends Model
             ->useLogName('application')
             ->logOnly([
                 'status',
+                'application_id',
                 'selection_stage',
                 'transaction_id',
                 'payment_amount',

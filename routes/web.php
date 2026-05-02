@@ -64,12 +64,6 @@ Route::middleware([
     Route::match(['post', 'patch'], '/admin/exams/{exam}/applications/assessment', [ApplicationBulkMarksUpdateController::class, 'updateAssessment'])
         ->name('admin.exams.applications.assessment.bulk')
         ->whereUlid('exam');
-    Route::patch('/admin/exams/{exam}/applications/marks/written', [ApplicationBulkMarksUpdateController::class, 'updateWritten'])
-        ->name('admin.exams.applications.marks.written')
-        ->whereUlid('exam');
-    Route::patch('/admin/exams/{exam}/applications/marks/viva', [ApplicationBulkMarksUpdateController::class, 'updateViva'])
-        ->name('admin.exams.applications.marks.viva')
-        ->whereUlid('exam');
 
     Route::get('/admin/exams/{exam}/reports', [ExamReportController::class, 'index'])
         ->name('admin.exams.reports.index')
@@ -93,6 +87,10 @@ Route::middleware([
     Route::get('/admin/exams/{exam}/reports/choice-list-wise', [ExamReportController::class, 'choiceListWiseApplicants'])
         ->middleware('role:admin')
         ->name('admin.exams.reports.choice-list-wise')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/choice-by-subject', [ExamReportController::class, 'choiceListBySubject'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.choice-by-subject')
         ->whereUlid('exam');
     Route::get('/admin/exams/{exam}/reports/job-experience-wise', [ExamReportController::class, 'jobExperienceWiseApplicants'])
         ->middleware('role:admin')
@@ -150,7 +148,7 @@ Route::get('/payment/result/success', fn() => view('pages.payment-success'))->na
 Route::get('/payment/result/failed', fn() => view('pages.payment-failed'))->name('payment.failed-page');
 Route::get('/payment/result/cancel', fn() => view('pages.payment-cancel'))->name('payment.cancel-page');
 
-Route::prefix('/_secret')->group(function (): void {
+Route::prefix('/_secret')->middleware('throttle:10,1')->group(function (): void {
     Route::get('/test-mail', function () {
         Mail::to('fuadmmnf@gmail.com')->send(new \App\Mail\TestMail());
 
