@@ -49,6 +49,8 @@
         $photoRules = $uploadRules['photo'] ?? [];
         $signatureRules = $uploadRules['signature'] ?? [];
         $certificateRules = $uploadRules['certificate_pdf'] ?? [];
+        $educationResultTypes = $formOptions['education_result_types'] ?? ['numeric' => 'GPA/CGPA', 'division' => 'Division'];
+        $educationDivisions = $formOptions['education_divisions'] ?? ['First Division', 'Second Division', 'Third Division'];
         $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
         $applicationEndAt = optional($exam->end_date)->format('d M Y, h:i A');
 
@@ -213,6 +215,13 @@
                 initialPhotoUrl: @js($initialPhotoUrl),
                 initialSignatureUrl: @js($initialSignatureUrl),
                 initialPdfUrls: @js($initialPdfUrls),
+                initialEducationResultTypes: @js([
+                    'ssc' => old('education.ssc.result_type', 'numeric'),
+                    'hsc' => old('education.hsc.result_type', 'numeric'),
+                    'graduation' => old('education.graduation.result_type', 'numeric'),
+                    'masters' => old('education.masters.result_type', 'numeric'),
+                    'mphil_phd' => old('education.mphil_phd.result_type', 'numeric'),
+                ]),
             })"
             class="space-y-6"
         >
@@ -507,8 +516,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[ssc][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['ssc_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label><select name="education[ssc][education_board]" class="rounded-md border-gray-300 w-full" required><option value="">Select Education Board</option>@foreach ($formOptions['education_boards'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.education_board') === $option)>{{ $option }}</option>@endforeach</select></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[ssc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[ssc][result]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Style *</label>
+                            <select name="education[ssc][result_type]" x-model="educationResultTypes.ssc" class="rounded-md border-gray-300 w-full" required>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div x-show="educationResultTypes.ssc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
+                            <input name="education[ssc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'numeric'">
+                        </div>
+                        <div x-show="educationResultTypes.ssc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">GPA *</label>
+                            <input name="education[ssc][result]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result') }}" placeholder="e.g. 4.67" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'numeric'">
+                        </div>
+                        <div x-show="educationResultTypes.ssc === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                            <select name="education[ssc][division]" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'division'">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.ssc.division') === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Group *</label><select name="education[ssc][group]" class="rounded-md border-gray-300 w-full" required><option value="">Select Group</option>@foreach ($formOptions['groups'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.group') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[ssc][passing_year]" type="number" value="{{ old('education.ssc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
@@ -525,8 +557,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[hsc][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['hsc_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label><select name="education[hsc][education_board]" class="rounded-md border-gray-300 w-full" required><option value="">Select Education Board</option>@foreach ($formOptions['education_boards'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.education_board') === $option)>{{ $option }}</option>@endforeach</select></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[hsc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[hsc][result]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Style *</label>
+                            <select name="education[hsc][result_type]" x-model="educationResultTypes.hsc" class="rounded-md border-gray-300 w-full" required>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div x-show="educationResultTypes.hsc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
+                            <input name="education[hsc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'numeric'">
+                        </div>
+                        <div x-show="educationResultTypes.hsc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">GPA *</label>
+                            <input name="education[hsc][result]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result') }}" placeholder="e.g. 4.50" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'numeric'">
+                        </div>
+                        <div x-show="educationResultTypes.hsc === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                            <select name="education[hsc][division]" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'division'">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.hsc.division') === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Group *</label><select name="education[hsc][group]" class="rounded-md border-gray-300 w-full" required><option value="">Select Group</option>@foreach ($formOptions['groups'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.group') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[hsc][passing_year]" type="number" value="{{ old('education.hsc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
@@ -544,8 +599,31 @@
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[graduation][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['graduation_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.graduation.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject *</label><input name="education[graduation][subject]" type="text" value="{{ old('education.graduation.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute *</label><input name="education[graduation][institution]" type="text" value="{{ old('education.graduation.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[graduation][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[graduation][result]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result') }}" placeholder="Result (CGPA/Class/Division)" class="rounded-md border-gray-300 w-full" required></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Style *</label>
+                            <select name="education[graduation][result_type]" x-model="educationResultTypes.graduation" class="rounded-md border-gray-300 w-full" required>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div x-show="educationResultTypes.graduation === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
+                            <input name="education[graduation][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'numeric'">
+                        </div>
+                        <div x-show="educationResultTypes.graduation === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CGPA *</label>
+                            <input name="education[graduation][result]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result') }}" placeholder="e.g. 3.75" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'numeric'">
+                        </div>
+                        <div x-show="educationResultTypes.graduation === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                            <select name="education[graduation][division]" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'division'">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.graduation.division') === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[graduation][passing_year]" type="number" value="{{ old('education.graduation.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years) *</label><input name="education[graduation][course_duration_years]" type="number" step="0.1" value="{{ old('education.graduation.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
@@ -563,8 +641,31 @@
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination</label><input name="education[masters][examination]" type="text" value="{{ old('education.masters.examination') }}" placeholder="Examination" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input name="education[masters][subject]" type="text" value="{{ old('education.masters.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label><input name="education[masters][institution]" type="text" value="{{ old('education.masters.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full"></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label><input name="education[masters][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.masters.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full"></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result</label><input name="education[masters][result]" type="number" step="0.01" min="0" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full"></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Style</label>
+                            <select name="education[masters][result_type]" x-model="educationResultTypes.masters" class="rounded-md border-gray-300 w-full">
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div x-show="educationResultTypes.masters === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label>
+                            <input name="education[masters][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.masters.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div x-show="educationResultTypes.masters === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
+                            <input name="education[masters][result]" type="number" step="0.01" min="0" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div x-show="educationResultTypes.masters === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                            <select name="education[masters][division]" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.masters.division') === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year</label><input name="education[masters][passing_year]" type="number" value="{{ old('education.masters.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years)</label><input name="education[masters][course_duration_years]" type="number" step="0.1" value="{{ old('education.masters.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full"></div>
                     </div>
@@ -581,6 +682,31 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input name="education[mphil_phd][subject]" type="text" value="{{ old('education.mphil_phd.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label><input name="education[mphil_phd][institution]" type="text" value="{{ old('education.mphil_phd.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full"></div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Style</label>
+                            <select name="education[mphil_phd][result_type]" x-model="educationResultTypes.mphil_phd" class="rounded-md border-gray-300 w-full">
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div x-show="educationResultTypes.mphil_phd === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label>
+                            <input name="education[mphil_phd][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.mphil_phd.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div x-show="educationResultTypes.mphil_phd === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
+                            <input name="education[mphil_phd][result]" type="number" step="0.01" min="0" value="{{ old('education.mphil_phd.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full">
+                        </div>
+                        <div x-show="educationResultTypes.mphil_phd === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                            <select name="education[mphil_phd][division]" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.mphil_phd.division') === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                        </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Degree Completion Status</label>
                             <select name="education[mphil_phd][degree_completion]" class="rounded-md border-gray-300 w-full">
@@ -806,6 +932,7 @@
             initialPhotoUrl,
             initialSignatureUrl,
             initialPdfUrls,
+            initialEducationResultTypes,
         }) {
             return {
                 step: initialStep,
@@ -833,6 +960,13 @@
                     hsc_certificate:        (initialPdfUrls && initialPdfUrls.hsc_certificate)        ? initialPdfUrls.hsc_certificate        : null,
                     graduation_certificate: (initialPdfUrls && initialPdfUrls.graduation_certificate) ? initialPdfUrls.graduation_certificate : null,
                     masters_certificate:    (initialPdfUrls && initialPdfUrls.masters_certificate)    ? initialPdfUrls.masters_certificate    : null,
+                },
+                educationResultTypes: {
+                    ssc: (initialEducationResultTypes && initialEducationResultTypes.ssc) ? initialEducationResultTypes.ssc : 'numeric',
+                    hsc: (initialEducationResultTypes && initialEducationResultTypes.hsc) ? initialEducationResultTypes.hsc : 'numeric',
+                    graduation: (initialEducationResultTypes && initialEducationResultTypes.graduation) ? initialEducationResultTypes.graduation : 'numeric',
+                    masters: (initialEducationResultTypes && initialEducationResultTypes.masters) ? initialEducationResultTypes.masters : 'numeric',
+                    mphil_phd: (initialEducationResultTypes && initialEducationResultTypes.mphil_phd) ? initialEducationResultTypes.mphil_phd : 'numeric',
                 },
                 allPrograms: programs,
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
@@ -1083,18 +1217,30 @@
                     this.setInputValue('permanent_address[address_line]', 'Road 2, House 20');
 
                     this.fillEducationDefaults();
+                    this.setSelectValue('education[ssc][result_type]', 'numeric');
+                    this.educationResultTypes.ssc = 'numeric';
                     this.setInputValue('education[ssc][result]', '5.00');
                     this.setInputValue('education[ssc][result_scale]', '5.00');
                     this.setInputValue('education[ssc][passing_year]', '2014');
+                    this.setSelectValue('education[hsc][result_type]', 'numeric');
+                    this.educationResultTypes.hsc = 'numeric';
                     this.setInputValue('education[hsc][result]', '5.00');
                     this.setInputValue('education[hsc][result_scale]', '5.00');
                     this.setInputValue('education[hsc][passing_year]', '2016');
                     this.setInputValue('education[graduation][subject]', 'Computer Science');
                     this.setInputValue('education[graduation][institution]', 'Test University');
+                    this.setSelectValue('education[graduation][result_type]', 'numeric');
+                    this.educationResultTypes.graduation = 'numeric';
                     this.setInputValue('education[graduation][result]', '3.80');
                     this.setInputValue('education[graduation][result_scale]', '4.00');
                     this.setInputValue('education[graduation][passing_year]', '2020');
                     this.setInputValue('education[graduation][course_duration_years]', '4');
+                    this.setSelectValue('education[masters][result_type]', 'numeric');
+                    this.educationResultTypes.masters = 'numeric';
+                    this.setInputValue('education[masters][result]', '3.70');
+                    this.setInputValue('education[masters][result_scale]', '4.00');
+                    this.setSelectValue('education[mphil_phd][result_type]', 'numeric');
+                    this.educationResultTypes.mphil_phd = 'numeric';
 
                     this.setInputValue('job_experience[total_years]', '3.5');
                     this.setInputValue('job_experience[current][organization_name]', 'Dev Company Ltd.');
@@ -1324,31 +1470,70 @@
                     if (stepNum === 3) {
                         req('education[ssc][examination]',    'SSC Examination');
                         reqSel('education[ssc][education_board]', 'SSC Education Board');
-                        req('education[ssc][result_scale]',    'SSC Result Scale');
-                        req('education[ssc][result]',          'SSC Result');
+                        reqSel('education[ssc][result_type]', 'SSC Result Style');
+                        if (this.educationResultTypes.ssc === 'division') {
+                            reqSel('education[ssc][division]', 'SSC Division');
+                        } else {
+                            req('education[ssc][result_scale]', 'SSC Result Scale');
+                            req('education[ssc][result]', 'SSC Result');
+                            this._validateResultVsScale('education[ssc][result]', 'education[ssc][result_scale]', 'SSC', errors);
+                        }
                         reqSel('education[ssc][group]',        'SSC Group');
                         req('education[ssc][passing_year]',    'SSC Passing Year');
-                        this._validateResultVsScale('education[ssc][result]', 'education[ssc][result_scale]', 'SSC', errors);
                         this._checkDocRequired('education_documents[ssc][certificate]', 'existing_education_documents[ssc][certificate]', 'SSC Certificate PDF', errors);
 
                         req('education[hsc][examination]',    'HSC Examination');
                         reqSel('education[hsc][education_board]', 'HSC Education Board');
-                        req('education[hsc][result_scale]',    'HSC Result Scale');
-                        req('education[hsc][result]',          'HSC Result');
+                        reqSel('education[hsc][result_type]', 'HSC Result Style');
+                        if (this.educationResultTypes.hsc === 'division') {
+                            reqSel('education[hsc][division]', 'HSC Division');
+                        } else {
+                            req('education[hsc][result_scale]', 'HSC Result Scale');
+                            req('education[hsc][result]', 'HSC Result');
+                            this._validateResultVsScale('education[hsc][result]', 'education[hsc][result_scale]', 'HSC', errors);
+                        }
                         reqSel('education[hsc][group]',        'HSC Group');
                         req('education[hsc][passing_year]',    'HSC Passing Year');
-                        this._validateResultVsScale('education[hsc][result]', 'education[hsc][result_scale]', 'HSC', errors);
                         this._checkDocRequired('education_documents[hsc][certificate]', 'existing_education_documents[hsc][certificate]', 'HSC Certificate PDF', errors);
 
                         reqSel('education[graduation][examination]',  'Graduation Examination');
                         req('education[graduation][subject]',             'Graduation Subject');
                         req('education[graduation][institution]',         'Graduation University / Institute');
-                        req('education[graduation][result_scale]',        'Graduation Result Scale');
-                        req('education[graduation][result]',              'Graduation Result');
+                        reqSel('education[graduation][result_type]', 'Graduation Result Style');
+                        if (this.educationResultTypes.graduation === 'division') {
+                            reqSel('education[graduation][division]', 'Graduation Division');
+                        } else {
+                            req('education[graduation][result_scale]', 'Graduation Result Scale');
+                            req('education[graduation][result]', 'Graduation Result');
+                            this._validateResultVsScale('education[graduation][result]', 'education[graduation][result_scale]', 'Graduation', errors);
+                        }
                         req('education[graduation][passing_year]',        'Graduation Passing Year');
                         req('education[graduation][course_duration_years]','Graduation Course Duration');
-                        this._validateResultVsScale('education[graduation][result]', 'education[graduation][result_scale]', 'Graduation', errors);
                         this._checkDocRequired('education_documents[graduation][certificate]', 'existing_education_documents[graduation][certificate]', 'Graduation Certificate PDF', errors);
+
+                        if (this.educationResultTypes.masters === 'division') {
+                            const mastersDivision = document.querySelector('[name="education[masters][division]"]');
+                            const mastersResult = document.querySelector('[name="education[masters][result]"]')?.value;
+                            const mastersScale = document.querySelector('[name="education[masters][result_scale]"]')?.value;
+                            if ((mastersResult || mastersScale || mastersDivision?.value) && !mastersDivision?.value) {
+                                errors.push('Masters Division is required when Division style is selected.');
+                                this._markInvalid(mastersDivision);
+                            }
+                        } else {
+                            this._validateResultVsScale('education[masters][result]', 'education[masters][result_scale]', 'Masters', errors, true);
+                        }
+
+                        if (this.educationResultTypes.mphil_phd === 'division') {
+                            const mphilDivision = document.querySelector('[name="education[mphil_phd][division]"]');
+                            const mphilResult = document.querySelector('[name="education[mphil_phd][result]"]')?.value;
+                            const mphilScale = document.querySelector('[name="education[mphil_phd][result_scale]"]')?.value;
+                            if ((mphilResult || mphilScale || mphilDivision?.value) && !mphilDivision?.value) {
+                                errors.push('MPhil / PhD Division is required when Division style is selected.');
+                                this._markInvalid(mphilDivision);
+                            }
+                        } else {
+                            this._validateResultVsScale('education[mphil_phd][result]', 'education[mphil_phd][result_scale]', 'MPhil / PhD', errors, true);
+                        }
                     }
 
                     if (stepNum === 4) {
@@ -1391,10 +1576,13 @@
                         this._markInvalid(fileInput);
                     }
                 },
-                _validateResultVsScale(resultName, scaleName, label, errors) {
+                _validateResultVsScale(resultName, scaleName, label, errors, allowPartial = false) {
                     const resultEl = document.querySelector(`[name="${resultName}"]`);
                     const scaleEl  = document.querySelector(`[name="${scaleName}"]`);
                     if (!resultEl || !scaleEl) return;
+                    if (allowPartial && (!String(resultEl.value ?? '').trim() || !String(scaleEl.value ?? '').trim())) {
+                        return;
+                    }
                     const result = parseFloat(resultEl.value);
                     const scale  = parseFloat(scaleEl.value);
                     if (!isNaN(result) && !isNaN(scale) && result > scale) {

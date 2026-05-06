@@ -51,6 +51,7 @@ class ApplicationFactory extends Factory
                 'ssc' => [
                     'examination'    => 'SSC',
                     'education_board'=> fake()->randomElement($boards),
+                    'result_type'    => 'numeric',
                     'result'         => number_format(fake()->randomFloat(2, 3.0, 5.0), 2),
                     'result_scale'   => 'GPA',
                     'passing_year'   => (string) fake()->numberBetween(2000, 2012),
@@ -58,6 +59,7 @@ class ApplicationFactory extends Factory
                 'hsc' => [
                     'examination'    => 'HSC',
                     'education_board'=> fake()->randomElement($boards),
+                    'result_type'    => 'numeric',
                     'result'         => number_format(fake()->randomFloat(2, 3.0, 5.0), 2),
                     'result_scale'   => 'GPA',
                     'passing_year'   => (string) fake()->numberBetween(2002, 2014),
@@ -66,6 +68,7 @@ class ApplicationFactory extends Factory
                     'examination'    => 'B.Sc.',
                     'subject'        => fake()->randomElement($programSubjects),
                     'institution'    => fake()->randomElement(['Dhaka University', 'BUET', 'KUET', 'RUET', 'NSU']),
+                    'result_type'    => 'numeric',
                     'result'         => number_format(fake()->randomFloat(2, 2.5, 4.0), 2),
                     'result_scale'   => 'CGPA',
                     'passing_year'   => (string) fake()->numberBetween(2006, 2018),

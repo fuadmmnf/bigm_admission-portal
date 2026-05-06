@@ -48,6 +48,7 @@ class ApplicationFormController extends Controller
         abort_unless($this->isExamOpenForApplication($exam), 404);
 
         $validated = $request->validated();
+        $validated['education'] = $this->normalizeEducationData($validated['education'] ?? []);
 
         // Block duplicate paid submissions: same email, phone, or NID for the same exam
         $alreadyPaid = Application::query()
@@ -176,6 +177,29 @@ class ApplicationFormController extends Controller
             ->availableForApplication()
             ->whereKey($exam->getKey())
             ->exists();
+    }
+
+    private function normalizeEducationData(array $education): array
+    {
+        foreach (['ssc', 'hsc', 'graduation', 'masters', 'mphil_phd'] as $level) {
+            $row = $education[$level] ?? null;
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $resultType = (string) ($row['result_type'] ?? 'numeric');
+            if ($resultType === 'division') {
+                $division = data_get($row, 'division');
+                $row['result'] = $division;
+                $row['result_scale'] = 'Division';
+            } else {
+                $row['result_type'] = 'numeric';
+            }
+
+            $education[$level] = $row;
+        }
+
+        return $education;
     }
 }
 

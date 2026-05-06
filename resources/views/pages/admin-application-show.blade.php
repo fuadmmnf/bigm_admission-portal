@@ -51,7 +51,22 @@
             ])) ?: 'N/A';
         };
 
-        $educationLabels = ['ssc' => 'SSC', 'hsc' => 'HSC', 'graduation' => 'Graduation', 'masters' => 'Masters'];
+        $formatEducationResult = static function (array $row) use ($toText): string {
+            $resultType = data_get($row, 'result_type');
+            if ($resultType === 'division' || strcasecmp((string) data_get($row, 'result_scale'), 'Division') === 0) {
+                return $toText(data_get($row, 'division') ?: data_get($row, 'result'));
+            }
+
+            $result = data_get($row, 'result');
+            $scale = data_get($row, 'result_scale');
+            if (blank($result) && blank($scale)) {
+                return 'N/A';
+            }
+
+            return sprintf('%s (%s)', $toText($result), $toText($scale));
+        };
+
+        $educationLabels = ['ssc' => 'SSC', 'hsc' => 'HSC', 'graduation' => 'Graduation', 'masters' => 'Masters', 'mphil_phd' => 'MPhil / PhD'];
         $programChoices = [
             '1st Choice' => data_get($choices, 'first_choice'),
             '2nd Choice' => data_get($choices, 'second_choice'),
@@ -216,7 +231,7 @@
                                     $marksheetUrl = $publicUrl($marksheetPath);
                                     $certificateUrl = $publicUrl($certificatePath);
                                     $examTitle = data_get($row, 'examination');
-                                    if (in_array($key, ['graduation', 'masters'], true) && filled(data_get($row, 'subject'))) {
+                                    if (in_array($key, ['graduation', 'masters', 'mphil_phd'], true) && filled(data_get($row, 'subject'))) {
                                         $examTitle = trim(($examTitle ?: 'N/A').' - '.data_get($row, 'subject'));
                                     }
                                     $instituteOrBoard = data_get($row, 'institution') ?: data_get($row, 'education_board');
@@ -225,7 +240,7 @@
                                     <td class="px-3 py-3 font-medium text-gray-900">{{ $label }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $toText($examTitle) }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $toText($instituteOrBoard) }}</td>
-                                    <td class="px-3 py-3 text-gray-700">{{ $toText(data_get($row, 'result')) }} <span class="text-gray-500">({{ $toText(data_get($row, 'result_scale')) }})</span></td>
+                                    <td class="px-3 py-3 text-gray-700">{{ $formatEducationResult($row) }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $toText(data_get($row, 'passing_year')) }}</td>
                                     <td class="px-3 py-3">
                                         <div class="flex flex-wrap items-center gap-2">

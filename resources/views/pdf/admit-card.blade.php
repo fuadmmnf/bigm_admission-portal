@@ -8,7 +8,11 @@
             margin: 14mm 14mm 14mm 14mm;
             size: A4 portrait;
         }
-        * { box-sizing: border-box; }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: "Times New Roman", Georgia, serif;
             font-size: 11.5pt;
@@ -31,20 +35,24 @@
             padding: 8pt 12pt 6pt;
             text-align: center;
         }
+
         .header-logo-row {
             margin-bottom: 3pt;
         }
+
         .header-logo {
             width: 170pt;
             height: auto;
             display: inline-block;
         }
+
         .header h1 {
             font-size: 12pt;
             font-weight: bold;
             margin: 2pt 0 0;
             letter-spacing: 0.3pt;
         }
+
         .header .sub {
             font-size: 8.5pt;
             margin: 1pt 0 0;
@@ -57,10 +65,12 @@
             font-size: 9.5pt;
             border-bottom: 1pt solid #d1d5db;
         }
+
         .notice-band.viva {
             background: #fffbeb;
             border-left: 4pt solid #f59e0b;
         }
+
         .notice-band.program {
             background: #f0fdf4;
             border-left: 4pt solid #16a34a;
@@ -72,6 +82,7 @@
             padding: 7pt 0 5pt;
             border-bottom: 1pt solid #d1d5db;
         }
+
         .card-title-tag {
             display: inline-block;
             border: 1pt solid #374151;
@@ -87,21 +98,25 @@
             border-collapse: collapse;
             padding: 8pt 10pt;
         }
+
         .details-cell {
             padding: 8pt 10pt;
             vertical-align: top;
             width: 68%;
         }
+
         .photo-cell {
             padding: 8pt 10pt 8pt 4pt;
             vertical-align: top;
             width: 32%;
             text-align: center;
         }
+
         .meta-line {
             font-size: 10.5pt;
             margin: 0 0 3.5pt;
         }
+
         .meta-label {
             font-weight: bold;
             display: inline;
@@ -120,18 +135,21 @@
             display: block;
             margin: 0 auto;
         }
+
         .photo-box img {
             width: 100pt;
             height: 126pt;
             object-fit: cover;
             display: block;
         }
+
         .sig-label {
             font-size: 8pt;
             color: #6b7280;
             margin-top: 3pt;
             text-align: center;
         }
+
         .sig-box {
             width: 100pt;
             height: 36pt;
@@ -144,6 +162,7 @@
             display: block;
             margin: 4pt auto 0;
         }
+
         .sig-box img {
             width: 100pt;
             height: 36pt;
@@ -164,6 +183,7 @@
             position: relative;
             overflow: hidden;
         }
+
         .instructions-title {
             font-size: 10pt;
             font-weight: bold;
@@ -171,12 +191,14 @@
             text-decoration: underline;
             margin: 0 0 5pt;
         }
+
         .instructions-list {
             margin: 0;
             padding-left: 16pt;
             font-size: 9pt;
             color: #374151;
         }
+
         .instructions-list li {
             margin-bottom: 3pt;
         }
@@ -319,9 +341,12 @@
         <tr>
             <td class="details-cell">
                 <p class="meta-line"><span class="meta-label">Applicant ID:</span> {{ $application->ulid }}</p>
-                <p class="meta-line"><span class="meta-label">Name:</span> {{ $application->applicant_name ?: 'N/A' }}</p>
-                <p class="meta-line"><span class="meta-label">Father's Name:</span> {{ data_get($personal, 'father_name', 'N/A') }}</p>
-                <p class="meta-line"><span class="meta-label">Mother's Name:</span> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
+                <p class="meta-line"><span class="meta-label">Name:</span> {{ $application->applicant_name ?: 'N/A' }}
+                </p>
+                <p class="meta-line"><span
+                        class="meta-label">Father's Name:</span> {{ data_get($personal, 'father_name', 'N/A') }}</p>
+                <p class="meta-line"><span
+                        class="meta-label">Mother's Name:</span> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
                 <p class="meta-line"><span class="meta-label">Exam:</span> {{ $exam?->name ?? 'N/A' }}</p>
                 <p class="meta-line"><span class="meta-label">Exam Date:</span> {{ $examDateText }}</p>
                 <p class="meta-line"><span class="meta-label">Time:</span> {{ $examTimeText }}</p>

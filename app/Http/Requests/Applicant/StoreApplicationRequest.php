@@ -18,6 +18,8 @@ class StoreApplicationRequest extends FormRequest
         $currentYear = (int) now()->format('Y');
         $programs = config('applicant_form.programs', []);
         $genders = config('applicant_form.genders', []);
+        $resultTypes = array_keys(config('applicant_form.education_result_types', ['numeric' => 'GPA/CGPA', 'division' => 'Division']));
+        $divisions = config('applicant_form.education_divisions', []);
         $certificateMaxKb = (int) config('applicant_uploads.certificate_pdf.max_kb', 5120);
 
         return [
@@ -63,36 +65,69 @@ class StoreApplicationRequest extends FormRequest
 
             'education.ssc.examination' => ['required', 'string', 'max:120'],
             'education.ssc.education_board' => ['required', 'string', 'max:120'],
-            'education.ssc.result' => ['required', 'numeric', 'min:0'],
-            'education.ssc.result_scale' => ['required', 'numeric', 'min:0'],
+            'education.ssc.result_type' => ['required', 'string', Rule::in($resultTypes)],
+            'education.ssc.result' => ['nullable', 'numeric', 'min:0', 'required_if:education.ssc.result_type,numeric'],
+            'education.ssc.result_scale' => ['nullable', 'numeric', 'min:0', 'required_if:education.ssc.result_type,numeric'],
+            'education.ssc.division' => ['nullable', 'string', Rule::in($divisions), 'required_if:education.ssc.result_type,division'],
             'education.ssc.group' => ['required', 'string', 'max:60'],
             'education.ssc.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
 
             'education.hsc.examination' => ['required', 'string', 'max:120'],
             'education.hsc.education_board' => ['required', 'string', 'max:120'],
-            'education.hsc.result' => ['required', 'numeric', 'min:0'],
-            'education.hsc.result_scale' => ['required', 'numeric', 'min:0'],
+            'education.hsc.result_type' => ['required', 'string', Rule::in($resultTypes)],
+            'education.hsc.result' => ['nullable', 'numeric', 'min:0', 'required_if:education.hsc.result_type,numeric'],
+            'education.hsc.result_scale' => ['nullable', 'numeric', 'min:0', 'required_if:education.hsc.result_type,numeric'],
+            'education.hsc.division' => ['nullable', 'string', Rule::in($divisions), 'required_if:education.hsc.result_type,division'],
             'education.hsc.group' => ['required', 'string', 'max:60'],
             'education.hsc.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
 
             'education.graduation.examination' => ['required', 'string', 'max:120'],
             'education.graduation.subject' => ['required', 'string', 'max:120'],
             'education.graduation.institution' => ['required', 'string', 'max:255'],
-            'education.graduation.result' => ['required', 'numeric', 'min:0'],
-            'education.graduation.result_scale' => ['required', 'numeric', 'min:0'],
+            'education.graduation.result_type' => ['required', 'string', Rule::in($resultTypes)],
+            'education.graduation.result' => ['nullable', 'numeric', 'min:0', 'required_if:education.graduation.result_type,numeric'],
+            'education.graduation.result_scale' => ['nullable', 'numeric', 'min:0', 'required_if:education.graduation.result_type,numeric'],
+            'education.graduation.division' => ['nullable', 'string', Rule::in($divisions), 'required_if:education.graduation.result_type,division'],
             'education.graduation.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
             'education.graduation.course_duration_years' => ['required', 'numeric', 'min:1', 'max:10'],
 
             'education.masters.examination' => ['nullable', 'string', 'max:120'],
             'education.masters.subject' => ['nullable', 'string', 'max:120'],
             'education.masters.institution' => ['nullable', 'string', 'max:255'],
-            'education.masters.result' => ['nullable', 'numeric', 'min:0'],
-            'education.masters.result_scale' => ['nullable', 'numeric', 'min:0'],
+            'education.masters.result_type' => ['nullable', 'string', Rule::in($resultTypes)],
+            'education.masters.result' => ['nullable', 'numeric', 'min:0', 'required_if:education.masters.result_type,numeric'],
+            'education.masters.result_scale' => ['nullable', 'numeric', 'min:0', 'required_if:education.masters.result_type,numeric'],
+            'education.masters.division' => ['nullable', 'string', Rule::in($divisions), 'required_if:education.masters.result_type,division'],
             'education.masters.passing_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
             'education.masters.course_duration_years' => ['nullable', 'numeric', 'min:1', 'max:10'],
 
             'education.mphil_phd.subject' => ['nullable', 'string', 'max:120'],
             'education.mphil_phd.institution' => ['nullable', 'string', 'max:255'],
+            'education.mphil_phd.result_type' => ['nullable', 'string', Rule::in($resultTypes)],
+            'education.mphil_phd.result' => [
+                'nullable', 'numeric', 'min:0',
+                Rule::requiredIf(function () {
+                    return $this->input('education.mphil_phd.result_type') === 'numeric'
+                        && (filled($this->input('education.mphil_phd.subject'))
+                            || filled($this->input('education.mphil_phd.institution')));
+                }),
+            ],
+            'education.mphil_phd.result_scale' => [
+                'nullable', 'numeric', 'min:0',
+                Rule::requiredIf(function () {
+                    return $this->input('education.mphil_phd.result_type') === 'numeric'
+                        && (filled($this->input('education.mphil_phd.subject'))
+                            || filled($this->input('education.mphil_phd.institution')));
+                }),
+            ],
+            'education.mphil_phd.division' => [
+                'nullable', 'string', Rule::in($divisions),
+                Rule::requiredIf(function () {
+                    return $this->input('education.mphil_phd.result_type') === 'division'
+                        && (filled($this->input('education.mphil_phd.subject'))
+                            || filled($this->input('education.mphil_phd.institution')));
+                }),
+            ],
             'education.mphil_phd.degree_completion' => ['nullable', 'string', Rule::in(['degree_awarded', 'ongoing'])],
             'education.mphil_phd.completion_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
 
@@ -132,11 +167,17 @@ class StoreApplicationRequest extends FormRequest
             $this->validateResultNotExceedsScale($validator, 'hsc');
             $this->validateResultNotExceedsScale($validator, 'graduation');
             $this->validateResultNotExceedsScale($validator, 'masters');
+            $this->validateResultNotExceedsScale($validator, 'mphil_phd');
         });
     }
 
     private function validateResultNotExceedsScale(Validator $validator, string $level): void
     {
+        $resultType = $this->input("education.{$level}.result_type", 'numeric');
+        if ($resultType !== 'numeric') {
+            return;
+        }
+
         $result = $this->input("education.{$level}.result");
         $scale  = $this->input("education.{$level}.result_scale");
 

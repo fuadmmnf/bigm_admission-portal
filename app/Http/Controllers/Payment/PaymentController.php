@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Payment;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\Exam;
 use App\Services\SSLCommerzService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -243,6 +244,39 @@ class PaymentController extends Controller
         ];
     }
 
+    private function resolveRetryExamUlid(Application $application): ?string
+    {
+        return Exam::query()->withTrashed()->whereKey($application->exam_id)->value('ulid');
+    }
+
+    private function isExamCurrentlyOpenForApplication(?string $examUlid): bool
+    {
+        if (blank($examUlid)) {
+            return false;
+        }
+
+        $exam = Exam::query()->where('ulid', $examUlid)->first();
+        if (! $exam instanceof Exam) {
+            return false;
+        }
+
+        if ($exam->status !== 'active') {
+            return false;
+        }
+
+        $now = now();
+
+        if ($exam->start_date && $exam->start_date->gt($now)) {
+            return false;
+        }
+
+        if ($exam->end_date && $exam->end_date->lt($now)) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Delete all uploaded files associated with an application from storage.
      * Paths are stored in additional_info.uploads on the public disk.
@@ -293,14 +327,14 @@ class PaymentController extends Controller
         $prefillInput = [];
 
         if ($application && $application->status !== 'paid') {
-            $examUlid = $application->exam?->ulid;
+            $examUlid = $this->resolveRetryExamUlid($application);
             $prefillInput = $this->buildPrefillInput($application);
             $application->update(['status' => 'failed']);
             $this->deleteUploadedFiles($application);
             $application->delete();
         }
 
-        if ($examUlid) {
+        if ($this->isExamCurrentlyOpenForApplication($examUlid)) {
             return redirect()
                 ->route('applications.create', ['exam' => $examUlid])
                 ->withInput($prefillInput)
@@ -326,14 +360,14 @@ class PaymentController extends Controller
         $prefillInput = [];
 
         if ($application && $application->status !== 'paid') {
-            $examUlid = $application->exam?->ulid;
+            $examUlid = $this->resolveRetryExamUlid($application);
             $prefillInput = $this->buildPrefillInput($application);
             $application->update(['status' => 'cancelled']);
             $this->deleteUploadedFiles($application);
             $application->delete();
         }
 
-        if ($examUlid) {
+        if ($this->isExamCurrentlyOpenForApplication($examUlid)) {
             return redirect()
                 ->route('applications.create', ['exam' => $examUlid])
                 ->withInput($prefillInput)

@@ -24,6 +24,17 @@ return [
         'Fazil', 'B.B.A', 'Graduation Equivalent',
     ],
 
+    'education_result_types' => [
+        'numeric' => 'GPA/CGPA',
+        'division' => 'Division',
+    ],
+
+    'education_divisions' => [
+        'First Division',
+        'Second Division',
+        'Third Division',
+    ],
+
     'groups' => ['Science', 'Humanities', 'Business Studies', 'General', 'Other'],
 
     'genders' => ['Male', 'Female', 'Other'],

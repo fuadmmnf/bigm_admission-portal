@@ -40,7 +40,7 @@
 <body>
 @php
     $toText = static fn ($value): string => blank($value) ? 'N/A' : (string) $value;
-    $educationLabels = ['ssc' => 'SSC', 'hsc' => 'HSC', 'graduation' => 'Graduation', 'masters' => 'Masters'];
+    $educationLabels = ['ssc' => 'SSC', 'hsc' => 'HSC', 'graduation' => 'Graduation', 'masters' => 'Masters', 'mphil_phd' => 'MPhil / PhD'];
 
     $addressText = static function (array $addr): string {
         return implode(', ', array_filter([
@@ -50,6 +50,21 @@
             data_get($addr, 'upazila_name'),
             data_get($addr, 'district_name'),
         ])) ?: 'N/A';
+    };
+
+    $formatEducationResult = static function (array $row) use ($toText): string {
+        $resultType = data_get($row, 'result_type');
+        if ($resultType === 'division' || strcasecmp((string) data_get($row, 'result_scale'), 'Division') === 0) {
+            return $toText(data_get($row, 'division') ?: data_get($row, 'result'));
+        }
+
+        $result = data_get($row, 'result');
+        $scale = data_get($row, 'result_scale');
+        if (blank($result) && blank($scale)) {
+            return 'N/A';
+        }
+
+        return sprintf('%s (%s)', $toText($result), $toText($scale));
     };
 @endphp
 
@@ -158,7 +173,7 @@
                     @php
                         $row = data_get($edu, $key, []);
                         $examTitle = data_get($row, 'examination');
-                        if (in_array($key, ['graduation', 'masters']) && filled(data_get($row, 'subject'))) {
+                        if (in_array($key, ['graduation', 'masters', 'mphil_phd']) && filled(data_get($row, 'subject'))) {
                             $examTitle = trim(($examTitle ?: 'N/A').' – '.data_get($row, 'subject'));
                         }
                         $instituteOrBoard = data_get($row, 'institution') ?: data_get($row, 'education_board');
@@ -167,7 +182,7 @@
                         <td>{{ $label }}</td>
                         <td>{{ $toText($examTitle) }}</td>
                         <td>{{ $toText($instituteOrBoard) }}</td>
-                        <td>{{ $toText(data_get($row, 'result')) }} ({{ $toText(data_get($row, 'result_scale')) }})</td>
+                        <td>{{ $formatEducationResult($row) }}</td>
                         <td>{{ $toText(data_get($row, 'passing_year')) }}</td>
                     </tr>
                 @endforeach
