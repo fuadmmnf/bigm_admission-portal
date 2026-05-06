@@ -314,10 +314,12 @@
                                                 : null;
                                         @endphp
                                         <td class="px-4 py-3 text-sm font-mono font-semibold text-indigo-700 whitespace-nowrap">
-                                            @if ($photoUrl)
-                                                <img src="{{ $photoUrl }}" alt="{{ $application->applicant_name }}" class="mb-1 h-12 w-14 rounded border border-gray-200 object-cover">
-                                            @endif
-                                            {{ $application->application_id ?? '—' }}
+                                            <div class="flex flex-col items-center gap-0.5">
+                                                @if ($photoUrl)
+                                                    <img src="{{ $photoUrl }}" alt="{{ $application->applicant_name }}" class="h-12 w-14 rounded border border-gray-200 object-cover object-top">
+                                                @endif
+                                                <span class="text-center">{{ $application->application_id ?? '—' }}</span>
+                                            </div>
                                         </td>
                                         <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $application->applicant_name }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>

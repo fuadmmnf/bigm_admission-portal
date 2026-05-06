@@ -645,7 +645,7 @@ class AdminExamPagesTest extends TestCase
         $response->assertSee('Download Choice Report');
         $response->assertSee('Download Job-Experience Report');
         $response->assertSee('Download Enrolled Students');
-        $response->assertSee('Download All CVs');
+        $response->assertSee('Download Program CVs');
     }
 
     public function test_admin_can_stream_attendance_pdf_report(): void
@@ -746,6 +746,17 @@ class AdminExamPagesTest extends TestCase
             'status' => 'paid',
             'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
             'applicant_name' => 'Final Candidate',
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'HRM',
+                ],
+            ],
+        ]);
+
+        $programCategory = Category::factory()->create([
+            'type' => 'program',
+            'name' => 'Human Resource Management',
+            'additional_info' => ['code' => 'HRM'],
         ]);
 
         $routes = [
@@ -754,7 +765,6 @@ class AdminExamPagesTest extends TestCase
             'admin.exams.reports.choice-list-wise',
             'admin.exams.reports.job-experience-wise',
             'admin.exams.reports.enrolled-students',
-            'admin.exams.reports.all-applicant-cvs',
         ];
 
         foreach ($routes as $routeName) {
@@ -762,6 +772,14 @@ class AdminExamPagesTest extends TestCase
             $response->assertOk();
             $response->assertHeader('content-type', 'application/pdf');
         }
+
+        $response = $this->get(route('admin.exams.reports.all-applicant-cvs', [
+            'exam' => $exam,
+            'program_id' => $programCategory->id,
+        ]));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
     }
 
     public function test_moderator_cannot_download_new_exam_reports(): void
@@ -779,12 +797,29 @@ class AdminExamPagesTest extends TestCase
             'admin.exams.reports.choice-list-wise',
             'admin.exams.reports.job-experience-wise',
             'admin.exams.reports.enrolled-students',
-            'admin.exams.reports.all-applicant-cvs',
         ];
 
         foreach ($routes as $routeName) {
             $this->get(route($routeName, $exam))->assertForbidden();
         }
+
+        $this->get(route('admin.exams.reports.all-applicant-cvs', [
+            'exam' => $exam,
+            'program_id' => 1,
+        ]))->assertForbidden();
+    }
+
+    public function test_program_wise_cv_report_requires_program_id(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        $this->get(route('admin.exams.reports.all-applicant-cvs', $exam))
+            ->assertStatus(422);
     }
 
     public function test_admin_can_delete_exam_from_list_action(): void

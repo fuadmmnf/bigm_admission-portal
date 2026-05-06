@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>All Applicant CVs</title>
+    <title>Program wise CVs (1st Choice)</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: DejaVu Sans, sans-serif; font-size: 10.5px; color: #111827; }
@@ -70,10 +70,11 @@
 
 {{-- ── Cover Page ── --}}
 <div class="cover">
-    <h1>All Applicant CVs</h1>
+    <h1>Program wise CVs (1st Choice)</h1>
     <hr class="cover-divider">
     <div class="cover-meta">
         <p><strong>Exam:</strong> {{ $exam->name }}</p>
+        <p><strong>Program Code:</strong> {{ $selectedProgramCode ?? data_get($programCategory ?? null, 'name', 'N/A') }}</p>
         <p><strong>Total Applicants:</strong> {{ $applications->count() }}</p>
         <p><strong>Generated:</strong> {{ $generatedAt->format('d M Y, h:i A') }}</p>
         @if ($exam->start_date || $exam->end_date)
@@ -227,7 +228,7 @@
     </div>{{-- .applicant --}}
 @empty
     <div style="padding: 32px;">
-        <p>No applications found for this exam.</p>
+        <p>No paid applicants found with first choice code: {{ $selectedProgramCode ?? 'N/A' }}.</p>
     </div>
 @endforelse
 </body>

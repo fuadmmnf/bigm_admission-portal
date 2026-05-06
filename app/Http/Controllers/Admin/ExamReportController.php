@@ -12,6 +12,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ExamReportController extends Controller
 {
@@ -270,31 +271,24 @@ class ExamReportController extends Controller
         return $pdf->stream('program-selected-'.$programCode.'-'.$exam->ulid.'.pdf');
     }
 
-    /**
-     * Generate a batch of applicant CVs as a single PDF.
-     *
-     * Loading every applicant's photo and signature as base64 all at once is a
-     * memory bomb for large exams.  Callers must paginate using ?from_id= and
-     * ?limit= (capped at 100) so each request covers at most 100 CVs at a time.
-     *
-     * Example:
-     *   /reports/all-applicant-cvs                          → first 50
-     *   /reports/all-applicant-cvs?from_id=20260051         → next batch starting at that ID
-     *   /reports/all-applicant-cvs?limit=25&from_id=20260076 → 25 CVs from ID onwards
-     */
     public function allApplicantCvs(Exam $exam, Request $request): Response
     {
-        $limit  = min(max(1, (int) $request->query('limit', 50)), 100);
-        $fromId = $request->query('from_id');
+        $programId = (int) $request->query('program_id');
+
+        abort_if($programId <= 0, 422, 'A valid program code must be selected.');
+
+        $programCategory = Category::query()
+            ->where('type', 'program')
+            ->findOrFail($programId, ['id', 'name', 'additional_info']);
+
+        $selectedProgramCode = $this->normalizeProgramCode(
+            data_get($programCategory->additional_info, 'code', $programCategory->name)
+        );
 
         $query = $exam->applications()
+            ->where('status', 'paid')
             ->with('selectedCategory:id,name')
-            ->orderBy('application_id')
-            ->limit($limit);
-
-        if ($fromId !== null && $fromId !== '') {
-            $query->where('application_id', '>=', (string) $fromId);
-        }
+            ->orderBy('application_id');
 
         $applications = $query->get([
             'ulid',
@@ -310,7 +304,11 @@ class ExamReportController extends Controller
             'selected_category_id',
             'selection_stage',
             'additional_info',
-        ])->map(function (Application $application) {
+        ])->filter(function (Application $application) use ($selectedProgramCode): bool {
+            $firstChoiceCode = $this->extractFirstChoiceProgramCode($application);
+
+            return $firstChoiceCode !== null && $firstChoiceCode === $selectedProgramCode;
+        })->values()->map(function (Application $application) {
             $uploads = data_get($application->additional_info, 'uploads', []);
 
             $application->setAttribute('photo_data_uri', $this->fileToDataUri(data_get($uploads, 'applicant_photo')));
@@ -321,13 +319,38 @@ class ExamReportController extends Controller
 
         $pdf = Pdf::loadView('reports.all-applicant-cvs', [
             'exam' => $exam,
+            'programCategory' => $programCategory,
+            'selectedProgramCode' => $selectedProgramCode,
             'applications' => $applications,
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
-        $suffix = ($fromId !== null && $fromId !== '') ? '-from-'.$fromId : '';
+        $safeCode = Str::slug($selectedProgramCode, '-');
 
-        return $pdf->stream('all-applicant-cvs-'.$exam->ulid.$suffix.'.pdf');
+        return $pdf->stream('program-wise-cvs-'.$safeCode.'-'.$exam->ulid.'.pdf');
+    }
+
+    private function extractFirstChoiceProgramCode(Application $application): ?string
+    {
+        $firstChoice = data_get($application->additional_info, 'course_preferences.first_choice');
+
+        return $this->normalizeProgramCode($firstChoice);
+    }
+
+    private function normalizeProgramCode(mixed $value): ?string
+    {
+        $text = trim((string) $value);
+        if ($text === '') {
+            return null;
+        }
+
+        if (str_contains($text, ' - ')) {
+            $text = trim((string) explode(' - ', $text, 2)[0]);
+        }
+
+        $firstToken = preg_split('/\s+/', $text)[0] ?? $text;
+
+        return strtoupper(trim((string) $firstToken));
     }
 
     private function fileToDataUri(?string $path): ?string
