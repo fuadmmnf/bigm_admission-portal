@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,6 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->cleanupSeededPublicFiles();
+
         $this->call([
             RolesSeeder::class,
             AuthUsersSeeder::class,
@@ -22,5 +25,23 @@ class DatabaseSeeder extends Seeder
             ExamPaginationSeeder::class,
             ExamApplicantsSeeder::class,
         ]);
+    }
+
+    private function cleanupSeededPublicFiles(): void
+    {
+        Storage::disk('public')->deleteDirectory('seeded_uploads/photos');
+        Storage::disk('public')->deleteDirectory('seeded_uploads/signatures');
+
+        foreach (Storage::disk('public')->allFiles('exams/brochures') as $path) {
+            if (str_starts_with(basename($path), 'seeded-active-')) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        foreach (Storage::disk('public')->allFiles('exams/circulars') as $path) {
+            if (str_starts_with(basename($path), 'seeded-active-')) {
+                Storage::disk('public')->delete($path);
+            }
+        }
     }
 }

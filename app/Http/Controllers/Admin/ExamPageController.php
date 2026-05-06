@@ -9,6 +9,7 @@ use App\Models\Exam;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class ExamPageController extends Controller
@@ -192,7 +193,10 @@ class ExamPageController extends Controller
     {
         $validated = $this->validateExam($request);
 
-        $exam = Exam::query()->create($validated);
+        $exam = new Exam();
+        $exam->fill($validated);
+        $this->handleFileUploads($request, $exam);
+        $exam->save();
 
         return redirect()
             ->route('admin.exams.show', $exam)
@@ -203,7 +207,9 @@ class ExamPageController extends Controller
     {
         $validated = $this->validateExam($request);
 
-        $exam->update($validated);
+        $exam->fill($validated);
+        $this->handleFileUploads($request, $exam);
+        $exam->save();
 
         return redirect()
             ->route('admin.exams.show', $exam)
@@ -236,7 +242,26 @@ class ExamPageController extends Controller
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'additional_info' => ['nullable', 'array'],
+            'brochure' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'circular' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
         ]);
+    }
+
+    private function handleFileUploads(Request $request, Exam $exam): void
+    {
+        if ($request->hasFile('brochure') && $request->file('brochure')->isValid()) {
+            if ($exam->brochure_path) {
+                Storage::disk('public')->delete($exam->brochure_path);
+            }
+            $exam->brochure_path = $request->file('brochure')->store('exams/brochures', 'public');
+        }
+
+        if ($request->hasFile('circular') && $request->file('circular')->isValid()) {
+            if ($exam->circular_path) {
+                Storage::disk('public')->delete($exam->circular_path);
+            }
+            $exam->circular_path = $request->file('circular')->store('exams/circulars', 'public');
+        }
     }
 }
 

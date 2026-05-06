@@ -18,9 +18,6 @@
                     <x-nav-link href="{{ route('admin.exams.active') }}" :active="request()->routeIs('admin.exams.*')">
                         {{ __('Exams') }}
                     </x-nav-link>
-                    <x-nav-link href="{{ route('admin.reports.index') }}" :active="request()->routeIs('admin.reports.*')">
-                        {{ __('Reports') }}
-                    </x-nav-link>
                 </div>
             </div>
 
@@ -150,9 +147,6 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link href="{{ route('admin.exams.active') }}" :active="request()->routeIs('admin.exams.*')">
                 {{ __('Exams') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link href="{{ route('admin.reports.index') }}" :active="request()->routeIs('admin.reports.*')">
-                {{ __('Reports') }}
             </x-responsive-nav-link>
         </div>
 

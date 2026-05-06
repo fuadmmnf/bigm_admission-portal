@@ -34,15 +34,10 @@
         .header-logo-row {
             margin-bottom: 3pt;
         }
-        .logo-badge {
+        .header-logo {
+            width: 170pt;
+            height: auto;
             display: inline-block;
-            border: 1.5pt solid #84cc16;
-            border-radius: 20pt;
-            padding: 1pt 14pt;
-            font-size: 12pt;
-            font-weight: bold;
-            letter-spacing: 2pt;
-            color: #ffffff;
         }
         .header h1 {
             font-size: 12pt;
@@ -166,6 +161,8 @@
         /* ── Instructions ─────────────────────────────────── */
         .instructions-wrap {
             padding: 7pt 12pt 8pt;
+            position: relative;
+            overflow: hidden;
         }
         .instructions-title {
             font-size: 10pt;
@@ -204,10 +201,24 @@
     $examMeta    = is_array($exam?->additional_info) ? $exam->additional_info : [];
 
     /* ── Images as base64 data URIs (safe for queued PDF generation) ── */
+    $normalizePublicPath = static function (?string $path): ?string {
+        if (blank($path)) {
+            return null;
+        }
+
+        $normalized = ltrim((string) $path, '/');
+
+        if (str_starts_with($normalized, 'public/')) {
+            $normalized = substr($normalized, 7);
+        }
+
+        return $normalized;
+    };
+
     $photoDataUri = null;
     $sigDataUri   = null;
-    $photoPath    = data_get($uploads, 'applicant_photo');
-    $sigPath      = data_get($uploads, 'signature');
+    $photoPath    = $normalizePublicPath(data_get($uploads, 'applicant_photo'));
+    $sigPath      = $normalizePublicPath(data_get($uploads, 'signature'));
 
     if ($photoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($photoPath)) {
         $raw = \Illuminate\Support\Facades\Storage::disk('public')->get($photoPath);
@@ -221,6 +232,12 @@
         $ext = strtolower(pathinfo($sigPath, PATHINFO_EXTENSION));
         $mime = match($ext) { 'png' => 'image/png', 'gif' => 'image/gif', 'webp' => 'image/webp', default => 'image/jpeg' };
         $sigDataUri = 'data:' . $mime . ';base64,' . base64_encode($raw);
+    }
+
+    $logoDataUri = null;
+    $logoPath = public_path('images/logo.png');
+    if (is_file($logoPath) && is_readable($logoPath)) {
+        $logoDataUri = 'data:image/png;base64,' . base64_encode((string) file_get_contents($logoPath));
     }
 
     /* ── Exam details ── */
@@ -266,7 +283,11 @@
     {{-- Header --}}
     <div class="header">
         <div class="header-logo-row">
-            <span class="logo-badge">BIGM</span>
+            @if($logoDataUri)
+                <img src="{{ $logoDataUri }}" alt="BIGM Logo" class="header-logo">
+            @else
+                <span style="font-size:12pt;font-weight:bold;letter-spacing:2pt;">BIGM</span>
+            @endif
         </div>
         <h1>Bangladesh Institute of Governance and Management</h1>
         <p class="sub">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka – 1207</p>
@@ -332,8 +353,13 @@
 
     {{-- Instructions --}}
     <div class="instructions-wrap">
+        @if($logoDataUri)
+            <div style="position:absolute; left:50%; top:66%; transform:translate(-50%,-50%); opacity:0.06; z-index:0;">
+                <img src="{{ $logoDataUri }}" alt="BIGM Watermark" style="width:260pt; height:auto;">
+            </div>
+        @endif
         <p class="instructions-title">General Instructions for Applicants</p>
-        <ul class="instructions-list">
+        <ul class="instructions-list" style="position:relative; z-index:1;">
             @foreach ($instructions as $line)
                 <li>{{ $line }}</li>
             @endforeach

@@ -37,17 +37,12 @@
         .pdf-header-logo {
             display: table-cell;
             vertical-align: middle;
-            width: 60pt;
+            width: 78pt;
         }
-        .pdf-header-logo .logo-badge {
-            display: inline-block;
-            border: 1.5pt solid #84cc16;
-            border-radius: 20pt;
-            padding: 2pt 10pt;
-            font-size: 11pt;
-            font-weight: bold;
-            letter-spacing: 2pt;
-            color: #ffffff;
+        .pdf-header-logo img {
+            width: 72pt;
+            height: auto;
+            display: block;
         }
         .pdf-header-text {
             display: table-cell;
@@ -136,9 +131,40 @@
             background: #f9fafb;
         }
         .col-sl { width: 26pt; text-align: center; }
-        .col-appid { width: 60pt; }
+        .col-photo { width: 44pt; text-align: center; }
         .col-marks { width: 38pt; text-align: center; }
         .muted { color: #6b7280; }
+        .report-photo {
+            width: 34pt;
+            height: 40pt;
+            border: 1px solid #d1d5db;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto;
+            background: #f9fafb;
+        }
+        .report-photo-placeholder {
+            width: 34pt;
+            height: 40pt;
+            border: 1px solid #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            font-size: 7px;
+            color: #9ca3af;
+            background: #f9fafb;
+        }
+        .photo-with-id {
+            text-align: center;
+        }
+        .photo-app-id {
+            margin-top: 2pt;
+            font-size: 7pt;
+            line-height: 1.2;
+            font-weight: bold;
+            color: #1f2937;
+        }
 
         /* ── Section subheadings ────────────────────────────── */
         .section-heading {
@@ -176,12 +202,23 @@
     @yield('extra-styles')
 </head>
 <body>
+    @php
+        $logoPath = public_path('images/logo.png');
+        $logoDataUri = null;
+        if (is_file($logoPath) && is_readable($logoPath)) {
+            $logoDataUri = 'data:image/png;base64,'.base64_encode((string) file_get_contents($logoPath));
+        }
+    @endphp
 
     {{-- Fixed Header --}}
     <div class="pdf-header">
         <div class="pdf-header-inner">
             <div class="pdf-header-logo">
-                <span class="logo-badge">BIGM</span>
+                @if($logoDataUri)
+                    <img src="{{ $logoDataUri }}" alt="BIGM Logo">
+                @else
+                    <span style="font-size:11pt;font-weight:bold;letter-spacing:1pt;">BIGM</span>
+                @endif
             </div>
             <div class="pdf-header-text">
                 <p class="pdf-header-org">Bangladesh Institute of Governance and Management</p>

@@ -33,6 +33,8 @@ class Exam extends Model
         'start_date',
         'end_date',
         'additional_info',
+        'brochure_path',
+        'circular_path',
     ];
 
     protected function casts(): array
@@ -76,6 +78,8 @@ class Exam extends Model
                 'start_date',
                 'end_date',
                 'additional_info',
+                'brochure_path',
+                'circular_path',
             ])
             ->logOnlyDirty();
     }

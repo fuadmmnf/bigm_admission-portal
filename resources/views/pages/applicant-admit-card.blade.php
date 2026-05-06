@@ -54,26 +54,11 @@
             margin-bottom: 22px;
         }
 
-        .logo-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #84cc16;
-            border-radius: 999px;
-            width: 134px;
-            height: 44px;
-            font-size: 22px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            line-height: 1;
-            transform: scaleX(0.45);
+        .logo-mark {
+            width: 260px;
+            height: auto;
             margin: 0 auto 6px;
-        }
-
-        .logo-pill > span {
-            transform: scaleX(2.2);
-            display: inline-block;
-            font-size: 20px;
+            display: block;
         }
 
         .title {
@@ -293,9 +278,29 @@
 
     $photoPath = data_get($uploads, 'applicant_photo');
     $signaturePath = data_get($uploads, 'signature');
+    $normalizePublicPath = static function (?string $path): ?string {
+        if (blank($path)) {
+            return null;
+        }
 
-    $photoUrl = $photoPath ? asset('storage/'.$photoPath) : null;
-    $signatureUrl = $signaturePath ? asset('storage/'.$signaturePath) : null;
+        $normalized = ltrim((string) $path, '/');
+        if (str_starts_with($normalized, 'public/')) {
+            $normalized = substr($normalized, 7);
+        }
+
+        return $normalized;
+    };
+
+    $photoPath = $normalizePublicPath($photoPath);
+    $signaturePath = $normalizePublicPath($signaturePath);
+
+    $photoUrl = $photoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($photoPath)
+        ? route('public-media.show', ['path' => $photoPath])
+        : null;
+    $signatureUrl = $signaturePath && \Illuminate\Support\Facades\Storage::disk('public')->exists($signaturePath)
+        ? route('public-media.show', ['path' => $signaturePath])
+        : null;
+    $logoUrl = asset('images/logo.png');
 
     $sessionStartYear = $exam?->start_date?->year ?? now()->year;
     $defaultSession = $sessionStartYear.'-'.($sessionStartYear + 1);
@@ -338,7 +343,7 @@
 
     <section class="sheet">
         <header class="header">
-            <div class="logo-pill"><span>BIGM</span></div>
+            <img src="{{ $logoUrl }}" alt="BIGM Logo" class="logo-mark">
             <h1 class="title">Bangladesh Institute of Governance and Management (BIGM)</h1>
             <div class="subtitle">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207</div>
 
@@ -380,8 +385,9 @@
         </div>
 
         <section class="instructions">
-            <div class="watermark">BIGM</div>
-            <div class="watermark-ring"></div>
+            <div class="watermark" style="opacity:0.08; font-size:0; line-height:0;">
+                <img src="{{ $logoUrl }}" alt="BIGM Watermark" style="width:70%; height:auto;">
+            </div>
 
             <div class="instructions-content">
                 <h3 class="instructions-title">General instructions for applicants</h3>

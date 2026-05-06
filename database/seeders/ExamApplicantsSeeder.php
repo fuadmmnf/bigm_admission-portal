@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Exam;
 use Database\Factories\ApplicationFactory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ExamApplicantsSeeder extends Seeder
@@ -27,6 +28,8 @@ class ExamApplicantsSeeder extends Seeder
             ->orderBy('id')
             ->get();
 
+        $totalActiveExams = (int) $targetExams->where('status', 'active')->count();
+
         $activeExamIndex = 0;
         $closedExamIndex = 0;
 
@@ -35,8 +38,8 @@ class ExamApplicantsSeeder extends Seeder
             if ($exam->status === 'active') {
                 $activeExamIndex++;
 
-                // Keep a subset of active exams empty to reflect real dashboard scenarios.
-                if (($activeExamIndex - 1) % self::ACTIVE_EXAM_SKIP_MODULO === 0) {
+                // Keep a subset of active exams empty only when there are multiple active exams.
+                if ($totalActiveExams > 1 && (($activeExamIndex - 1) % self::ACTIVE_EXAM_SKIP_MODULO === 0)) {
                     continue;
                 }
 
@@ -86,6 +89,21 @@ class ExamApplicantsSeeder extends Seeder
                     'applicant_email' => sprintf('exam-%d-applicant-%03d@example.test', $exam->id, $row),
                 ];
 
+                $photoPath = $this->seedPngFile(
+                    'seeded_uploads/photos',
+                    sprintf('exam-%d-applicant-%03d-photo.png', $exam->id, $row),
+                );
+                $signaturePath = $this->seedPngFile(
+                    'seeded_uploads/signatures',
+                    sprintf('exam-%d-applicant-%03d-signature.png', $exam->id, $row),
+                );
+
+                $additionalInfo = ApplicationFactory::fakeAdditionalInfo($gender);
+                $additionalInfo['uploads'] = [
+                    'applicant_photo' => $photoPath,
+                    'signature' => $signaturePath,
+                ];
+
                 $values = [
                     'applicant_name'    => fake()->name(),
                     'applicant_phone'   => sprintf('+8801%09d', ($exam->id * 1000 + $row) % 1000000000),
@@ -107,7 +125,7 @@ class ExamApplicantsSeeder extends Seeder
                     'written_exam_marks'  => $writtenExamMarks,
                     'viva_exam_marks'     => $vivaExamMarks,
                     'selected_category_id'=> $selectedCategoryId,
-                    'additional_info'     => ApplicationFactory::fakeAdditionalInfo($gender),
+                    'additional_info'     => $additionalInfo,
                 ];
 
                 $application = Application::query()->firstOrNew($attributes);
@@ -145,6 +163,19 @@ class ExamApplicantsSeeder extends Seeder
             1 => Application::STAGE_VIVA_SELECTED,
             default => Application::STAGE_PAID,
         };
+    }
+
+    private function seedPngFile(string $directory, string $filename): string
+    {
+        $relativePath = trim($directory, '/').'/'.$filename;
+
+        if (! Storage::disk('public')->exists($relativePath)) {
+            // 1x1 PNG pixel (valid image) for lightweight seeded media.
+            $pixel = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9YxM9x0AAAAASUVORK5CYII=');
+            Storage::disk('public')->put($relativePath, $pixel);
+        }
+
+        return $relativePath;
     }
 }
 

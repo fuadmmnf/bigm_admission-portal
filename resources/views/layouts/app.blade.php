@@ -4,8 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="description" content="BIGM Admission Portal – Bangladesh Institute of Governance and Management. Apply online for admission exams, check results, and download admit cards.">
+        <meta name="theme-color" content="#1e3a5f">
+        <meta property="og:title" content="{{ config('app.name', 'BIGM Admission Portal') }}">
+        <meta property="og:description" content="BIGM Admission Portal – Online admission test and application management system">
+        <meta property="og:type" content="website">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'BIGM Admission Portal') }} – Admission Portal</title>
+        <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

@@ -8,7 +8,7 @@
     <div class="py-4">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white shadow-sm border border-gray-200 rounded-lg p-6">
-                <form method="POST" action="{{ $isEdit ? route('admin.exams.update', $exam) : route('admin.exams.store') }}" class="space-y-6">
+                <form method="POST" action="{{ $isEdit ? route('admin.exams.update', $exam) : route('admin.exams.store') }}" enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @if($isEdit)
                         @method('PUT')
@@ -48,6 +48,34 @@
                         <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
                         <textarea id="description" name="description" rows="4" class="mt-1 block w-full border-gray-300 rounded-md">{{ old('description', $exam->description) }}</textarea>
                         @error('description') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Brochure PDF --}}
+                    <div>
+                        <label for="brochure" class="block text-sm font-medium text-gray-700">Brochure (PDF)</label>
+                        @if($isEdit && $exam->brochure_path)
+                            <div class="mt-1 mb-2 flex items-center gap-2 text-sm">
+                                <span class="text-emerald-700 font-medium">✓ Brochure uploaded.</span>
+                                <a href="{{ route('public-media.show', ['path' => ltrim($exam->brochure_path, '/')]) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 underline">View current brochure</a>
+                                <span class="text-gray-500">&mdash; Upload a new file to replace it.</span>
+                            </div>
+                        @endif
+                        <input id="brochure" name="brochure" type="file" accept="application/pdf" class="mt-1 block w-full text-sm {{ $isEdit && $exam->brochure_path ? '' : '' }}">
+                        @error('brochure') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                    </div>
+
+                    {{-- Circular PDF --}}
+                    <div>
+                        <label for="circular" class="block text-sm font-medium text-gray-700">Circular (PDF)</label>
+                        @if($isEdit && $exam->circular_path)
+                            <div class="mt-1 mb-2 flex items-center gap-2 text-sm">
+                                <span class="text-emerald-700 font-medium">✓ Circular uploaded.</span>
+                                <a href="{{ route('public-media.show', ['path' => ltrim($exam->circular_path, '/')]) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 underline">View current circular</a>
+                                <span class="text-gray-500">&mdash; Upload a new file to replace it.</span>
+                            </div>
+                        @endif
+                        <input id="circular" name="circular" type="file" accept="application/pdf" class="mt-1 block w-full text-sm">
+                        @error('circular') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex items-center gap-2">

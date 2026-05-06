@@ -35,7 +35,7 @@ $ordinals = [
             <thead>
                 <tr>
                     <th class="col-sl">SL</th>
-                    <th class="col-appid">App. ID</th>
+                    <th class="col-photo">Photo / App. ID</th>
                     <th>Applicant Name</th>
                     <th class="col-marks">Written</th>
                     <th class="col-marks">Viva</th>
@@ -57,7 +57,14 @@ $ordinals = [
                     @endphp
                     <tr>
                         <td class="col-sl">{{ $i + 1 }}</td>
-                        <td>{{ $application->application_id ?? $application->ulid }}</td>
+                        <td class="col-photo photo-with-id">
+                            @if($application->photo_data_uri)
+                                <img src="{{ $application->photo_data_uri }}" alt="Photo" class="report-photo">
+                            @else
+                                <div class="report-photo-placeholder">N/A</div>
+                            @endif
+                            <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
+                        </td>
                         <td>{{ $application->applicant_name }}</td>
                         <td class="col-marks">{{ $application->written_exam_marks ?? '—' }}</td>
                         <td class="col-marks">{{ $application->viva_exam_marks ?? '—' }}</td>

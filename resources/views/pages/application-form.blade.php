@@ -48,7 +48,6 @@
         $initialStep = 1;
         $photoRules = $uploadRules['photo'] ?? [];
         $signatureRules = $uploadRules['signature'] ?? [];
-        $marksheetRules = $uploadRules['marksheet_pdf'] ?? [];
         $certificateRules = $uploadRules['certificate_pdf'] ?? [];
         $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
         $applicationEndAt = optional($exam->end_date)->format('d M Y, h:i A');
@@ -60,8 +59,7 @@
         $initialPhotoUrl     = null;
         $initialSignatureUrl = null;
         $initialPdfUrls      = array_fill_keys([
-            'ssc_marksheet','ssc_certificate','hsc_marksheet','hsc_certificate',
-            'graduation_marksheet','graduation_certificate','masters_marksheet','masters_certificate',
+            'ssc_certificate','hsc_certificate','graduation_certificate','masters_certificate',
         ], null);
 
         foreach ($errorKeys as $errorKey) {
@@ -120,7 +118,6 @@
                     <ul class="list-disc list-inside space-y-1">
                         <li>Photo: {{ data_get($photoRules, 'width', 300) }}x{{ data_get($photoRules, 'height', 300) }} px, max {{ data_get($photoRules, 'max_kb', 1024) }} KB.</li>
                         <li>Signature: {{ data_get($signatureRules, 'width', 300) }}x{{ data_get($signatureRules, 'height', 80) }} px, max {{ data_get($signatureRules, 'max_kb', 512) }} KB.</li>
-                        <li>SSC, HSC, and other qualification marksheet PDFs: max {{ data_get($marksheetRules, 'max_kb', 5120) }} KB each.</li>
                         <li>SSC, HSC, and other qualification certificate PDFs: max {{ data_get($certificateRules, 'max_kb', 5120) }} KB each.</li>
                     </ul>
                 </div>
@@ -510,16 +507,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[ssc][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['ssc_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label><select name="education[ssc][education_board]" class="rounded-md border-gray-300 w-full" required><option value="">Select Education Board</option>@foreach ($formOptions['education_boards'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.education_board') === $option)>{{ $option }}</option>@endforeach</select></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[ssc][result]" type="text" value="{{ old('education.ssc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[ssc][result_scale]" type="text" value="{{ old('education.ssc.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[ssc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[ssc][result]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Group *</label><select name="education[ssc][group]" class="rounded-md border-gray-300 w-full" required><option value="">Select Group</option>@foreach ($formOptions['groups'] as $option)<option value="{{ $option }}" @selected(old('education.ssc.group') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[ssc][passing_year]" type="number" value="{{ old('education.ssc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                        <div>
-                            <label for="ssc_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">SSC Marksheet PDF *<a x-show="pdfPreviewUrls.ssc_marksheet" x-cloak :href="pdfPreviewUrls.ssc_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                             <input id="ssc_marksheet" name="education_documents[ssc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_marksheet')" class="mt-1 block w-full text-sm" required>
-                        </div>
+                    <div class="grid grid-cols-1 gap-3 mt-4">
                         <div>
                             <label for="ssc_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">SSC Certificate PDF *<a x-show="pdfPreviewUrls.ssc_certificate" x-cloak :href="pdfPreviewUrls.ssc_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
                              <input id="ssc_certificate" name="education_documents[ssc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'ssc_certificate')" class="mt-1 block w-full text-sm" required>
@@ -532,16 +525,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[hsc][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['hsc_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label><select name="education[hsc][education_board]" class="rounded-md border-gray-300 w-full" required><option value="">Select Education Board</option>@foreach ($formOptions['education_boards'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.education_board') === $option)>{{ $option }}</option>@endforeach</select></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[hsc][result]" type="text" value="{{ old('education.hsc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[hsc][result_scale]" type="text" value="{{ old('education.hsc.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[hsc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[hsc][result]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result') }}" placeholder="Result (GPA/Division)" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Group *</label><select name="education[hsc][group]" class="rounded-md border-gray-300 w-full" required><option value="">Select Group</option>@foreach ($formOptions['groups'] as $option)<option value="{{ $option }}" @selected(old('education.hsc.group') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[hsc][passing_year]" type="number" value="{{ old('education.hsc.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                        <div>
-                            <label for="hsc_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">HSC Marksheet PDF *<a x-show="pdfPreviewUrls.hsc_marksheet" x-cloak :href="pdfPreviewUrls.hsc_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                             <input id="hsc_marksheet" name="education_documents[hsc][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_marksheet')" class="mt-1 block w-full text-sm" required>
-                        </div>
+                    <div class="grid grid-cols-1 gap-3 mt-4">
                         <div>
                             <label for="hsc_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">HSC Certificate PDF *<a x-show="pdfPreviewUrls.hsc_certificate" x-cloak :href="pdfPreviewUrls.hsc_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
                              <input id="hsc_certificate" name="education_documents[hsc][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'hsc_certificate')" class="mt-1 block w-full text-sm" required>
@@ -555,16 +544,12 @@
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label><select name="education[graduation][examination]" class="rounded-md border-gray-300 w-full" required><option value="">Select Examination</option>@foreach ($formOptions['graduation_examinations'] as $option)<option value="{{ $option }}" @selected(old('education.graduation.examination') === $option)>{{ $option }}</option>@endforeach</select></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject *</label><input name="education[graduation][subject]" type="text" value="{{ old('education.graduation.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute *</label><input name="education[graduation][institution]" type="text" value="{{ old('education.graduation.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[graduation][result]" type="text" value="{{ old('education.graduation.result') }}" placeholder="Result (CGPA/Class/Division)" class="rounded-md border-gray-300 w-full" required></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[graduation][result_scale]" type="text" value="{{ old('education.graduation.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label><input name="education[graduation][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result *</label><input name="education[graduation][result]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result') }}" placeholder="Result (CGPA/Class/Division)" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label><input name="education[graduation][passing_year]" type="number" value="{{ old('education.graduation.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years) *</label><input name="education[graduation][course_duration_years]" type="number" step="0.1" value="{{ old('education.graduation.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full" required></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                        <div>
-                            <label for="graduation_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">Graduation Marksheet PDF *<a x-show="pdfPreviewUrls.graduation_marksheet" x-cloak :href="pdfPreviewUrls.graduation_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                             <input id="graduation_marksheet" name="education_documents[graduation][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_marksheet')" class="mt-1 block w-full text-sm" required>
-                        </div>
+                    <div class="grid grid-cols-1 gap-3 mt-4">
                         <div>
                             <label for="graduation_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">Graduation Certificate PDF *<a x-show="pdfPreviewUrls.graduation_certificate" x-cloak :href="pdfPreviewUrls.graduation_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
                              <input id="graduation_certificate" name="education_documents[graduation][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'graduation_certificate')" class="mt-1 block w-full text-sm" required>
@@ -578,16 +563,12 @@
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Examination</label><input name="education[masters][examination]" type="text" value="{{ old('education.masters.examination') }}" placeholder="Examination" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input name="education[masters][subject]" type="text" value="{{ old('education.masters.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label><input name="education[masters][institution]" type="text" value="{{ old('education.masters.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full"></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result</label><input name="education[masters][result]" type="text" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full"></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label><input name="education[masters][result_scale]" type="text" value="{{ old('education.masters.result_scale') }}" placeholder="Result Scale" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label><input name="education[masters][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.masters.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full"></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Result</label><input name="education[masters][result]" type="number" step="0.01" min="0" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Passing Year</label><input name="education[masters][passing_year]" type="number" value="{{ old('education.masters.passing_year') }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years)</label><input name="education[masters][course_duration_years]" type="number" step="0.1" value="{{ old('education.masters.course_duration_years') }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full"></div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                        <div>
-                            <label for="masters_marksheet" class="flex items-center gap-2 text-sm font-medium text-gray-700">Masters Marksheet PDF (Optional)<a x-show="pdfPreviewUrls.masters_marksheet" x-cloak :href="pdfPreviewUrls.masters_marksheet" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
-                            <input id="masters_marksheet" name="education_documents[masters][marksheet]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'masters_marksheet')" class="mt-1 block w-full text-sm">
-                        </div>
+                    <div class="grid grid-cols-1 gap-3 mt-4">
                         <div>
                             <label for="masters_certificate" class="flex items-center gap-2 text-sm font-medium text-gray-700">Masters Certificate PDF (Optional)<a x-show="pdfPreviewUrls.masters_certificate" x-cloak :href="pdfPreviewUrls.masters_certificate" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">View Upload</a></label>
                             <input id="masters_certificate" name="education_documents[masters][certificate]" type="file" accept="application/pdf" x-on:change="handlePdfPreview($event, 'masters_certificate')" class="mt-1 block w-full text-sm">
@@ -614,7 +595,7 @@
             </section>
 
             <section x-show="step === 4" x-cloak class="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-6">
-                <h2 class="text-lg font-semibold text-gray-900">Step 4: Career / Job Experience</h2>
+                <h2 class="text-lg font-semibold text-gray-900">Step 4: Job Experience</h2>
 
                 <fieldset class="rounded-lg border border-gray-200 p-4 space-y-3">
                     <legend class="px-2 text-sm font-semibold text-gray-700">Job Experience</legend>
@@ -848,13 +829,9 @@
                 photoPreviewUrl: initialPhotoUrl ?? null,
                 signaturePreviewUrl: initialSignatureUrl ?? null,
                 pdfPreviewUrls: {
-                    ssc_marksheet:          (initialPdfUrls && initialPdfUrls.ssc_marksheet)          ? initialPdfUrls.ssc_marksheet          : null,
                     ssc_certificate:        (initialPdfUrls && initialPdfUrls.ssc_certificate)        ? initialPdfUrls.ssc_certificate        : null,
-                    hsc_marksheet:          (initialPdfUrls && initialPdfUrls.hsc_marksheet)          ? initialPdfUrls.hsc_marksheet          : null,
                     hsc_certificate:        (initialPdfUrls && initialPdfUrls.hsc_certificate)        ? initialPdfUrls.hsc_certificate        : null,
-                    graduation_marksheet:   (initialPdfUrls && initialPdfUrls.graduation_marksheet)   ? initialPdfUrls.graduation_marksheet   : null,
                     graduation_certificate: (initialPdfUrls && initialPdfUrls.graduation_certificate) ? initialPdfUrls.graduation_certificate : null,
-                    masters_marksheet:      (initialPdfUrls && initialPdfUrls.masters_marksheet)      ? initialPdfUrls.masters_marksheet      : null,
                     masters_certificate:    (initialPdfUrls && initialPdfUrls.masters_certificate)    ? initialPdfUrls.masters_certificate    : null,
                 },
                 allPrograms: programs,
@@ -1151,13 +1128,9 @@
                     await this.attachFileToInput('#signature_input', signatureFile);
 
                     const docFiles = {
-                        '#ssc_marksheet': this.createDummyPdfFile('ssc-marksheet.pdf', 'SSC Marksheet'),
                         '#ssc_certificate': this.createDummyPdfFile('ssc-certificate.pdf', 'SSC Certificate'),
-                        '#hsc_marksheet': this.createDummyPdfFile('hsc-marksheet.pdf', 'HSC Marksheet'),
                         '#hsc_certificate': this.createDummyPdfFile('hsc-certificate.pdf', 'HSC Certificate'),
-                        '#graduation_marksheet': this.createDummyPdfFile('graduation-marksheet.pdf', 'Graduation Marksheet'),
                         '#graduation_certificate': this.createDummyPdfFile('graduation-certificate.pdf', 'Graduation Certificate'),
-                        '#masters_marksheet': this.createDummyPdfFile('masters-marksheet.pdf', 'Masters Marksheet'),
                         '#masters_certificate': this.createDummyPdfFile('masters-certificate.pdf', 'Masters Certificate'),
                     };
 
@@ -1351,30 +1324,30 @@
                     if (stepNum === 3) {
                         req('education[ssc][examination]',    'SSC Examination');
                         reqSel('education[ssc][education_board]', 'SSC Education Board');
-                        req('education[ssc][result]',          'SSC Result');
                         req('education[ssc][result_scale]',    'SSC Result Scale');
+                        req('education[ssc][result]',          'SSC Result');
                         reqSel('education[ssc][group]',        'SSC Group');
                         req('education[ssc][passing_year]',    'SSC Passing Year');
-                        this._checkDocRequired('education_documents[ssc][marksheet]',   'existing_education_documents[ssc][marksheet]',   'SSC Marksheet PDF',   errors);
+                        this._validateResultVsScale('education[ssc][result]', 'education[ssc][result_scale]', 'SSC', errors);
                         this._checkDocRequired('education_documents[ssc][certificate]', 'existing_education_documents[ssc][certificate]', 'SSC Certificate PDF', errors);
 
                         req('education[hsc][examination]',    'HSC Examination');
                         reqSel('education[hsc][education_board]', 'HSC Education Board');
-                        req('education[hsc][result]',          'HSC Result');
                         req('education[hsc][result_scale]',    'HSC Result Scale');
+                        req('education[hsc][result]',          'HSC Result');
                         reqSel('education[hsc][group]',        'HSC Group');
                         req('education[hsc][passing_year]',    'HSC Passing Year');
-                        this._checkDocRequired('education_documents[hsc][marksheet]',   'existing_education_documents[hsc][marksheet]',   'HSC Marksheet PDF',   errors);
+                        this._validateResultVsScale('education[hsc][result]', 'education[hsc][result_scale]', 'HSC', errors);
                         this._checkDocRequired('education_documents[hsc][certificate]', 'existing_education_documents[hsc][certificate]', 'HSC Certificate PDF', errors);
 
                         reqSel('education[graduation][examination]',  'Graduation Examination');
                         req('education[graduation][subject]',             'Graduation Subject');
                         req('education[graduation][institution]',         'Graduation University / Institute');
-                        req('education[graduation][result]',              'Graduation Result');
                         req('education[graduation][result_scale]',        'Graduation Result Scale');
+                        req('education[graduation][result]',              'Graduation Result');
                         req('education[graduation][passing_year]',        'Graduation Passing Year');
                         req('education[graduation][course_duration_years]','Graduation Course Duration');
-                        this._checkDocRequired('education_documents[graduation][marksheet]',   'existing_education_documents[graduation][marksheet]',   'Graduation Marksheet PDF',   errors);
+                        this._validateResultVsScale('education[graduation][result]', 'education[graduation][result_scale]', 'Graduation', errors);
                         this._checkDocRequired('education_documents[graduation][certificate]', 'existing_education_documents[graduation][certificate]', 'Graduation Certificate PDF', errors);
                     }
 
@@ -1416,6 +1389,17 @@
                     if (fileInput && !fileInput.files?.length) {
                         errors.push(`${label} is required.`);
                         this._markInvalid(fileInput);
+                    }
+                },
+                _validateResultVsScale(resultName, scaleName, label, errors) {
+                    const resultEl = document.querySelector(`[name="${resultName}"]`);
+                    const scaleEl  = document.querySelector(`[name="${scaleName}"]`);
+                    if (!resultEl || !scaleEl) return;
+                    const result = parseFloat(resultEl.value);
+                    const scale  = parseFloat(scaleEl.value);
+                    if (!isNaN(result) && !isNaN(scale) && result > scale) {
+                        errors.push(`${label} result (${result}) cannot be greater than the result scale (${scale}).`);
+                        this._markInvalid(resultEl);
                     }
                 },
                 _markInvalid(el) {

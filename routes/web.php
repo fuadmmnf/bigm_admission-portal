@@ -14,9 +14,21 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::get('/media/public/{path}', function (string $path) {
+    $normalizedPath = ltrim($path, '/');
+
+    abort_if($normalizedPath === '' || str_contains($normalizedPath, '..'), 404);
+    abort_unless(Storage::disk('public')->exists($normalizedPath), 404);
+
+    return Storage::disk('public')->response($normalizedPath, basename($normalizedPath), [
+        'Cache-Control' => 'public, max-age=3600',
+    ]);
+})->where('path', '.*')->name('public-media.show');
 
 Route::get('/apply/{exam:ulid}', [ApplicationFormController::class, 'create'])->name('applications.create');
 Route::post('/apply/{exam:ulid}', [ApplicationFormController::class, 'store'])->name('applications.store');
@@ -99,6 +111,10 @@ Route::middleware([
     Route::get('/admin/exams/{exam}/reports/enrolled-students', [ExamReportController::class, 'enrolledStudents'])
         ->middleware('role:admin')
         ->name('admin.exams.reports.enrolled-students')
+        ->whereUlid('exam');
+    Route::get('/admin/exams/{exam}/reports/program-selected-by-code', [ExamReportController::class, 'programSelectedByCode'])
+        ->middleware('role:admin')
+        ->name('admin.exams.reports.program-selected-by-code')
         ->whereUlid('exam');
     Route::get('/admin/exams/{exam}/reports/all-applicant-cvs', [ExamReportController::class, 'allApplicantCvs'])
         ->middleware('role:admin')

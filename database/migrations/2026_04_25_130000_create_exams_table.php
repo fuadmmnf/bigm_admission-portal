@@ -16,6 +16,8 @@ return new class extends Migration
             $table->enum('status', ['draft', 'active', 'closed'])->default('draft');
             $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
+            $table->string('brochure_path')->nullable();
+            $table->string('circular_path')->nullable();
             $table->json('additional_info')->nullable();
             $table->timestamps();
             $table->softDeletes();

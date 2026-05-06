@@ -73,7 +73,7 @@
                 {{-- Viva Selected List --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900">Viva Selected List</p>
+                        <p class="text-sm font-semibold text-gray-900">Viva Sheet</p>
                         <p class="text-xs text-gray-500">Includes applicants selected for viva (including program-selected).</p>
                     </div>
 
@@ -149,7 +149,7 @@
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p class="text-sm font-semibold text-gray-900">Choice List Wise Report &mdash; Style 1 (All Applicants)</p>
+                            <p class="text-sm font-semibold text-gray-900">Choice List (All Applicants)</p>
                             <p class="text-xs text-gray-500">All paid applicants with written &amp; viva marks and all 6 course choices in columns (landscape PDF).</p>
                         </div>
                         @if (auth()->user()?->hasRole('admin'))
@@ -166,7 +166,7 @@
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p class="text-sm font-semibold text-gray-900">Choice List Wise Report &mdash; Style 2 (By Subject)</p>
+                            <p class="text-sm font-semibold text-gray-900">Choice List (Subject Wise)</p>
                             <p class="text-xs text-gray-500">Select a subject to see applicants grouped by which choice position (1st&ndash;6th) they placed that subject.</p>
                         </div>
                         @if (auth()->user()?->hasRole('admin'))
@@ -205,7 +205,48 @@
 
                 <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="text-sm font-semibold text-gray-900">All Applicant CVs (Single PDF)</p>
+                        <p class="text-sm font-semibold text-gray-900">Job Experience Wise Report</p>
+                        <p class="text-xs text-gray-500">Job experience summary for paid applicants.</p>
+                    </div>
+
+                    @if (auth()->user()?->hasRole('admin'))
+                        <a href="{{ route('admin.exams.reports.job-experience-wise', $exam) }}" target="_blank" rel="noopener" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                            Download Job-Experience Report
+                        </a>
+                    @else
+                        <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">Admin Only</span>
+                    @endif
+                </div>
+
+                <div class="mt-3 rounded-lg border border-gray-200 p-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900">Program Selected Report (By Program Code)</p>
+                            <p class="text-xs text-gray-500">Select a program code to download applicants selected for that program.</p>
+                        </div>
+                        @if (auth()->user()?->hasRole('admin'))
+                            <form method="GET" action="{{ route('admin.exams.reports.program-selected-by-code', $exam) }}" target="_blank" rel="noopener" class="flex items-center gap-2 flex-wrap">
+                                <select name="program_id" required class="rounded-md border-gray-300 text-sm shadow-sm focus:ring-indigo-500 focus:border-indigo-500 py-1.5">
+                                    <option value="">Select Program Code&hellip;</option>
+                                    @foreach ($programCategories as $programCategory)
+                                        <option value="{{ $programCategory->id }}">
+                                            {{ data_get($programCategory->additional_info, 'code', $programCategory->name) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
+                                    Download Program List
+                                </button>
+                            </form>
+                        @else
+                            <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">Admin Only</span>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm font-semibold text-gray-900">Program wise CV (1st Choice)</p>
                         <p class="text-xs text-gray-500">One combined PDF with each applicant's textual profile, photo, and signature.</p>
                     </div>
 

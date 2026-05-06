@@ -106,3 +106,6 @@ Supported category query parameters:
 - `filter[search]` (partial match on category name)
 - `per_page` (integer)
 
+
+
+Sorting on applicants list page does not work, selecting an option says that mail cannot send. Fix it. From the table in all tabs, remove the gender and selection stage column, replace these two columns with program choice (list program choice 6 choices abbreviations separated by comma or | or other thing appropriate), decrease the width of action button (if possible replace with icon based button clean and minimal). Remove the marksheet pdf upload for eduction categories (for all only keep certificate upload, no need for marksheet), upload code to remove marksheet like in applicant detail card, seeder, etc. In the application page, input result scale before result (currently opposite) and add validation so that the result input is not greater than the result scale and below 0.

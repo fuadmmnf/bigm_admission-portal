@@ -38,7 +38,6 @@ class ApplicationFormController extends Controller
             'uploadRules' => [
                 'photo' => config('applicant_uploads.photo', []),
                 'signature' => config('applicant_uploads.signature', []),
-                'marksheet_pdf' => config('applicant_uploads.marksheet_pdf', []),
                 'certificate_pdf' => config('applicant_uploads.certificate_pdf', []),
             ],
         ]);
@@ -76,19 +75,15 @@ class ApplicationFormController extends Controller
 
         $educationDocumentPaths = [
             'ssc' => [
-                'marksheet'   => $request->file('education_documents.ssc.marksheet')?->storePublicly('applicant_uploads/education/ssc', 'public'),
                 'certificate' => $request->file('education_documents.ssc.certificate')?->storePublicly('applicant_uploads/education/ssc', 'public'),
             ],
             'hsc' => [
-                'marksheet'   => $request->file('education_documents.hsc.marksheet')?->storePublicly('applicant_uploads/education/hsc', 'public'),
                 'certificate' => $request->file('education_documents.hsc.certificate')?->storePublicly('applicant_uploads/education/hsc', 'public'),
             ],
             'graduation' => [
-                'marksheet'   => $request->file('education_documents.graduation.marksheet')?->storePublicly('applicant_uploads/education/graduation', 'public'),
                 'certificate' => $request->file('education_documents.graduation.certificate')?->storePublicly('applicant_uploads/education/graduation', 'public'),
             ],
             'masters' => [
-                'marksheet'   => $request->file('education_documents.masters.marksheet')?->storePublicly('applicant_uploads/education/masters', 'public'),
                 'certificate' => $request->file('education_documents.masters.certificate')?->storePublicly('applicant_uploads/education/masters', 'public'),
             ],
         ];

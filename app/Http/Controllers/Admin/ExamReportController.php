@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Application;
+use App\Models\Category;
 use App\Models\Exam;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -40,6 +42,10 @@ class ExamReportController extends Controller
             'genders' => config('applicant_form.genders', []),
             'jobCategories' => config('applicant_form.job_categories', []),
             'programs' => config('applicant_form.programs', []),
+            'programCategories' => Category::query()
+                ->where('type', 'program')
+                ->orderBy('name')
+                ->get(['id', 'name', 'additional_info']),
         ]);
     }
 
@@ -52,7 +58,9 @@ class ExamReportController extends Controller
                 'applicant_name',
                 'applicant_phone',
                 'applicant_email',
+                'additional_info',
             ]);
+        $applications = $this->attachPhotoDataUris($applications);
 
         $pdf = Pdf::loadView('reports.attendance-list', [
             'exam' => $exam,
@@ -76,7 +84,9 @@ class ExamReportController extends Controller
                 'written_exam_marks',
                 'viva_exam_marks',
                 'selection_stage',
+                'additional_info',
             ]);
+        $applications = $this->attachPhotoDataUris($applications);
 
         $pdf = Pdf::loadView('reports.viva-selected-list', [
             'exam' => $exam,
@@ -98,7 +108,7 @@ class ExamReportController extends Controller
             $query->where('gender', $gender);
         }
 
-        $applications = $query->get();
+        $applications = $this->attachPhotoDataUris($query->get());
 
         $pdf = Pdf::loadView('reports.gender-wise-applicants', [
             'exam' => $exam,
@@ -121,7 +131,7 @@ class ExamReportController extends Controller
             $query->where('additional_info->job_experience->current->job_category', $employer);
         }
 
-        $applications = $query->get();
+        $applications = $this->attachPhotoDataUris($query->get());
 
         $pdf = Pdf::loadView('reports.employer-wise-applicants', [
             'exam' => $exam,
@@ -138,6 +148,7 @@ class ExamReportController extends Controller
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->select(['ulid', 'application_id', 'applicant_name', 'written_exam_marks', 'viva_exam_marks', 'additional_info'])
             ->get();
+        $applications = $this->attachPhotoDataUris($applications);
 
         $pdf = Pdf::loadView('reports.choice-list-wise-applicants', [
             'exam' => $exam,
@@ -172,7 +183,7 @@ class ExamReportController extends Controller
                 ->where('additional_info->course_preferences->'.$field, $subject)
                 ->get();
 
-            $byChoice[$field] = $group;
+            $byChoice[$field] = $this->attachPhotoDataUris($group);
             $totalCount += $group->count();
         }
 
@@ -191,6 +202,7 @@ class ExamReportController extends Controller
     {
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->get(['ulid', 'application_id', 'applicant_name', 'additional_info']);
+        $applications = $this->attachPhotoDataUris($applications);
 
         $pdf = Pdf::loadView('reports.job-experience-wise-applicants', [
             'exam' => $exam,
@@ -206,7 +218,8 @@ class ExamReportController extends Controller
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->where('selection_stage', Application::STAGE_PROGRAM_SELECTED)
             ->with('selectedCategory:id,name')
-            ->get(['ulid', 'application_id', 'applicant_name', 'applicant_phone', 'applicant_email', 'selected_category_id']);
+            ->get(['ulid', 'application_id', 'applicant_name', 'applicant_phone', 'applicant_email', 'selected_category_id', 'additional_info']);
+        $applications = $this->attachPhotoDataUris($applications);
 
         $pdf = Pdf::loadView('reports.enrolled-students', [
             'exam' => $exam,
@@ -215,6 +228,46 @@ class ExamReportController extends Controller
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream('enrolled-students-'.$exam->ulid.'.pdf');
+    }
+
+    public function programSelectedByCode(Exam $exam, Request $request): Response
+    {
+        $programId = (int) $request->query('program_id');
+
+        abort_if($programId <= 0, 422, 'A valid program code must be selected.');
+
+        $programCategory = Category::query()
+            ->where('type', 'program')
+            ->findOrFail($programId, ['id', 'name', 'additional_info']);
+
+        $applications = $exam->applications()
+            ->where('status', 'paid')
+            ->whereIn('selection_stage', [Application::STAGE_PROGRAM_SELECTED, Application::STAGE_ALUMNI])
+            ->where('selected_category_id', $programCategory->id)
+            ->orderBy('application_id')
+            ->get([
+                'ulid',
+                'application_id',
+                'applicant_name',
+                'applicant_phone',
+                'applicant_email',
+                'written_exam_marks',
+                'viva_exam_marks',
+                'selection_stage',
+                'additional_info',
+            ]);
+        $applications = $this->attachPhotoDataUris($applications);
+
+        $pdf = Pdf::loadView('reports.program-selected-by-code', [
+            'exam' => $exam,
+            'programCategory' => $programCategory,
+            'applications' => $applications,
+            'generatedAt' => now(),
+        ])->setPaper('a4', 'portrait');
+
+        $programCode = data_get($programCategory->additional_info, 'code', $programCategory->name);
+
+        return $pdf->stream('program-selected-'.$programCode.'-'.$exam->ulid.'.pdf');
     }
 
     /**
@@ -297,6 +350,16 @@ class ExamReportController extends Controller
         return 'data:'.$mime.';base64,'.base64_encode($contents);
     }
 
+    private function attachPhotoDataUris(Collection $applications): Collection
+    {
+        return $applications->map(function (Application $application) {
+            $uploads = data_get($application->additional_info, 'uploads', []);
+            $application->setAttribute('photo_data_uri', $this->fileToDataUri(data_get($uploads, 'applicant_photo')));
+
+            return $application;
+        });
+    }
+
     private function normalizePublicPath(?string $path): ?string
     {
         if (blank($path)) {
@@ -305,8 +368,17 @@ class ExamReportController extends Controller
 
         $normalized = ltrim((string) $path, '/');
 
+        $publicStoragePrefix = trim((string) config('filesystems.disks.public.url', ''), '/').'/';
+        if ($publicStoragePrefix !== '' && str_starts_with($normalized, $publicStoragePrefix)) {
+            $normalized = substr($normalized, strlen($publicStoragePrefix));
+        }
+
         if (str_starts_with($normalized, 'public/')) {
             $normalized = substr($normalized, 7);
+        }
+
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, 8);
         }
 
         return $normalized;

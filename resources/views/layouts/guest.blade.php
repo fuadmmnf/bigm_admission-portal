@@ -4,8 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="description" content="BIGM Admission Portal – Bangladesh Institute of Governance and Management.">
+        <meta name="theme-color" content="#1e3a5f">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'BIGM Admission Portal') }} – Online Application Portal</title>
+        <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

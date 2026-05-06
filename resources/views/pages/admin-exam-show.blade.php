@@ -64,6 +64,11 @@
                 </div>
             </div>
 
+            {{-- Paid applicant list + filters --}}
+            <form id="exam-filter-form" method="GET" action="{{ route('admin.exams.show', $exam) }}" class="hidden">
+                <input type="hidden" name="tab" value="{{ $activeTab }}">
+            </form>
+
             {{-- Paid applicant list + send-admit-card form --}}
     <form id="admit-card-form"
                 method="POST"
@@ -209,12 +214,10 @@
                                class="rounded px-3 py-1.5 {{ $activeTab === 'alumni' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Alumni
                                 ({{ $totalAlumni }})</a>
                         </div>
-                        <form method="GET" action="{{ route('admin.exams.show', $exam) }}"
-                              class="ml-auto flex items-center gap-2 flex-wrap justify-end">
-                            <input type="hidden" name="tab" value="{{ $activeTab }}">
+                        <div class="ml-auto flex items-center gap-2 flex-wrap justify-end">
                             <label for="sort" class="text-xs font-medium text-gray-600">Sort</label>
-                            <select id="sort" name="sort" class="w-44 rounded-md border-gray-300 text-xs"
-                                    onchange="this.form.submit()">
+                            <select id="sort" name="sort" form="exam-filter-form" class="w-44 rounded-md border-gray-300 text-xs"
+                                    onchange="document.getElementById('exam-filter-form').requestSubmit()">
                                 {{-- Common: App ID --}}
                                 <option value="appid_asc" @selected($activeSort === 'appid_asc')>App ID (A → Z)</option>
 
@@ -239,11 +242,13 @@
                             <input
                                 type="text"
                                 name="search"
+                                form="exam-filter-form"
                                 value="{{ $activeSearch }}"
                                 placeholder="Name, phone, email, App ID"
                                 class="w-56 rounded-md border-gray-300 text-xs"
                             >
                             <button type="submit"
+                                    form="exam-filter-form"
                                     class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
                                 Apply
                             </button>
@@ -252,7 +257,7 @@
                                    class="inline-flex items-center rounded-md px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700"
                                    title="Clear filters">Clear</a>
                             @endif
-                        </form>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -273,8 +278,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Email</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Phone</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Gender</th>
-                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Selection Stage</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Choice List</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Assessment</th>
                                 @if($activeTab === 'viva' || $activeTab === 'program' || $activeTab === 'alumni')
                                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total</th>
@@ -299,14 +303,44 @@
                                             >
                                         </td>
                                         <td class="px-4 py-3 text-sm text-gray-500">{{ $applications->firstItem() + $index }}</td>
+                                        @php
+                                            $rawPhotoPath = data_get($application->additional_info, 'uploads.applicant_photo');
+                                            $photoPath = is_string($rawPhotoPath) ? ltrim($rawPhotoPath, '/') : null;
+                                            if (is_string($photoPath) && str_starts_with($photoPath, 'public/')) {
+                                                $photoPath = substr($photoPath, 7);
+                                            }
+                                            $photoUrl = $photoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($photoPath)
+                                                ? route('public-media.show', ['path' => $photoPath])
+                                                : null;
+                                        @endphp
                                         <td class="px-4 py-3 text-sm font-mono font-semibold text-indigo-700 whitespace-nowrap">
+                                            @if ($photoUrl)
+                                                <img src="{{ $photoUrl }}" alt="{{ $application->applicant_name }}" class="mb-1 h-12 w-14 rounded border border-gray-200 object-cover">
+                                            @endif
                                             {{ $application->application_id ?? '—' }}
                                         </td>
                                         <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $application->applicant_name }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ $application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A') }}</td>
-                                        <td class="px-4 py-3 text-sm text-gray-700">{{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</td>
+                                        @php
+                                            $rawChoices = array_values(array_filter((array) data_get($application->additional_info, 'course_preferences', [])));
+                                            $choiceValues = array_map(function ($choice): string {
+                                                $choiceText = trim((string) $choice);
+                                                if ($choiceText === '') {
+                                                    return '';
+                                                }
+
+                                                if (str_contains($choiceText, ' - ')) {
+                                                    return trim((string) explode(' - ', $choiceText, 2)[0]);
+                                                }
+
+                                                return preg_split('/\s+/', $choiceText)[0] ?? $choiceText;
+                                            }, $rawChoices);
+                                            $choiceValues = array_values(array_filter($choiceValues));
+                                        @endphp
+                                        <td class="px-4 py-3 text-sm text-gray-700">
+                                            {{ $choiceValues !== [] ? implode(', ', $choiceValues) : 'N/A' }}
+                                        </td>
                                         <td class="px-4 py-3 text-xs text-gray-600">
                                              <div class="space-y-1">
                                                 @if ($activeTab === 'paid')
@@ -421,7 +455,7 @@
                                 @endforeach
                             @else
                                 <tr>
-                                    <td colspan="{{ ($activeTab === 'viva' || $activeTab === 'program' || $activeTab === 'alumni') ? 11 : 10 }}" class="px-4 py-8 text-center text-sm text-gray-500">
+                                    <td colspan="{{ ($activeTab === 'viva' || $activeTab === 'program' || $activeTab === 'alumni') ? 10 : 9 }}" class="px-4 py-8 text-center text-sm text-gray-500">
                                         No applicants found for this tab.
                                     </td>
                                 </tr>

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Applicant;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreApplicationRequest extends FormRequest
 {
@@ -17,7 +18,6 @@ class StoreApplicationRequest extends FormRequest
         $currentYear = (int) now()->format('Y');
         $programs = config('applicant_form.programs', []);
         $genders = config('applicant_form.genders', []);
-        $marksheetMaxKb = (int) config('applicant_uploads.marksheet_pdf.max_kb', 5120);
         $certificateMaxKb = (int) config('applicant_uploads.certificate_pdf.max_kb', 5120);
 
         return [
@@ -63,31 +63,31 @@ class StoreApplicationRequest extends FormRequest
 
             'education.ssc.examination' => ['required', 'string', 'max:120'],
             'education.ssc.education_board' => ['required', 'string', 'max:120'],
-            'education.ssc.result' => ['required', 'string', 'max:60'],
-            'education.ssc.result_scale' => ['required', 'string', 'max:30'],
+            'education.ssc.result' => ['required', 'numeric', 'min:0'],
+            'education.ssc.result_scale' => ['required', 'numeric', 'min:0'],
             'education.ssc.group' => ['required', 'string', 'max:60'],
             'education.ssc.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
 
             'education.hsc.examination' => ['required', 'string', 'max:120'],
             'education.hsc.education_board' => ['required', 'string', 'max:120'],
-            'education.hsc.result' => ['required', 'string', 'max:60'],
-            'education.hsc.result_scale' => ['required', 'string', 'max:30'],
+            'education.hsc.result' => ['required', 'numeric', 'min:0'],
+            'education.hsc.result_scale' => ['required', 'numeric', 'min:0'],
             'education.hsc.group' => ['required', 'string', 'max:60'],
             'education.hsc.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
 
             'education.graduation.examination' => ['required', 'string', 'max:120'],
             'education.graduation.subject' => ['required', 'string', 'max:120'],
             'education.graduation.institution' => ['required', 'string', 'max:255'],
-            'education.graduation.result' => ['required', 'string', 'max:60'],
-            'education.graduation.result_scale' => ['required', 'string', 'max:30'],
+            'education.graduation.result' => ['required', 'numeric', 'min:0'],
+            'education.graduation.result_scale' => ['required', 'numeric', 'min:0'],
             'education.graduation.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
             'education.graduation.course_duration_years' => ['required', 'numeric', 'min:1', 'max:10'],
 
             'education.masters.examination' => ['nullable', 'string', 'max:120'],
             'education.masters.subject' => ['nullable', 'string', 'max:120'],
             'education.masters.institution' => ['nullable', 'string', 'max:255'],
-            'education.masters.result' => ['nullable', 'string', 'max:60'],
-            'education.masters.result_scale' => ['nullable', 'string', 'max:30'],
+            'education.masters.result' => ['nullable', 'numeric', 'min:0'],
+            'education.masters.result_scale' => ['nullable', 'numeric', 'min:0'],
             'education.masters.passing_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
             'education.masters.course_duration_years' => ['nullable', 'numeric', 'min:1', 'max:10'],
 
@@ -96,13 +96,9 @@ class StoreApplicationRequest extends FormRequest
             'education.mphil_phd.degree_completion' => ['nullable', 'string', Rule::in(['degree_awarded', 'ongoing'])],
             'education.mphil_phd.completion_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
 
-            'education_documents.ssc.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
             'education_documents.ssc.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
-            'education_documents.hsc.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
             'education_documents.hsc.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
-            'education_documents.graduation.marksheet' => ['required', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
             'education_documents.graduation.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
-            'education_documents.masters.marksheet' => ['nullable', 'file', 'mimes:pdf', 'max:'.$marksheetMaxKb],
             'education_documents.masters.certificate' => ['nullable', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
 
             'job_experience.total_years' => ['required', 'numeric', 'min:0', 'max:60'],
@@ -129,5 +125,34 @@ class StoreApplicationRequest extends FormRequest
         ];
     }
 
-}
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $this->validateResultNotExceedsScale($validator, 'ssc');
+            $this->validateResultNotExceedsScale($validator, 'hsc');
+            $this->validateResultNotExceedsScale($validator, 'graduation');
+            $this->validateResultNotExceedsScale($validator, 'masters');
+        });
+    }
 
+    private function validateResultNotExceedsScale(Validator $validator, string $level): void
+    {
+        $result = $this->input("education.{$level}.result");
+        $scale  = $this->input("education.{$level}.result_scale");
+
+        if ($result === null || $result === '' || $scale === null || $scale === '') {
+            return;
+        }
+
+        $resultNum = (float) $result;
+        $scaleNum  = (float) $scale;
+
+        if ($resultNum > $scaleNum) {
+            $label = ucfirst($level);
+            $validator->errors()->add(
+                "education.{$level}.result",
+                "{$label} result ({$resultNum}) cannot be greater than the result scale ({$scaleNum})."
+            );
+        }
+    }
+}

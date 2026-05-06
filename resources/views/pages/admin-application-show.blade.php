@@ -33,7 +33,7 @@
                 $normalized = substr($normalized, 7);
             }
 
-            return asset('storage/'.$normalized);
+            return route('public-media.show', ['path' => $normalized]);
         };
 
         $photoPath = data_get($uploads, 'applicant_photo');

@@ -254,13 +254,9 @@ class PaymentController extends Controller
         $paths = array_filter([
             data_get($uploads, 'applicant_photo'),
             data_get($uploads, 'signature'),
-            data_get($uploads, 'education_documents.ssc.marksheet'),
             data_get($uploads, 'education_documents.ssc.certificate'),
-            data_get($uploads, 'education_documents.hsc.marksheet'),
             data_get($uploads, 'education_documents.hsc.certificate'),
-            data_get($uploads, 'education_documents.graduation.marksheet'),
             data_get($uploads, 'education_documents.graduation.certificate'),
-            data_get($uploads, 'education_documents.masters.marksheet'),
             data_get($uploads, 'education_documents.masters.certificate'),
         ]);
 
