@@ -346,7 +346,7 @@
     {{-- Title tag --}}
     <div class="card-title-row">
         <span class="card-title-tag">{{ $noticeTitle }}</span>
-        <div class="card-session">Admission Test {{ $admissionSession }}</div>
+{{--        <div class="card-session">Admission Test {{ $admissionSession }}</div>--}}
     </div>
 
     {{-- Details + Photo --}}
