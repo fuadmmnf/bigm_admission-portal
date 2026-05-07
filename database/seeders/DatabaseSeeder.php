@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +15,33 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $this->cleanupSeededPublicFiles();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            RolesSeeder::class,
+            AuthUsersSeeder::class,
+            ProgramCategoriesSeeder::class,
+            BangladeshLocationCategoriesSeeder::class,
+            ExamPaginationSeeder::class,
+            ExamApplicantsSeeder::class,
         ]);
+    }
+
+    private function cleanupSeededPublicFiles(): void
+    {
+        Storage::disk('public')->deleteDirectory('seeded_uploads/photos');
+        Storage::disk('public')->deleteDirectory('seeded_uploads/signatures');
+
+        foreach (Storage::disk('public')->allFiles('exams/brochures') as $path) {
+            if (str_starts_with(basename($path), 'seeded-active-')) {
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        foreach (Storage::disk('public')->allFiles('exams/circulars') as $path) {
+            if (str_starts_with(basename($path), 'seeded-active-')) {
+                Storage::disk('public')->delete($path);
+            }
+        }
     }
 }

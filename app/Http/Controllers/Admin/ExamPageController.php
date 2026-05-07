@@ -1,0 +1,267 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Application;
+use App\Models\Category;
+use App\Models\Exam;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+
+class ExamPageController extends Controller
+{
+    public function index(Request $request, string $status): View
+    {
+        $statusMap = [
+            'draft' => 'draft',
+            'active' => 'active',
+            'complete' => 'closed',
+        ];
+
+        abort_unless(isset($statusMap[$status]), 404);
+
+        $resolvedStatus = $statusMap[$status];
+
+        $exams = Exam::query()
+            ->where('status', $resolvedStatus)
+            ->withCount([
+                'applications as paid_applications_count' => fn ($query) => $query->where('status', 'paid'),
+            ])
+            ->when($request->filled('search'), fn ($query) => $query->where('name', 'like', '%'.$request->string('search').'%'))
+            ->orderByDesc('created_at')
+            ->paginate(10)
+            ->appends($request->query());
+
+        return view('pages.admin-exams-index', [
+            'exams' => $exams,
+            'currentStatus' => $status,
+        ]);
+    }
+
+    public function show(Request $request, Exam $exam): View
+    {
+        $activeTab = $request->string('tab')->toString();
+        if (! in_array($activeTab, ['paid', 'viva', 'program', 'alumni'], true)) {
+            $activeTab = 'paid';
+        }
+        $search = trim($request->string('search')->toString());
+
+        $sort = $request->string('sort')->toString();
+        $allowedSorts = [
+            'appid_asc',
+            'written_desc', 'written_asc',
+            'viva_desc',    'viva_asc',
+            'total_desc',   'total_asc',
+            'program_asc',
+        ];
+        if (! in_array($sort, $allowedSorts, true)) {
+            $sort = 'appid_asc';
+        }
+
+        $applicationsQuery = $exam->applications()
+            ->where('status', 'paid');
+
+        if ($activeTab === 'viva') {
+            $applicationsQuery->whereIn('selection_stage', [
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+            ]);
+        }
+
+        if ($activeTab === 'program') {
+            $applicationsQuery->whereIn('selection_stage', [
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_ALUMNI,
+            ]);
+        }
+
+        if ($activeTab === 'alumni') {
+            $applicationsQuery->where('selection_stage', Application::STAGE_ALUMNI);
+        }
+
+        if ($search !== '') {
+            $applicationsQuery->where(function ($query) use ($search): void {
+                $query->where('applicant_name',  'like', '%'.$search.'%')
+                    ->orWhere('applicant_email',  'like', '%'.$search.'%')
+                    ->orWhere('applicant_phone',  'like', '%'.$search.'%')
+                    ->orWhere('application_id',   'like', '%'.$search.'%');
+            });
+        }
+
+        match ($sort) {
+            'appid_asc' => $applicationsQuery
+                ->orderByRaw('application_id IS NULL')
+                ->orderBy('application_id'),
+            'written_desc' => $applicationsQuery
+                ->orderByRaw('written_exam_marks IS NULL')
+                ->orderByDesc('written_exam_marks')
+                ->orderBy('application_id'),
+            'written_asc' => $applicationsQuery
+                ->orderByRaw('written_exam_marks IS NULL')
+                ->orderBy('written_exam_marks')
+                ->orderBy('application_id'),
+            'viva_desc' => $applicationsQuery
+                ->orderByRaw('viva_exam_marks IS NULL')
+                ->orderByDesc('viva_exam_marks')
+                ->orderBy('application_id'),
+            'viva_asc' => $applicationsQuery
+                ->orderByRaw('viva_exam_marks IS NULL')
+                ->orderBy('viva_exam_marks')
+                ->orderBy('application_id'),
+            'total_desc' => $applicationsQuery
+                ->orderByRaw('(COALESCE(written_exam_marks, 0) + COALESCE(viva_exam_marks, 0)) DESC')
+                ->orderBy('application_id'),
+            'total_asc' => $applicationsQuery
+                ->orderByRaw('(COALESCE(written_exam_marks, 0) + COALESCE(viva_exam_marks, 0)) ASC')
+                ->orderBy('application_id'),
+            'program_asc' => $applicationsQuery
+                ->orderByRaw('selected_category_id IS NULL')
+                ->orderByRaw('(SELECT c.name FROM categories c WHERE c.id = applications.selected_category_id) ASC')
+                ->orderByRaw('(COALESCE(written_exam_marks, 0) + COALESCE(viva_exam_marks, 0)) DESC'),
+            default => $applicationsQuery
+                ->orderByRaw('application_id IS NULL')
+                ->orderBy('application_id'),
+        };
+
+        $applications = $applicationsQuery
+            ->with('selectedCategory:id,name')
+            ->paginate(25)
+            ->appends($request->query());
+
+        $programCategories = Category::query()
+            ->where('type', 'program')
+            ->orderBy('name')
+            ->get(['id', 'name', 'additional_info']);
+
+        // Single conditional-aggregation query replaces the previous 4 separate COUNTs.
+        $counts = $exam->applications()
+            ->where('status', 'paid')
+            ->selectRaw('
+                COUNT(*) as total_paid,
+                SUM(CASE WHEN selection_stage IN (?, ?) THEN 1 ELSE 0 END) as total_viva,
+                SUM(CASE WHEN selection_stage IN (?, ?) THEN 1 ELSE 0 END) as total_program,
+                SUM(CASE WHEN selection_stage = ?             THEN 1 ELSE 0 END) as total_alumni
+            ', [
+                Application::STAGE_VIVA_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_PROGRAM_SELECTED,
+                Application::STAGE_ALUMNI,
+                Application::STAGE_ALUMNI,
+            ])
+            ->first();
+
+        $totalPaid    = (int) ($counts->total_paid    ?? 0);
+        $totalViva    = (int) ($counts->total_viva    ?? 0);
+        $totalProgram = (int) ($counts->total_program ?? 0);
+        $totalAlumni  = (int) ($counts->total_alumni  ?? 0);
+
+        return view('pages.admin-exam-show', [
+            'exam'              => $exam,
+            'applications'      => $applications,
+            'totalPaid'         => $totalPaid,
+            'totalViva'         => $totalViva,
+            'totalProgram'      => $totalProgram,
+            'totalAlumni'       => $totalAlumni,
+            'activeTab'         => $activeTab,
+            'activeSort'        => $sort,
+            'activeSearch'      => $search,
+            'programCategories' => $programCategories,
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('pages.admin-exam-form', [
+            'exam' => new Exam(),
+            'isEdit' => false,
+        ]);
+    }
+
+    public function edit(Exam $exam): View
+    {
+        return view('pages.admin-exam-form', [
+            'exam' => $exam,
+            'isEdit' => true,
+        ]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $this->validateExam($request);
+
+        $exam = new Exam();
+        $exam->fill($validated);
+        $this->handleFileUploads($request, $exam);
+        $exam->save();
+
+        return redirect()
+            ->route('admin.exams.show', $exam)
+            ->with('status', 'Exam created successfully.');
+    }
+
+    public function update(Request $request, Exam $exam): RedirectResponse
+    {
+        $validated = $this->validateExam($request);
+
+        $exam->fill($validated);
+        $this->handleFileUploads($request, $exam);
+        $exam->save();
+
+        return redirect()
+            ->route('admin.exams.show', $exam)
+            ->with('status', 'Exam updated successfully.');
+    }
+
+    public function destroy(Exam $exam): RedirectResponse
+    {
+        $statusRouteMap = [
+            'draft' => 'admin.exams.draft',
+            'active' => 'admin.exams.active',
+            'closed' => 'admin.exams.complete',
+        ];
+
+        $redirectRoute = $statusRouteMap[$exam->status] ?? 'admin.exams.active';
+
+        $exam->delete();
+
+        return redirect()
+            ->route($redirectRoute)
+            ->with('status', 'Exam deleted successfully.');
+    }
+
+    private function validateExam(Request $request): array
+    {
+        return $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', Rule::in(['draft', 'active', 'closed'])],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'additional_info' => ['nullable', 'array'],
+            'brochure' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+            'circular' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
+        ]);
+    }
+
+    private function handleFileUploads(Request $request, Exam $exam): void
+    {
+        if ($request->hasFile('brochure') && $request->file('brochure')->isValid()) {
+            if ($exam->brochure_path) {
+                Storage::disk('public')->delete($exam->brochure_path);
+            }
+            $exam->brochure_path = $request->file('brochure')->store('exams/brochures', 'public');
+        }
+
+        if ($request->hasFile('circular') && $request->file('circular')->isValid()) {
+            if ($exam->circular_path) {
+                Storage::disk('public')->delete($exam->circular_path);
+            }
+            $exam->circular_path = $request->file('circular')->store('exams/circulars', 'public');
+        }
+    }
+}
+

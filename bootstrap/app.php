@@ -12,7 +12,22 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        ]);
+
+        // SSLCommerz POSTs to these callback URLs from their servers — exempt from CSRF
+        $middleware->validateCsrfTokens(except: [
+            '/payment/callback/success',
+            '/payment/callback/failed',
+            '/payment/callback/cancel',
+            '/payment/success',
+            '/payment/failed',
+            '/payment/cancel',
+            '/payment/ipn',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

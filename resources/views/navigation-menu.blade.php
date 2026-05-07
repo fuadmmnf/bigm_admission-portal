@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-mark class="block h-9 w-auto" />
+                        <img src="{{ asset('images/logo.png') }}" alt="BIGM" class="block h-9 w-auto" />
                     </a>
                 </div>
 
@@ -14,6 +14,9 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('admin.exams.active') }}" :active="request()->routeIs('admin.exams.*')">
+                        {{ __('Exams') }}
                     </x-nav-link>
                 </div>
             </div>
@@ -141,6 +144,9 @@
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link href="{{ route('admin.exams.active') }}" :active="request()->routeIs('admin.exams.*')">
+                {{ __('Exams') }}
             </x-responsive-nav-link>
         </div>
 
