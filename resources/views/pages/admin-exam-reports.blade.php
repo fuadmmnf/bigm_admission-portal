@@ -70,7 +70,7 @@
                     @endif
                 </div>
 
-                {{-- Viva Selected List --}}
+                {{-- Viva Sheet --}}
                 <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <p class="text-sm font-semibold text-gray-900">Viva Sheet</p>
@@ -84,7 +84,7 @@
                             rel="noopener"
                             class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700"
                         >
-                            Download Viva List
+                            Download Viva Sheet
                         </a>
                     @else
                         <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">
@@ -203,20 +203,6 @@
                     @endif
                 </div>
 
-                <div class="mt-3 rounded-lg border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p class="text-sm font-semibold text-gray-900">Job Experience Wise Report</p>
-                        <p class="text-xs text-gray-500">Job experience summary for paid applicants.</p>
-                    </div>
-
-                    @if (auth()->user()?->hasRole('admin'))
-                        <a href="{{ route('admin.exams.reports.job-experience-wise', $exam) }}" target="_blank" rel="noopener" class="inline-flex items-center px-3 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700">
-                            Download Job-Experience Report
-                        </a>
-                    @else
-                        <span class="inline-flex items-center px-3 py-2 bg-gray-100 border border-gray-200 rounded-md text-xs font-semibold text-gray-500 uppercase tracking-widest">Admin Only</span>
-                    @endif
-                </div>
 
                 <div class="mt-3 rounded-lg border border-gray-200 p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">

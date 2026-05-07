@@ -1,7 +1,7 @@
 @extends('reports.layouts.report')
 
 @section('title', 'Attendance Sheet')
-@section('report-subtitle', 'Attendance Sheet – Paid Applicants')
+@section('report-subtitle', 'Attendance Sheet')
 
 @section('extra-styles')
 <style>
@@ -17,18 +17,8 @@
         padding: 5pt;
     }
     .att-card {
-        border: 1px solid #d1d5db;
-        border-radius: 4pt;
-        padding: 6pt;
-        min-height: 120pt;
-    }
-    .att-header {
-        font-size: 9px;
-        font-weight: bold;
-        color: #1e3a5f;
-        border-bottom: 1px solid #e5e7eb;
-        padding-bottom: 3pt;
-        margin-bottom: 5pt;
+        padding: 2pt;
+        min-height: 122pt;
     }
     .att-body {
         display: table;
@@ -45,12 +35,11 @@
     .att-photo-box {
         width: 56pt;
         height: 68pt;
-        border: 1px solid #d1d5db;
-        background: #f9fafb;
+        border: 1px solid #111827;
         text-align: center;
         line-height: 68pt;
         font-size: 7.5pt;
-        color: #9ca3af;
+        color: #6b7280;
         overflow: hidden;
     }
     .att-photo-box img {
@@ -61,8 +50,7 @@
     }
     .att-info {
         padding-left: 6pt;
-        font-size: 8.8pt;
-        color: #111827;
+        font-size: 9pt;
         line-height: 1.45;
     }
     .att-row {
@@ -70,40 +58,90 @@
     }
     .att-label {
         font-weight: bold;
-        color: #374151;
     }
     .att-sign {
-        margin-top: 8pt;
-        border-top: 1px dashed #9ca3af;
-        padding-top: 2pt;
+        margin-top: 10pt;
+    }
+    .att-sign-box {
+        height: 26pt;
+        border: 1px solid #111827;
+        margin-bottom: 2pt;
+    }
+    .att-sign-label {
         text-align: center;
         font-size: 8pt;
-        color: #6b7280;
+        line-height: 1.2;
+    }
+
+    /* ── Attendance footer fields ─────────────────────── */
+    .att-footer-field {
+        font-size: 8.5pt;
+        line-height: 1.3;
+        margin-bottom: 10pt;
+    }
+    .att-footer-field .field-label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 2pt;
+    }
+    .att-footer-line {
+        display: inline-block;
+        width: 140pt;
+        border-bottom: 1px solid #111827;
+    }
+    .att-footer-sig {
+        text-align: right;
+        margin-bottom: 10pt;
+    }
+    .att-footer-sig .sig-box {
+        height: 26pt;
+        width: 150pt;
+        border: 1px solid #111827;
+        display: inline-block;
+        margin-bottom: 2pt;
+    }
+    .att-footer-sig .field-label {
+        font-weight: bold;
+        font-size: 8pt;
+        display: block;
+        text-align: center;
+        width: 150pt;
+        margin-left: auto;
     }
 </style>
 @endsection
 
-@section('content')
-<div class="report-meta">
-    <span><span class="label">Exam:</span> {{ $exam->name }}</span>
-    <span><span class="label">Total Paid Applicants:</span><span class="summary-badge">{{ $applications->count() }}</span></span>
+@section('footer-left')
+<div class="att-footer-field">
+    <span class="field-label">Invigilator's Name:</span>
+    <span class="att-footer-line">&nbsp;</span>
 </div>
+@endsection
+
+@section('footer-right')
+<div class="att-footer-sig">
+    <span class="sig-box"></span>
+    <span class="field-label">Invigilator's Signature</span>
+</div>
+@endsection
+
+@section('content')
+<div class="report-meta"><span><span class="label">Exam:</span> {{ $exam->name }}</span></div>
 
 @php
     $rows = $applications->values()->chunk(2);
 @endphp
 
 @if ($applications->isEmpty())
-    <div class="muted" style="text-align:center; margin-top: 24px;">No paid applicants found for this exam.</div>
+    <div class="empty-row" style="margin-top: 24px;">No paid applicants found for this exam.</div>
 @else
     <table class="attendance-grid">
         <tbody>
         @foreach ($rows as $pair)
             <tr>
-                @foreach ($pair as $index => $application)
+                @foreach ($pair as $application)
                     <td>
                         <div class="att-card">
-                            <div class="att-header">SL {{ $loop->parent->index * 2 + $index + 1 }}</div>
                             <div class="att-body">
                                 <div class="att-photo">
                                     <div class="att-photo-box">
@@ -117,11 +155,12 @@
                                 <div class="att-info">
                                     <div class="att-row"><span class="att-label">App. ID:</span> {{ $application->application_id ?? $application->ulid }}</div>
                                     <div class="att-row"><span class="att-label">Name:</span> {{ $application->applicant_name }}</div>
-                                    <div class="att-row"><span class="att-label">Phone:</span> {{ $application->applicant_phone }}</div>
-                                    <div class="att-row"><span class="att-label">Email:</span> {{ $application->applicant_email }}</div>
                                 </div>
                             </div>
-                            <div class="att-sign">Attendance Signature</div>
+                            <div class="att-sign">
+                                <div class="att-sign-box"></div>
+                                <div class="att-sign-label">Applicant's Signature</div>
+                            </div>
                         </div>
                     </td>
                 @endforeach

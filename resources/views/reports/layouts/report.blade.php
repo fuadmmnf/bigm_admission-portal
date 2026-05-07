@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <title>@yield('title', 'Report') – {{ $exam->name ?? '' }}</title>
+    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <style>
         @page {
             margin: 28mm 14mm 22mm 14mm;
-            size: A4 portrait;
+            size: {{ $pageOrientation ?? 'portrait' }};
         }
 
-        * { box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+        }
 
         body {
             font-family: DejaVu Sans, sans-serif;
@@ -18,6 +22,22 @@
             margin: 0;
             padding: 0;
             line-height: 1.4;
+            background: #ffffff;
+        }
+
+        .pdf-watermark {
+            position: fixed;
+            top: 38%;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 88pt;
+            font-weight: bold;
+            letter-spacing: 4pt;
+            color: rgba(17, 24, 39, 0.06);
+            transform: rotate(-26deg);
+            z-index: -1;
+            white-space: nowrap;
         }
 
         /* ── Fixed Header ──────────────────────────────────── */
@@ -26,47 +46,26 @@
             top: -28mm;
             left: -14mm;
             right: -14mm;
-            background: #1e3a5f;
-            color: #ffffff;
-            padding: 6pt 14mm 5pt;
+            color: #111827;
+            padding: 6pt 14mm 4pt;
+            border-bottom: 1px solid #d1d5db;
         }
+
         .pdf-header-inner {
-            display: table;
             width: 100%;
+            text-align: center;
         }
-        .pdf-header-logo {
-            display: table-cell;
-            vertical-align: middle;
-            width: 78pt;
-        }
-        .pdf-header-logo img {
-            width: 72pt;
-            height: auto;
-            display: block;
-        }
-        .pdf-header-text {
-            display: table-cell;
-            vertical-align: middle;
-            padding-left: 10pt;
-        }
+
         .pdf-header-org {
-            font-size: 9.5pt;
+            font-size: 10pt;
             font-weight: bold;
-            letter-spacing: 0.3pt;
+            letter-spacing: 0.2pt;
             margin: 0;
         }
+
         .pdf-header-report-title {
-            font-size: 8pt;
-            margin: 1pt 0 0;
-            opacity: 0.88;
-        }
-        .pdf-header-meta {
-            display: table-cell;
-            vertical-align: middle;
-            text-align: right;
-            font-size: 7.5pt;
-            opacity: 0.82;
-            white-space: nowrap;
+            font-size: 9pt;
+            margin: 2pt 0 0;
         }
 
         /* ── Fixed Footer ──────────────────────────────────── */
@@ -80,20 +79,24 @@
             font-size: 8pt;
             color: #6b7280;
         }
+
         .pdf-footer-inner {
             display: table;
             width: 100%;
         }
+
         .pdf-footer-left {
             display: table-cell;
             vertical-align: middle;
             text-align: left;
         }
+
         .pdf-footer-center {
             display: table-cell;
             vertical-align: middle;
             text-align: center;
         }
+
         .pdf-footer-right {
             display: table-cell;
             vertical-align: middle;
@@ -111,13 +114,17 @@
             border-collapse: collapse;
             margin-top: 10px;
             font-size: 10px;
+            table-layout: fixed;
         }
+
         table.report-table th,
         table.report-table td {
             border: 1px solid #d1d5db;
-            padding: 5pt 6pt;
-            vertical-align: middle;
+            padding: 5pt;
+            vertical-align: top;
+            word-break: break-word;
         }
+
         table.report-table th {
             background: #1e3a5f;
             color: #ffffff;
@@ -126,14 +133,32 @@
             font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.3pt;
+            vertical-align: middle;
         }
+
         table.report-table tbody tr:nth-child(even) {
             background: #f9fafb;
         }
-        .col-sl { width: 26pt; text-align: center; }
-        .col-photo { width: 44pt; text-align: center; }
-        .col-marks { width: 38pt; text-align: center; }
-        .muted { color: #6b7280; }
+
+        .col-sl {
+            width: 26pt;
+            text-align: center;
+        }
+
+        .col-photo {
+            width: 44pt;
+            text-align: center;
+        }
+
+        .col-marks {
+            width: 38pt;
+            text-align: center;
+        }
+
+        .muted {
+            color: #6b7280;
+        }
+
         .report-photo {
             width: 34pt;
             height: 40pt;
@@ -143,6 +168,7 @@
             margin: 0 auto;
             background: #f9fafb;
         }
+
         .report-photo-placeholder {
             width: 34pt;
             height: 40pt;
@@ -155,9 +181,11 @@
             color: #9ca3af;
             background: #f9fafb;
         }
+
         .photo-with-id {
             text-align: center;
         }
+
         .photo-app-id {
             margin-top: 2pt;
             font-size: 7pt;
@@ -176,18 +204,22 @@
             border-bottom: 1px solid #c7d2e0;
             padding-bottom: 3px;
         }
+
         .report-meta {
             font-size: 10px;
             margin-bottom: 8px;
             color: #374151;
         }
+
         .report-meta span {
             margin-right: 16px;
         }
+
         .report-meta .label {
             font-weight: bold;
             color: #111827;
         }
+
         .summary-badge {
             display: inline-block;
             background: #ede9fe;
@@ -198,66 +230,68 @@
             font-weight: bold;
             margin-left: 4px;
         }
+
+        .empty-row {
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .report-note {
+            font-size: 9px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .small-cell {
+            font-size: 9px;
+            color: #111827;
+        }
+
+        .section-table {
+            margin-bottom: 14px;
+        }
     </style>
     @yield('extra-styles')
 </head>
 <body>
-    @php
-        $logoPath = public_path('images/logo.png');
-        $logoDataUri = null;
-        if (is_file($logoPath) && is_readable($logoPath)) {
-            $logoDataUri = 'data:image/png;base64,'.base64_encode((string) file_get_contents($logoPath));
-        }
-    @endphp
+<div class="pdf-watermark">BIGM</div>
 
-    {{-- Fixed Header --}}
-    <div class="pdf-header">
-        <div class="pdf-header-inner">
-            <div class="pdf-header-logo">
-                @if($logoDataUri)
-                    <img src="{{ $logoDataUri }}" alt="BIGM Logo">
-                @else
-                    <span style="font-size:11pt;font-weight:bold;letter-spacing:1pt;">BIGM</span>
-                @endif
-            </div>
-            <div class="pdf-header-text">
-                <p class="pdf-header-org">Bangladesh Institute of Governance and Management</p>
-                <p class="pdf-header-report-title">@yield('report-subtitle', 'Exam Report') &mdash; {{ $exam->name ?? 'N/A' }}</p>
-            </div>
-            <div class="pdf-header-meta">
-                Generated: {{ isset($generatedAt) ? $generatedAt->format('d M Y, h:i A') : now()->format('d M Y, h:i A') }}
-            </div>
-        </div>
+{{-- Fixed Header --}}
+<div class="pdf-header">
+    <div class="pdf-header-inner">
+        <p class="pdf-header-org">Bangladesh Institute of Governance and Management (BIGM)</p>
+        <p class="pdf-header-report-title">@yield('report-subtitle', 'Exam Report')</p>
     </div>
+</div>
 
-    {{-- Fixed Footer --}}
-    <div class="pdf-footer">
-        <div class="pdf-footer-inner">
-            <div class="pdf-footer-left">BIGM Admission Portal &mdash; Confidential</div>
-            <div class="pdf-footer-center">@yield('footer-center', '')</div>
-            <div class="pdf-footer-right"><span class="page-number"></span></div>
-        </div>
+{{-- Fixed Footer --}}
+<div class="pdf-footer">
+    <div class="pdf-footer-inner">
+        <div class="pdf-footer-left">@yield('footer-left', 'BIGM Admission Portal &mdash; Confidential')</div>
+        <div class="pdf-footer-center">@yield('footer-center', '')</div>
+        <div class="pdf-footer-right">@yield('footer-right', '')</div>
     </div>
+</div>
 
-    {{-- Page numbers via PHP (dompdf) --}}
-    <script type="text/php">
-        if (isset($pdf)) {
-            $font = $fontMetrics->getFont("DejaVu Sans", "normal");
-            $size = 7;
-            $color = array(107/255, 114/255, 128/255);
-            $width  = $pdf->get_width();
-            $height = $pdf->get_height();
-            // x: right-aligned ~14mm from right edge; y: near bottom of page footer area
-            $x = $width - 112;
-            $y = $height - 14;
-            $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);
-        }
-    </script>
+{{-- Page numbers via PHP (dompdf) --}}
+<script type="text/php">
+    if (isset($pdf)) {
+        $font = $fontMetrics->getFont("DejaVu Sans", "normal");
+        $size = 7;
+        $color = array(107/255, 114/255, 128/255);
+        $width  = $pdf->get_width();
+        $height = $pdf->get_height();
+        // x: right-aligned ~14mm from right edge; y: near bottom of page footer area
+        $x = $width - 112;
+        $y = $height - 14;
+        $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);
+    }
+</script>
 
-    {{-- Main Content --}}
-    <div class="report-content">
-        @yield('content')
-    </div>
+{{-- Main Content --}}
+<div class="report-content">
+    @yield('content')
+</div>
 
 </body>
 </html>

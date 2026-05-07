@@ -46,7 +46,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="6" class="muted" style="text-align:center;">No paid applicants found for the selected employer category.</td>
+                <td colspan="6" class="empty-row">No paid applicants found for the selected employer category.</td>
             </tr>
         @endforelse
     </tbody>

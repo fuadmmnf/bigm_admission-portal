@@ -5,9 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/php-docker-settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php-docker-settings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/seeders/ExamApplicantsSeeder.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationAdmitCardController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ApplicationAdmitCardController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/navigation-menu.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/navigation-menu.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/applicant-admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/applicant-admit-card.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/attendance-list.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/attendance-list.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/choice-list-by-subject.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/choice-list-by-subject.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/choice-list-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/choice-list-wise-applicants.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/employer-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/employer-wise-applicants.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/enrolled-students.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/enrolled-students.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/gender-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/gender-wise-applicants.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/job-experience-wise-applicants.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/layouts/report.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/layouts/report.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/program-selected-by-code.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/program-selected-by-code.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/ReportTablesLayoutTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/ReportTablesLayoutTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,6 +46,7 @@
   <component name="CopilotPersistence">
     <persistenceIdMap>
       <entry key="_/Users/fuad/misc/projects/innovatech/bigm/admission_portal" value="3CpjYTqlad1C8P1Pfzv75lrsSPt" />
+      <entry key="_/media/fuad/Work/innova/bigm/bigm_admission-portal" value="3DNisJhdEBrVnmRLwObRkqzTYRu" />
     </persistenceIdMap>
   </component>
   <component name="CopilotUserSelectedChatMode">
@@ -59,7 +80,7 @@
     &quot;accountId&quot;: &quot;01511ea2-1fd2-4c00-841c-e87e665f4b60&quot;
   }
 }</component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="soft360d-workspace:latest">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="dk-workspace:latest">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/guzzle" />
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/promises" />
@@ -222,6 +243,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "copilot.sensitive.allow.copilot_create_file.files_outside_workspace": "true",
+    "copilot.sensitive.allow.copilot_read_file.files_outside_workspace": "true",
     "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpCreateRemoteSdkForm": "Docker",
     "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpInplaceEditRemoteSdkForm": "Docker",
     "git-widget-placeholder": "dev",

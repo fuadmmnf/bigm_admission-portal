@@ -93,9 +93,10 @@ class ExamReportController extends Controller
             'exam' => $exam,
             'applications' => $applications,
             'generatedAt' => now(),
-        ])->setPaper('a4', 'portrait');
+            'pageOrientation' => 'landscape',
+        ])->setPaper('a4', 'landscape');
 
-        return $pdf->stream('viva-selected-list-'.$exam->ulid.'.pdf');
+        return $pdf->stream('viva-sheet-'.$exam->ulid.'.pdf');
     }
 
     public function genderWiseApplicants(Exam $exam, Request $request): Response
@@ -199,20 +200,6 @@ class ExamReportController extends Controller
         return $pdf->stream('choice-list-by-subject-'.$subject.'-'.$exam->ulid.'.pdf');
     }
 
-    public function jobExperienceWiseApplicants(Exam $exam): Response
-    {
-        $applications = $this->paidApplicantsBaseQuery($exam)
-            ->get(['ulid', 'application_id', 'applicant_name', 'additional_info']);
-        $applications = $this->attachPhotoDataUris($applications);
-
-        $pdf = Pdf::loadView('reports.job-experience-wise-applicants', [
-            'exam' => $exam,
-            'applications' => $applications,
-            'generatedAt' => now(),
-        ])->setPaper('a4', 'portrait');
-
-        return $pdf->stream('job-experience-wise-applicants-'.$exam->ulid.'.pdf');
-    }
 
     public function enrolledStudents(Exam $exam): Response
     {

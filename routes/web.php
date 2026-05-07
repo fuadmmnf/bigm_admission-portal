@@ -104,10 +104,6 @@ Route::middleware([
         ->middleware('role:admin')
         ->name('admin.exams.reports.choice-by-subject')
         ->whereUlid('exam');
-    Route::get('/admin/exams/{exam}/reports/job-experience-wise', [ExamReportController::class, 'jobExperienceWiseApplicants'])
-        ->middleware('role:admin')
-        ->name('admin.exams.reports.job-experience-wise')
-        ->whereUlid('exam');
     Route::get('/admin/exams/{exam}/reports/enrolled-students', [ExamReportController::class, 'enrolledStudents'])
         ->middleware('role:admin')
         ->name('admin.exams.reports.enrolled-students')

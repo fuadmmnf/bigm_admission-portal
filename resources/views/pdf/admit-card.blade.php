@@ -14,122 +14,133 @@
         }
 
         body {
-            font-family: "Times New Roman", Georgia, serif;
-            font-size: 11.5pt;
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 11pt;
             color: #111827;
             margin: 0;
             padding: 0;
             line-height: 1.4;
         }
 
-        /* ── Outer border ─────────────────────────────────── */
         .outer-border {
-            border: 2.5pt solid #1e3a5f;
+            border: 1.2pt solid #111827;
             padding: 0;
         }
 
-        /* ── Header ───────────────────────────────────────── */
         .header {
-            background-color: #1e3a5f;
-            color: #ffffff;
-            padding: 8pt 12pt 6pt;
+            padding: 12pt 14pt 9pt;
             text-align: center;
+            border-bottom: 1pt solid #d1d5db;
         }
 
         .header-logo-row {
-            margin-bottom: 3pt;
+            margin-bottom: 4pt;
         }
 
         .header-logo {
-            width: 170pt;
+            width: 54pt;
             height: auto;
             display: inline-block;
         }
 
         .header h1 {
-            font-size: 12pt;
+            font-size: 12.5pt;
             font-weight: bold;
-            margin: 2pt 0 0;
-            letter-spacing: 0.3pt;
+            margin: 0;
+            letter-spacing: 0.15pt;
         }
 
         .header .sub {
             font-size: 8.5pt;
-            margin: 1pt 0 0;
-            opacity: 0.85;
+            margin: 2pt 0 0;
         }
 
-        /* ── Notice band (viva/program only) ─────────────── */
         .notice-band {
-            padding: 6pt 10pt;
-            font-size: 9.5pt;
-            border-bottom: 1pt solid #d1d5db;
+            margin: 10pt 12pt 0;
+            padding: 7pt 9pt;
+            font-size: 9.2pt;
+            border: 1pt solid #cbd5e1;
+            background: #f8fafc;
         }
 
-        .notice-band.viva {
-            background: #fffbeb;
-            border-left: 4pt solid #f59e0b;
-        }
-
-        .notice-band.program {
-            background: #f0fdf4;
-            border-left: 4pt solid #16a34a;
-        }
-
-        /* ── Admit card title tag ─────────────────────────── */
         .card-title-row {
             text-align: center;
-            padding: 7pt 0 5pt;
-            border-bottom: 1pt solid #d1d5db;
+            padding: 10pt 12pt 8pt;
         }
 
         .card-title-tag {
             display: inline-block;
-            border: 1pt solid #374151;
-            padding: 2pt 20pt;
+            border: 1pt solid #111827;
+            padding: 4pt 18pt;
             font-size: 11pt;
             font-weight: bold;
-            letter-spacing: 1pt;
+            letter-spacing: 0.4pt;
         }
 
-        /* ── Main details ─────────────────────────────────── */
+        .card-session {
+            margin-top: 5pt;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
         .main-table {
             width: 100%;
             border-collapse: collapse;
-            padding: 8pt 10pt;
         }
 
         .details-cell {
-            padding: 8pt 10pt;
+            padding: 0 12pt 10pt 12pt;
             vertical-align: top;
-            width: 68%;
+            width: 70%;
         }
 
         .photo-cell {
-            padding: 8pt 10pt 8pt 4pt;
+            padding: 0 12pt 10pt 4pt;
             vertical-align: top;
-            width: 32%;
+            width: 30%;
             text-align: center;
         }
 
-        .meta-line {
-            font-size: 10.5pt;
-            margin: 0 0 3.5pt;
+        .details-panel {
+            border: 1pt solid #d1d5db;
+            padding: 8pt 10pt;
         }
 
-        .meta-label {
+        .details-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .details-grid td {
+            padding: 3pt 0;
+            vertical-align: top;
+            font-size: 10.8pt;
+        }
+
+        .details-grid .meta-label {
+            width: 96pt;
             font-weight: bold;
-            display: inline;
+            white-space: nowrap;
+            padding-right: 8pt;
         }
 
-        /* ── Photo/signature boxes ────────────────────────── */
+        .details-grid .meta-value {
+            word-break: break-word;
+        }
+
+        .identity-panel {
+            border: 1pt solid #d1d5db;
+            padding: 8pt 8pt 7pt;
+            min-height: 202pt;
+        }
+
         .photo-box {
-            width: 100pt;
-            height: 126pt;
+            width: 94pt;
+            height: 108pt;
             border: 1pt solid #9ca3af;
             overflow: hidden;
             text-align: center;
-            line-height: 126pt;
+            line-height: 108pt;
             font-size: 9pt;
             color: #6b7280;
             display: block;
@@ -137,47 +148,47 @@
         }
 
         .photo-box img {
-            width: 100pt;
-            height: 126pt;
+            width: 94pt;
+            height: 108pt;
             object-fit: cover;
             display: block;
         }
 
-        .sig-label {
-            font-size: 8pt;
-            color: #6b7280;
-            margin-top: 3pt;
+        .identity-label {
+            font-size: 8.2pt;
+            color: #374151;
+            margin-top: 6pt;
+            margin-bottom: 3pt;
             text-align: center;
+            font-weight: bold;
         }
 
         .sig-box {
-            width: 100pt;
-            height: 36pt;
+            width: 94pt;
+            height: 28pt;
             border: 1pt solid #9ca3af;
             overflow: hidden;
             text-align: center;
-            line-height: 36pt;
+            line-height: 28pt;
             font-size: 9pt;
             color: #6b7280;
             display: block;
-            margin: 4pt auto 0;
+            margin: 0 auto;
         }
 
         .sig-box img {
-            width: 100pt;
-            height: 36pt;
+            width: 94pt;
+            height: 28pt;
             object-fit: contain;
             display: block;
         }
 
-        /* ── Section header ───────────────────────────────── */
         .section-divider {
             border: none;
             border-top: 1pt solid #d1d5db;
             margin: 0;
         }
 
-        /* ── Instructions ─────────────────────────────────── */
         .instructions-wrap {
             padding: 7pt 12pt 8pt;
             position: relative;
@@ -203,7 +214,6 @@
             margin-bottom: 3pt;
         }
 
-        /* ── Footer ───────────────────────────────────────── */
         .footer {
             background: #f3f4f6;
             border-top: 1pt solid #d1d5db;
@@ -298,6 +308,8 @@
         default => 'Admit Card',
     };
     $selectedProgram = $application->selectedCategory?->name ?? 'Not assigned yet';
+    $displayText = static fn (?string $value, string $fallback = ''): string => trim((string) $value) !== '' ? trim((string) $value) : $fallback;
+    $applicantId = $application->application_id ?: $application->ulid;
 @endphp
 
 <div class="outer-border">
@@ -308,7 +320,7 @@
             @if($logoDataUri)
                 <img src="{{ $logoDataUri }}" alt="BIGM Logo" class="header-logo">
             @else
-                <span style="font-size:12pt;font-weight:bold;letter-spacing:2pt;">BIGM</span>
+                <span style="font-size:12pt;font-weight:bold;letter-spacing:1pt;">BIGM</span>
             @endif
         </div>
         <h1>Bangladesh Institute of Governance and Management</h1>
@@ -317,13 +329,13 @@
 
     {{-- Viva / Program notice band --}}
     @if ($mailType === 'viva_eligibility')
-        <div class="notice-band viva">
+        <div class="notice-band">
             <strong>Viva Eligibility Notice:</strong>
             You are eligible for the viva examination for <strong>{{ $exam?->name ?? 'this exam' }}</strong>.
             Please attend as per schedule and bring your required documents.
         </div>
     @elseif ($mailType === 'program_selection')
-        <div class="notice-band program">
+        <div class="notice-band">
             <strong>Program Selection Notice:</strong>
             Congratulations — you have been selected for
             <strong>{{ $selectedProgram }}</strong>
@@ -333,42 +345,77 @@
 
     {{-- Title tag --}}
     <div class="card-title-row">
-        <span class="card-title-tag">{{ $noticeTitle }} – Admission Test {{ $admissionSession }}</span>
+        <span class="card-title-tag">{{ $noticeTitle }}</span>
+        <div class="card-session">Admission Test {{ $admissionSession }}</div>
     </div>
 
     {{-- Details + Photo --}}
-    <table class="main-table" cellpadding="0" cellspacing="0">
+    <table class="main-table">
         <tr>
             <td class="details-cell">
-                <p class="meta-line"><span class="meta-label">Applicant ID:</span> {{ $application->ulid }}</p>
-                <p class="meta-line"><span class="meta-label">Name:</span> {{ $application->applicant_name ?: 'N/A' }}
-                </p>
-                <p class="meta-line"><span
-                        class="meta-label">Father's Name:</span> {{ data_get($personal, 'father_name', 'N/A') }}</p>
-                <p class="meta-line"><span
-                        class="meta-label">Mother's Name:</span> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
-                <p class="meta-line"><span class="meta-label">Exam:</span> {{ $exam?->name ?? 'N/A' }}</p>
-                <p class="meta-line"><span class="meta-label">Exam Date:</span> {{ $examDateText }}</p>
-                <p class="meta-line"><span class="meta-label">Time:</span> {{ $examTimeText }}</p>
-                <p class="meta-line"><span class="meta-label">Exam Type:</span> {{ $examTypeText }}</p>
-                <p class="meta-line"><span class="meta-label">Duration:</span> {{ $durationText }}</p>
-                <p class="meta-line"><span class="meta-label">Exam Center:</span> {{ $centerText }}</p>
+                <div class="details-panel">
+                    <table class="details-grid">
+                        <tr>
+                            <td class="meta-label">Applicant ID</td>
+                            <td class="meta-value">: {{ $applicantId }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Name</td>
+                            <td class="meta-value">: {{ $displayText($application->applicant_name) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Father's Name</td>
+                            <td class="meta-value">: {{ $displayText(data_get($personal, 'father_name')) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Mother's Name</td>
+                            <td class="meta-value">: {{ $displayText(data_get($personal, 'mother_name')) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Exam</td>
+                            <td class="meta-value">: {{ $displayText($exam?->name) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Exam Date</td>
+                            <td class="meta-value">: {{ $examDateText }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Exam Time</td>
+                            <td class="meta-value">: {{ $examTimeText }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Exam Type</td>
+                            <td class="meta-value">: {{ $examTypeText }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Duration</td>
+                            <td class="meta-value">: {{ $durationText }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Exam Center</td>
+                            <td class="meta-value">: {{ $centerText }}</td>
+                        </tr>
+                    </table>
+                </div>
             </td>
             <td class="photo-cell">
-                <div class="photo-box">
-                    @if($photoDataUri)
-                        <img src="{{ $photoDataUri }}" alt="Photo">
-                    @else
-                        Photo<br>not available
-                    @endif
-                </div>
-                <p class="sig-label">Signature</p>
-                <div class="sig-box">
-                    @if($sigDataUri)
-                        <img src="{{ $sigDataUri }}" alt="Signature">
-                    @else
-                        <span style="font-size:8pt;color:#9ca3af;">N/A</span>
-                    @endif
+                <div class="identity-panel">
+                    <div class="photo-box">
+                        @if($photoDataUri)
+                            <img src="{{ $photoDataUri }}" alt="Photo">
+                        @else
+                            Photo
+                        @endif
+                    </div>
+                    <p class="identity-label">Applicant Photo</p>
+                    <div class="sig-box">
+                        @if($sigDataUri)
+                            <img src="{{ $sigDataUri }}" alt="Signature">
+                        @else
+                            Signature
+                        @endif
+                    </div>
+                    <p class="identity-label">Applicant Signature</p>
                 </div>
             </td>
         </tr>

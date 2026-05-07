@@ -100,6 +100,7 @@ class AdminExamPagesTest extends TestCase
         $response->assertSee('Paid Applicant');
         $response->assertDontSee('Unpaid Applicant');
         $response->assertSee('Paid Applicants');
+        $response->assertSee('Admit Card PDF');
         $response->assertDontSee('Send Email');
     }
 
@@ -123,6 +124,27 @@ class AdminExamPagesTest extends TestCase
         $response->assertOk();
         $response->assertSee('Applicant Details');
         $response->assertSee('Details Candidate');
+    }
+
+    public function test_admin_can_stream_single_applicant_admit_card_pdf(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $application = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'PDF Candidate',
+        ]);
+
+        $response = $this->get(route('admin.applications.admit-card', $application));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
     }
 
     public function test_exam_details_tabs_show_expected_applicant_sets(): void
@@ -639,11 +661,10 @@ class AdminExamPagesTest extends TestCase
         $response->assertOk();
         $response->assertSee('Exam Reports');
         $response->assertSee('Download Attendance Sheet');
-        $response->assertSee('Download Viva List');
+        $response->assertSee('Download Viva Sheet');
         $response->assertSee('Download Gender Report');
         $response->assertSee('Download Employer Report');
         $response->assertSee('Download Choice Report');
-        $response->assertSee('Download Job-Experience Report');
         $response->assertSee('Download Enrolled Students');
         $response->assertSee('Download Program CVs');
     }
@@ -763,7 +784,6 @@ class AdminExamPagesTest extends TestCase
             'admin.exams.reports.gender-wise-applicants',
             'admin.exams.reports.employer-wise',
             'admin.exams.reports.choice-list-wise',
-            'admin.exams.reports.job-experience-wise',
             'admin.exams.reports.enrolled-students',
         ];
 
@@ -795,7 +815,6 @@ class AdminExamPagesTest extends TestCase
             'admin.exams.reports.gender-wise-applicants',
             'admin.exams.reports.employer-wise',
             'admin.exams.reports.choice-list-wise',
-            'admin.exams.reports.job-experience-wise',
             'admin.exams.reports.enrolled-students',
         ];
 
