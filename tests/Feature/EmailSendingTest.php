@@ -192,5 +192,34 @@ class EmailSendingTest extends TestCase
 
         $this->assertNotEmpty($attachments);
     }
+
+    public function test_mail_attachment_uses_redesigned_admit_card_pdf_template(): void
+    {
+        $application = Application::factory()
+            ->for(Exam::factory())
+            ->create([
+                'status' => 'paid',
+                'applicant_name' => 'Styled Applicant',
+                'additional_info' => [
+                    'personal' => [
+                        'father_name' => 'Parent One',
+                        'mother_name' => 'Parent Two',
+                    ],
+                    'uploads' => [],
+                ],
+            ]);
+
+        $html = view('pdf.admit-card', [
+            'application' => $application->load('exam'),
+            'mailType' => 'admit_card',
+        ])->render();
+
+        $this->assertStringContainsString('details-grid', $html);
+        $this->assertStringContainsString('identity-panel', $html);
+        $this->assertStringContainsString('Applicant Photo', $html);
+
+        $mail = new AdmitCardMail($application, 'admit_card');
+        $this->assertNotEmpty($mail->attachments());
+    }
 }
 

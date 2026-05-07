@@ -5,9 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/resources/views/reports/viva-sheet.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bigm_admission" beforeDir="false" afterPath="$PROJECT_DIR$/bigm_admission" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/bigm_admission" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/EmailSendingTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/EmailSendingTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/ReportTablesLayoutTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/ReportTablesLayoutTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

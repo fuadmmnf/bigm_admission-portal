@@ -733,7 +733,7 @@ class AdminExamPagesTest extends TestCase
             'applicant_name' => 'Paid Only Candidate',
         ]);
 
-        $response = $this->get(route('admin.exams.reports.viva-selected-list', $exam));
+        $response = $this->get(route('admin.exams.reports.viva-sheet', $exam));
 
         $response->assertOk();
         $response->assertHeader('content-type', 'application/pdf');
@@ -748,7 +748,7 @@ class AdminExamPagesTest extends TestCase
 
         $exam = Exam::factory()->create(['status' => 'active']);
 
-        $response = $this->get(route('admin.exams.reports.viva-selected-list', $exam));
+        $response = $this->get(route('admin.exams.reports.viva-sheet', $exam));
 
         $response->assertForbidden();
     }

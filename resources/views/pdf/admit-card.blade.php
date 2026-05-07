@@ -102,7 +102,7 @@
         }
 
         .details-panel {
-            border: 1pt solid #d1d5db;
+            border: none;
             padding: 8pt 10pt;
         }
 
@@ -129,18 +129,18 @@
         }
 
         .identity-panel {
-            border: 1pt solid #d1d5db;
+            border: none;
             padding: 8pt 8pt 7pt;
             min-height: 202pt;
         }
 
         .photo-box {
-            width: 94pt;
-            height: 108pt;
+            width: 112pt;
+            height: 136pt;
             border: 1pt solid #9ca3af;
             overflow: hidden;
             text-align: center;
-            line-height: 108pt;
+            line-height: 136pt;
             font-size: 9pt;
             color: #6b7280;
             display: block;
@@ -148,8 +148,8 @@
         }
 
         .photo-box img {
-            width: 94pt;
-            height: 108pt;
+            width: 112pt;
+            height: 136pt;
             object-fit: cover;
             display: block;
         }
@@ -164,12 +164,12 @@
         }
 
         .sig-box {
-            width: 94pt;
-            height: 28pt;
+            width: 112pt;
+            height: 34pt;
             border: 1pt solid #9ca3af;
             overflow: hidden;
             text-align: center;
-            line-height: 28pt;
+            line-height: 34pt;
             font-size: 9pt;
             color: #6b7280;
             display: block;
@@ -177,8 +177,8 @@
         }
 
         .sig-box img {
-            width: 94pt;
-            height: 28pt;
+            width: 112pt;
+            height: 34pt;
             object-fit: contain;
             display: block;
         }

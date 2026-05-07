@@ -72,7 +72,7 @@ class ExamReportController extends Controller
         return $pdf->stream('attendance-list-'.$exam->ulid.'.pdf');
     }
 
-    public function vivaSelectedList(Exam $exam): Response
+    public function vivaSheet(Exam $exam): Response
     {
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED])
@@ -89,7 +89,7 @@ class ExamReportController extends Controller
             ]);
         $applications = $this->attachPhotoDataUris($applications);
 
-        $pdf = Pdf::loadView('reports.viva-selected-list', [
+        $pdf = Pdf::loadView('reports.viva-sheet', [
             'exam' => $exam,
             'applications' => $applications,
             'generatedAt' => now(),
