@@ -54,18 +54,31 @@
         .report-table.viva-table td {
             padding: 3pt 2pt;
             font-size: 8px;
-            width: calc(100% / 11);
         }
 
         .report-table.viva-table th {
-            width: calc(100% / 11);
+            word-break: break-word;
+        }
+
+        .col-name {
+            width: 25%;
         }
 
         .col-exp {
+            width: 6%;
             text-align: center;
         }
 
+        .col-workplace {
+            width: 16%;
+        }
+
+        .col-designation {
+            width: 12%;
+        }
+
         .col-edu {
+            width: 6%;
             text-align: center;
             font-size: 7px;
             padding-left: 1pt !important;
@@ -73,10 +86,12 @@
         }
 
         .col-point {
+            width: 5%;
             text-align: center;
         }
 
         .col-mark {
+            width: 6%;
             text-align: center;
         }
 
@@ -115,7 +130,7 @@
         <tr>
             <th class="col-name">Name</th>
             <th class="col-exp">Exp.</th>
-            <th class="col-work">Workplace</th>
+            <th class="col-workplace">Workplace</th>
             <th class="col-designation">Designation</th>
             <th class="col-edu">SSC</th>
             <th class="col-edu">HSC</th>
@@ -170,9 +185,10 @@
                     trim((string) data_get($education, 'masters.result', '')) !== ''
                     || trim((string) data_get($education, 'masters.subject', '')) !== ''
                     || trim((string) data_get($education, 'masters.institution', '')) !== ''
-                    || trim((string) data_get($education, 'mphil_phd.result', '')) !== ''
                     || trim((string) data_get($education, 'mphil_phd.subject', '')) !== ''
-                    || trim((string) data_get($education, 'mphil_phd.institution', '')) !== '';
+                    || trim((string) data_get($education, 'mphil_phd.institution', '')) !== ''
+                    || trim((string) data_get($education, 'mphil_phd.degree_completion', '')) !== ''
+                    || trim((string) data_get($education, 'mphil_phd.completion_year', '')) !== '';
 
                 $mastersPoint = $mastersPresent ? 2 : 0;
 
@@ -202,11 +218,11 @@
                     {{ data_get($jobExp, 'total_years', '') }}
                 </td>
 
-                <td>
+                <td class="col-workplace">
                     {{ data_get($jobExp, 'current.organization_name', '') }}
                 </td>
 
-                <td>
+                <td class="col-designation">
                     {{ data_get($jobExp, 'current.designation', '') }}
                 </td>
 

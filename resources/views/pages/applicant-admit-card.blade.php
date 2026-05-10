@@ -107,6 +107,7 @@
 
         .right {
             width: 56mm;
+            margin-top: 12px;
         }
 
         .meta-row {
@@ -344,8 +345,9 @@
 
         <div class="details">
             <div class="left">
-                <p class="meta-row"><strong>Applicant ID:</strong> {{ $application->ulid }}</p>
+                <p class="meta-row"><strong>Applicant ID:</strong> {{ $application->application_id ?? $application->ulid }}</p>
                 <p class="meta-row"><strong>Name:</strong> {{ $application->applicant_name ?: 'N/A' }}</p>
+                <p class="meta-row"><strong>Email:</strong> {{ $application->applicant_email ?: 'N/A' }}</p>
                 <p class="meta-row"><strong>Father's Name:</strong> {{ data_get($personal, 'father_name', 'N/A') }}</p>
                 <p class="meta-row"><strong>Mother's Name:</strong> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
                 <p class="meta-row"><strong>Exam Center:</strong> {{ $centerText }}</p>

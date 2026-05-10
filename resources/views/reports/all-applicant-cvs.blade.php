@@ -12,6 +12,39 @@
              letter-spacing: 0.05em; color: #374151; margin: 0 0 5px; }
         p { margin: 0; }
         .cover { padding: 48px 32px; page-break-after: always; }
+        .report-header {
+            text-align: center;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .report-header-logo-wrap { margin-bottom: 4px; }
+        .report-header-logo {
+            width: 54px;
+            height: auto;
+            display: inline-block;
+        }
+        .report-header-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 0.15px;
+        }
+        .report-header-subtitle {
+            margin-top: 2px;
+            font-size: 9.2px;
+            color: #374151;
+        }
+        .report-title-chip {
+            margin-top: 7px;
+            display: inline-block;
+            border: 1px solid #111827;
+            padding: 2px 12px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
         .cover-meta { margin-top: 12px; font-size: 11px; color: #4b5563; line-height: 1.8; }
         .cover-meta strong { color: #111827; }
         .cover-divider { border: none; border-top: 2px solid #6366f1; margin: 16px 0; width: 80px; }
@@ -66,11 +99,29 @@
 
         return sprintf('%s (%s)', $toText($result), $toText($scale));
     };
+
+    $logoDataUri = null;
+    $logoPath = public_path('images/logo.png');
+    if (is_file($logoPath) && is_readable($logoPath)) {
+        $logoDataUri = 'data:image/png;base64,' . base64_encode((string) file_get_contents($logoPath));
+    }
 @endphp
 
 {{-- ── Cover Page ── --}}
 <div class="cover">
-    <h1>Program wise CVs (1st Choice)</h1>
+    <div class="report-header">
+        <div class="report-header-logo-wrap">
+            @if ($logoDataUri)
+                <img src="{{ $logoDataUri }}" alt="BIGM Logo" class="report-header-logo">
+            @else
+                <span style="font-size:12px;font-weight:bold;letter-spacing:1px;">BIGM</span>
+            @endif
+        </div>
+        <p class="report-header-title">Bangladesh Institute of Governance and Management (BIGM)</p>
+        <p class="report-header-subtitle">Curriculum Vitae (CV) Report</p>
+{{--        <span class="report-title-chip">Program wise CVs (1st Choice)</span>--}}
+    </div>
+{{--    <h1>Program wise CVs (1st Choice)</h1>--}}
     <hr class="cover-divider">
     <div class="cover-meta">
         <p><strong>Exam:</strong> {{ $exam->name }}</p>
@@ -99,16 +150,26 @@
     @endphp
 
     <div class="applicant">
+        <div class="report-header">
+            <div class="report-header-logo-wrap">
+                @if ($logoDataUri)
+                    <img src="{{ $logoDataUri }}" alt="BIGM Logo" class="report-header-logo">
+                @else
+                    <span style="font-size:12px;font-weight:bold;letter-spacing:1px;">BIGM</span>
+                @endif
+            </div>
+            <p class="report-header-title">Bangladesh Institute of Governance and Management (BIGM)</p>
+            <p class="report-header-subtitle">Curriculum Vitae (CV) Report</p>
+{{--            <span class="report-title-chip">Program wise CVs (1st Choice)</span>--}}
+        </div>
 
         {{-- Header row: basic info left, photo/signature right --}}
         <table class="layout">
             <tr>
                 <td style="width: 65%; vertical-align: top; padding-right: 12px;">
-                    <h2>{{ $toText($application->applicant_name) }}</h2>
-                    <p class="muted" style="font-size:9.5px; margin-bottom:8px;">
-                        Application ID: {{ $application->ulid }}
-                    </p>
                     <table class="kv">
+                        <tr><td class="k">Application ID</td><td>{{ $application->application_id ?? $application->ulid }}</td></tr>
+                        <tr><td class="k">Name</td><td>{{ $toText($application->applicant_name) }}</td></tr>
                         <tr><td class="k">Email</td><td>{{ $toText($application->applicant_email) }}</td></tr>
                         <tr><td class="k">Phone</td><td>{{ $toText($application->applicant_phone) }}</td></tr>
                         <tr><td class="k">NID / Passport</td><td>{{ $toText($application->applicant_nid) }}</td></tr>
@@ -124,7 +185,7 @@
                         <tr><td class="k">Selected Program / Course</td><td>{{ $toText($application->selectedCategory?->name) }}</td></tr>
                     </table>
                 </td>
-                <td style="width: 35%; vertical-align: top; text-align: center;">
+                <td style="width: 35%; vertical-align: top; text-align: center; padding-top: 6px;">
                     <div class="media-frame">
                         <p class="media-label">Photo</p>
                         @if ($application->photo_data_uri)
@@ -178,12 +239,13 @@
                             $examTitle = trim(($examTitle ?: 'N/A').' – '.data_get($row, 'subject'));
                         }
                         $instituteOrBoard = data_get($row, 'institution') ?: data_get($row, 'education_board');
+                        $resultDisplay = $key === 'mphil_phd' ? 'N/A' : $formatEducationResult($row);
                     @endphp
                     <tr>
                         <td>{{ $label }}</td>
                         <td>{{ $toText($examTitle) }}</td>
                         <td>{{ $toText($instituteOrBoard) }}</td>
-                        <td>{{ $formatEducationResult($row) }}</td>
+                        <td>{{ $resultDisplay }}</td>
                         <td>{{ $toText(data_get($row, 'passing_year')) }}</td>
                     </tr>
                 @endforeach

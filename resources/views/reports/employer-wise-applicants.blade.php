@@ -2,6 +2,37 @@
 
 @section('title', 'Employer Wise Applicant Report')
 @section('report-subtitle', 'Employer Wise Report' . (isset($employerFilter) && $employerFilter ? ' – ' . $employerFilter : ' – All Employers'))
+@section('paper-orientation', 'landscape')
+
+@section('extra-styles')
+    <style>
+
+        .report-table .col-sl {
+            width: 30pt !important;
+            text-align: center;
+        }
+
+        .report-table .col-photo {
+            width: 95pt !important;
+        }
+
+        .report-table .col-name {
+            width: auto !important;
+        }
+
+        .report-table .col-category {
+            width: 80pt !important;
+        }
+
+        .report-table .col-organization {
+            width: 100pt !important;
+        }
+
+        .report-table .col-designation {
+            width: 90pt !important;
+        }
+    </style>
+@endsection
 
 @section('content')
 <div class="report-meta">
@@ -15,10 +46,10 @@
         <tr>
             <th class="col-sl">SL</th>
             <th class="col-photo">Photo / App. ID</th>
-            <th>Applicant Name</th>
-            <th>Current Job Category</th>
-            <th>Current Organization</th>
-            <th>Current Designation</th>
+            <th class="col-name">Applicant Name</th>
+            <th class="col-category">Current Job Category</th>
+            <th class="col-organization">Current Organization</th>
+            <th class="col-designation">Current Designation</th>
         </tr>
     </thead>
     <tbody>
@@ -39,10 +70,10 @@
                     @endif
                     <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
                 </td>
-                <td>{{ $application->applicant_name }}</td>
-                <td>{{ $currentCat }}</td>
-                <td>{{ $currentOrg }}</td>
-                <td>{{ $currentDesig }}</td>
+                <td class="col-name">{{ $application->applicant_name }}</td>
+                <td class="col-category">{{ $currentCat }}</td>
+                <td class="col-organization">{{ $currentOrg }}</td>
+                <td class="col-designation">{{ $currentDesig }}</td>
             </tr>
         @empty
             <tr>

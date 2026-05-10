@@ -68,6 +68,19 @@
             padding: 10pt 12pt 8pt;
         }
 
+        .card-title-main {
+            font-size: 12pt;
+            font-weight: bold;
+            letter-spacing: 0.2pt;
+        }
+
+        .card-title-sub {
+            margin-top: 2pt;
+            font-size: 11pt;
+            font-weight: bold;
+            letter-spacing: 0.4pt;
+        }
+
         .card-title-tag {
             display: inline-block;
             border: 1pt solid #111827;
@@ -95,7 +108,7 @@
         }
 
         .photo-cell {
-            padding: 0 12pt 10pt 4pt;
+            padding: 12pt 12pt 10pt 4pt;
             vertical-align: top;
             width: 30%;
             text-align: center;
@@ -323,7 +336,7 @@
                 <span style="font-size:12pt;font-weight:bold;letter-spacing:1pt;">BIGM</span>
             @endif
         </div>
-        <h1>Bangladesh Institute of Governance and Management</h1>
+        <h1>Bangladesh Institute of Governance and Management (BIGM)</h1>
         <p class="sub">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka – 1207</p>
     </div>
 
@@ -345,7 +358,11 @@
 
     {{-- Title tag --}}
     <div class="card-title-row">
-        <span class="card-title-tag">{{ $noticeTitle }}</span>
+{{--        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>--}}
+        <div class="card-title-sub">Admit Card</div>
+        @if ($mailType !== 'admit_card')
+            <span class="card-title-tag" style="margin-top:4pt;">{{ $noticeTitle }}</span>
+        @endif
 {{--        <div class="card-session">Admission Test {{ $admissionSession }}</div>--}}
     </div>
 
@@ -362,6 +379,10 @@
                         <tr>
                             <td class="meta-label">Name</td>
                             <td class="meta-value">: {{ $displayText($application->applicant_name) }}</td>
+                        </tr>
+                        <tr>
+                            <td class="meta-label">Email</td>
+                            <td class="meta-value">: {{ $displayText($application->applicant_email) }}</td>
                         </tr>
                         <tr>
                             <td class="meta-label">Father's Name</td>

@@ -3,6 +3,29 @@
 @section('title', 'Gender Wise Applicant Report')
 @section('report-subtitle', 'Gender Wise Report' . (isset($genderFilter) && $genderFilter ? ' – ' . $genderFilter : ' – All Genders'))
 
+@section('extra-styles')
+    <style>
+
+        .report-table .col-sl {
+            width: 30pt !important;
+            text-align: center;
+        }
+
+        .report-table .col-photo {
+            width: 95pt !important;
+        }
+
+        .report-table .col-name {
+            width: auto !important;
+        }
+
+        .report-table .col-gender {
+            width: 70pt !important;
+            text-align: center;
+        }
+    </style>
+@endsection
+
 @section('content')
 <div class="report-meta">
     <span><span class="label">Exam:</span> {{ $exam->name }}</span>
@@ -15,8 +38,8 @@
         <tr>
             <th class="col-sl">SL</th>
             <th class="col-photo">Photo / App. ID</th>
-            <th>Applicant Name</th>
-            <th>Gender</th>
+            <th class="col-name">Applicant Name</th>
+            <th class="col-gender">Gender</th>
         </tr>
     </thead>
     <tbody>
@@ -31,8 +54,8 @@
                     @endif
                     <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
                 </td>
-                <td>{{ $application->applicant_name }}</td>
-                <td>{{ ucfirst($application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A')) }}</td>
+                <td class="col-name">{{ $application->applicant_name }}</td>
+                <td class="col-gender">{{ ucfirst($application->gender ?? data_get($application->additional_info, 'personal.gender', 'N/A')) }}</td>
             </tr>
         @empty
             <tr>

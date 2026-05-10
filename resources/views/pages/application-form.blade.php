@@ -53,6 +53,13 @@
         $educationDivisions = $formOptions['education_divisions'] ?? ['First Division', 'Second Division', 'Third Division'];
         $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
         $applicationEndAt = optional($exam->end_date)->format('d M Y, h:i A');
+        $oldMobileDigits = preg_replace('/\D+/', '', (string) old('mobile_number_local', old('mobile_number', '')));
+        if (str_starts_with($oldMobileDigits, '880')) {
+            $oldMobileDigits = substr($oldMobileDigits, 3);
+        }
+        if (str_starts_with($oldMobileDigits, '0')) {
+            $oldMobileDigits = substr($oldMobileDigits, 1);
+        }
 
         // No prefill upload paths — files are always deleted on failed/cancelled payment.
         $existingPhoto     = '';
@@ -130,7 +137,7 @@
                         <li><strong>Personal</strong>: Applicant details, photo, and signature.</li>
                         <li><strong>Address</strong>: Present and permanent address.</li>
                         <li><strong>Education</strong>: SSC, HSC, Graduation, optional Masters, and optional MPhil/PhD details.</li>
-                        <li><strong>Career</strong>: Job experience (current and previous).</li>
+                        <li><strong>Job Experience</strong>: Job experience (current and previous).</li>
                         <li><strong>Course Choice</strong>: 6 program preferences without duplication.</li>
                         <li><strong>Confirm</strong>: Declaration and final submission for payment.</li>
                     </ol>
@@ -220,7 +227,6 @@
                     'hsc' => old('education.hsc.result_type', 'numeric'),
                     'graduation' => old('education.graduation.result_type', 'numeric'),
                     'masters' => old('education.masters.result_type', 'numeric'),
-                    'mphil_phd' => old('education.mphil_phd.result_type', 'numeric'),
                 ]),
             })"
             class="space-y-6"
@@ -302,7 +308,23 @@
 
                     <div>
                         <label for="mobile_number" class="block text-sm font-medium text-gray-700">Mobile Number *</label>
-                        <input id="mobile_number" name="mobile_number" type="text" value="{{ old('mobile_number') }}" class="mt-1 block w-full rounded-md border-gray-300" required>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <span class="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-100 px-3 text-sm text-gray-700">+880</span>
+                            <input
+                                id="mobile_number"
+                                name="mobile_number_local"
+                                type="text"
+                                inputmode="numeric"
+                                pattern="1[0-9]{9}"
+                                maxlength="10"
+                                value="{{ $oldMobileDigits }}"
+                                x-on:input="$event.target.value = ($event.target.value || '').replace(/\D+/g, '').slice(0, 10)"
+                                class="block w-full rounded-r-md border-gray-300"
+                                placeholder="1XXXXXXXXX"
+                                required
+                            >
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">Enter 10 digits only. Country code +880 is added automatically.</p>
                     </div>
 
                     <div>
@@ -683,31 +705,6 @@
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">Subject</label><input name="education[mphil_phd][subject]" type="text" value="{{ old('education.mphil_phd.subject') }}" placeholder="Subject" class="rounded-md border-gray-300 w-full"></div>
                         <div><label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label><input name="education[mphil_phd][institution]" type="text" value="{{ old('education.mphil_phd.institution') }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full"></div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Style</label>
-                            <select name="education[mphil_phd][result_type]" x-model="educationResultTypes.mphil_phd" class="rounded-md border-gray-300 w-full">
-                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
-                                    <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div x-show="educationResultTypes.mphil_phd === 'numeric'" x-cloak>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label>
-                            <input name="education[mphil_phd][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.mphil_phd.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full">
-                        </div>
-                        <div x-show="educationResultTypes.mphil_phd === 'numeric'" x-cloak>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
-                            <input name="education[mphil_phd][result]" type="number" step="0.01" min="0" value="{{ old('education.mphil_phd.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full">
-                        </div>
-                        <div x-show="educationResultTypes.mphil_phd === 'division'" x-cloak>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-                            <select name="education[mphil_phd][division]" class="rounded-md border-gray-300 w-full">
-                                <option value="">Select Division</option>
-                                @foreach ($educationDivisions as $division)
-                                    <option value="{{ $division }}" @selected(old('education.mphil_phd.division') === $division)>{{ $division }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Degree Completion Status</label>
                             <select name="education[mphil_phd][degree_completion]" class="rounded-md border-gray-300 w-full">
                                 <option value="">— Select Status —</option>
@@ -839,10 +836,9 @@
                                     required
                                 >
                                     <option value="">— Select Program —</option>
-                                    <template x-for="program in allPrograms" :key="program">
+                                    <template x-for="program in availableProgramsFor(idx)" :key="program">
                                         <option
                                             :value="program"
-                                            :disabled="courseChoices.includes(program) && courseChoices[idx] !== program"
                                             x-text="program"
                                         ></option>
                                     </template>
@@ -966,7 +962,6 @@
                     hsc: (initialEducationResultTypes && initialEducationResultTypes.hsc) ? initialEducationResultTypes.hsc : 'numeric',
                     graduation: (initialEducationResultTypes && initialEducationResultTypes.graduation) ? initialEducationResultTypes.graduation : 'numeric',
                     masters: (initialEducationResultTypes && initialEducationResultTypes.masters) ? initialEducationResultTypes.masters : 'numeric',
-                    mphil_phd: (initialEducationResultTypes && initialEducationResultTypes.mphil_phd) ? initialEducationResultTypes.mphil_phd : 'numeric',
                 },
                 allPrograms: programs,
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
@@ -997,7 +992,10 @@
                     if (!val) return false;
                     return this.courseChoices.filter(c => c === val).length > 1;
                 },
-                stepTitles: ['Personal', 'Address', 'Education', 'Career', 'Course Choice', 'Confirm'],
+                availableProgramsFor(idx) {
+                    return this.allPrograms.filter((program) => this.courseChoices[idx] === program || !this.courseChoices.includes(program));
+                },
+                stepTitles: ['Personal', 'Address', 'Education', 'Job Experience', 'Course Choice', 'Confirm'],
                 stepErrors: [],
                 init() {
                     this._initComboboxLabels();
@@ -1177,7 +1175,7 @@
                     this.setInputValue('mother_name', 'Test Mother');
                     this.setSelectValue('gender', 'Male');
                     this.setInputValue('national_id_number', '1234567890');
-                    this.setInputValue('mobile_number', '01712345678');
+                    this.setInputValue('mobile_number_local', '1712345678');
                     this.setInputValue('email', 'dev.applicant@example.test');
 
                     this.setInputValue('date_of_birth', '1998-04-15');
@@ -1239,9 +1237,6 @@
                     this.educationResultTypes.masters = 'numeric';
                     this.setInputValue('education[masters][result]', '3.70');
                     this.setInputValue('education[masters][result_scale]', '4.00');
-                    this.setSelectValue('education[mphil_phd][result_type]', 'numeric');
-                    this.educationResultTypes.mphil_phd = 'numeric';
-
                     this.setInputValue('job_experience[total_years]', '3.5');
                     this.setInputValue('job_experience[current][organization_name]', 'Dev Company Ltd.');
                     this.setInputValue('job_experience[current][designation]', 'Software Engineer');
@@ -1438,7 +1433,7 @@
                         req('mother_name',        "Mother's Name");
                         req('national_id_number', 'National ID / Birth Reg. / Passport');
                         req('date_of_birth',      'Date of Birth');
-                        req('mobile_number',      'Mobile Number');
+                        req('mobile_number_local', 'Mobile Number');
                         req('email',              'Email');
                         reqSel('gender', 'Gender');
 
@@ -1523,17 +1518,6 @@
                             this._validateResultVsScale('education[masters][result]', 'education[masters][result_scale]', 'Masters', errors, true);
                         }
 
-                        if (this.educationResultTypes.mphil_phd === 'division') {
-                            const mphilDivision = document.querySelector('[name="education[mphil_phd][division]"]');
-                            const mphilResult = document.querySelector('[name="education[mphil_phd][result]"]')?.value;
-                            const mphilScale = document.querySelector('[name="education[mphil_phd][result_scale]"]')?.value;
-                            if ((mphilResult || mphilScale || mphilDivision?.value) && !mphilDivision?.value) {
-                                errors.push('MPhil / PhD Division is required when Division style is selected.');
-                                this._markInvalid(mphilDivision);
-                            }
-                        } else {
-                            this._validateResultVsScale('education[mphil_phd][result]', 'education[mphil_phd][result_scale]', 'MPhil / PhD', errors, true);
-                        }
                     }
 
                     if (stepNum === 4) {
