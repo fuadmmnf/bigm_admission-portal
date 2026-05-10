@@ -29,9 +29,9 @@ $ordinals = [
     </div>
 
     @if ($group->isEmpty())
-        <p class="muted" style="font-size:10px; margin-bottom:12px;">No applicants with {{ $subject }} as {{ $label }}.</p>
+        <p class="report-note">No applicants with {{ $subject }} as {{ $label }}.</p>
     @else
-        <table class="report-table" style="margin-bottom: 14px;">
+        <table class="report-table section-table">
             <thead>
                 <tr>
                     <th class="col-sl">SL</th>
@@ -68,7 +68,7 @@ $ordinals = [
                         <td>{{ $application->applicant_name }}</td>
                         <td class="col-marks">{{ $application->written_exam_marks ?? '—' }}</td>
                         <td class="col-marks">{{ $application->viva_exam_marks ?? '—' }}</td>
-                        <td style="font-size:9px;">{{ $allChoices ?: '—' }}</td>
+                        <td class="small-cell">{{ $allChoices ?: '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>

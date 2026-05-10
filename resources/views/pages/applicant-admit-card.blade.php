@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admit Card - {{ $application->applicant_name }}</title>
+    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
+    <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         body {
@@ -105,6 +107,7 @@
 
         .right {
             width: 56mm;
+            margin-top: 12px;
         }
 
         .meta-row {
@@ -171,19 +174,6 @@
             letter-spacing: 5px;
             pointer-events: none;
             user-select: none;
-            z-index: 0;
-        }
-
-        .instructions .watermark-ring {
-            position: absolute;
-            left: 50%;
-            top: 47%;
-            transform: translate(-50%, -50%);
-            width: 78%;
-            height: 40%;
-            border: 14px solid rgba(163, 230, 53, 0.18);
-            border-radius: 50%;
-            pointer-events: none;
             z-index: 0;
         }
 
@@ -355,8 +345,9 @@
 
         <div class="details">
             <div class="left">
-                <p class="meta-row"><strong>Applicant ID:</strong> {{ $application->ulid }}</p>
+                <p class="meta-row"><strong>Applicant ID:</strong> {{ $application->application_id ?? $application->ulid }}</p>
                 <p class="meta-row"><strong>Name:</strong> {{ $application->applicant_name ?: 'N/A' }}</p>
+                <p class="meta-row"><strong>Email:</strong> {{ $application->applicant_email ?: 'N/A' }}</p>
                 <p class="meta-row"><strong>Father's Name:</strong> {{ data_get($personal, 'father_name', 'N/A') }}</p>
                 <p class="meta-row"><strong>Mother's Name:</strong> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
                 <p class="meta-row"><strong>Exam Center:</strong> {{ $centerText }}</p>

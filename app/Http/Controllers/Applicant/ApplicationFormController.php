@@ -48,6 +48,8 @@ class ApplicationFormController extends Controller
         abort_unless($this->isExamOpenForApplication($exam), 404);
 
         $validated = $request->validated();
+        $validated['mobile_number'] = '+880' . ($validated['mobile_number_local'] ?? '');
+        unset($validated['mobile_number_local']);
         $validated['education'] = $this->normalizeEducationData($validated['education'] ?? []);
 
         // Block duplicate paid submissions: same email, phone, or NID for the same exam
@@ -197,6 +199,15 @@ class ApplicationFormController extends Controller
             }
 
             $education[$level] = $row;
+        }
+
+        if (isset($education['mphil_phd']) && is_array($education['mphil_phd'])) {
+            unset(
+                $education['mphil_phd']['result_type'],
+                $education['mphil_phd']['result'],
+                $education['mphil_phd']['result_scale'],
+                $education['mphil_phd']['division']
+            );
         }
 
         return $education;

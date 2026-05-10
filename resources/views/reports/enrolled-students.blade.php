@@ -39,7 +39,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="6" class="muted" style="text-align:center;">No enrolled students found for this exam.</td>
+                <td colspan="6" class="empty-row">No enrolled students found for this exam.</td>
             </tr>
         @endforelse
     </tbody>

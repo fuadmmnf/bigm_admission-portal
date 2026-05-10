@@ -104,11 +104,9 @@
         <table class="layout">
             <tr>
                 <td style="width: 65%; vertical-align: top; padding-right: 12px;">
-                    <h2>{{ $toText($application->applicant_name) }}</h2>
-                    <p class="muted" style="font-size:9.5px; margin-bottom:8px;">
-                        Application ID: {{ $application->ulid }}
-                    </p>
                     <table class="kv">
+                        <tr><td class="k">Application ID</td><td>{{ $application->application_id ?? $application->ulid }}</td></tr>
+                        <tr><td class="k">Name</td><td>{{ $toText($application->applicant_name) }}</td></tr>
                         <tr><td class="k">Email</td><td>{{ $toText($application->applicant_email) }}</td></tr>
                         <tr><td class="k">Phone</td><td>{{ $toText($application->applicant_phone) }}</td></tr>
                         <tr><td class="k">NID / Passport</td><td>{{ $toText($application->applicant_nid) }}</td></tr>
@@ -124,7 +122,7 @@
                         <tr><td class="k">Selected Program / Course</td><td>{{ $toText($application->selectedCategory?->name) }}</td></tr>
                     </table>
                 </td>
-                <td style="width: 35%; vertical-align: top; text-align: center;">
+                <td style="width: 35%; vertical-align: top; text-align: center; padding-top: 6px;">
                     <div class="media-frame">
                         <p class="media-label">Photo</p>
                         @if ($application->photo_data_uri)
@@ -178,12 +176,13 @@
                             $examTitle = trim(($examTitle ?: 'N/A').' – '.data_get($row, 'subject'));
                         }
                         $instituteOrBoard = data_get($row, 'institution') ?: data_get($row, 'education_board');
+                        $resultDisplay = $key === 'mphil_phd' ? 'N/A' : $formatEducationResult($row);
                     @endphp
                     <tr>
                         <td>{{ $label }}</td>
                         <td>{{ $toText($examTitle) }}</td>
                         <td>{{ $toText($instituteOrBoard) }}</td>
-                        <td>{{ $formatEducationResult($row) }}</td>
+                        <td>{{ $resultDisplay }}</td>
                         <td>{{ $toText(data_get($row, 'passing_year')) }}</td>
                     </tr>
                 @endforeach

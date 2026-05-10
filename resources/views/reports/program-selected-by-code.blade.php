@@ -48,7 +48,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="8" class="muted" style="text-align:center;">No selected applicants found for this program code.</td>
+                <td colspan="8" class="empty-row">No selected applicants found for this program code.</td>
             </tr>
         @endforelse
     </tbody>

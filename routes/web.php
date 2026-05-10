@@ -84,9 +84,9 @@ Route::middleware([
         ->middleware('role:admin')
         ->name('admin.exams.reports.attendance-list')
         ->whereUlid('exam');
-    Route::get('/admin/exams/{exam}/reports/viva-selected-list', [ExamReportController::class, 'vivaSelectedList'])
+    Route::get('/admin/exams/{exam}/reports/viva-sheet', [ExamReportController::class, 'vivaSheet'])
         ->middleware('role:admin')
-        ->name('admin.exams.reports.viva-selected-list')
+        ->name('admin.exams.reports.viva-sheet')
         ->whereUlid('exam');
     Route::get('/admin/exams/{exam}/reports/gender-wise-applicants', [ExamReportController::class, 'genderWiseApplicants'])
         ->middleware('role:admin')
@@ -103,10 +103,6 @@ Route::middleware([
     Route::get('/admin/exams/{exam}/reports/choice-by-subject', [ExamReportController::class, 'choiceListBySubject'])
         ->middleware('role:admin')
         ->name('admin.exams.reports.choice-by-subject')
-        ->whereUlid('exam');
-    Route::get('/admin/exams/{exam}/reports/job-experience-wise', [ExamReportController::class, 'jobExperienceWiseApplicants'])
-        ->middleware('role:admin')
-        ->name('admin.exams.reports.job-experience-wise')
         ->whereUlid('exam');
     Route::get('/admin/exams/{exam}/reports/enrolled-students', [ExamReportController::class, 'enrolledStudents'])
         ->middleware('role:admin')

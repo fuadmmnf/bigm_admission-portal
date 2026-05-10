@@ -107,7 +107,7 @@ class ApplicationFormTest extends TestCase
             'date_of_birth' => '1997-05-10',
             'age_as_of_reference' => '28 Years, 0 Months',
             'national_id_number' => '19901234567890123',
-            'mobile_number' => '01710000000',
+            'mobile_number_local' => '1710000000',
             'email' => 'rahim@example.com',
             'signature' => UploadedFile::fake()->image('signature.png', 300, 80),
 
@@ -168,9 +168,6 @@ class ApplicationFormTest extends TestCase
                 'mphil_phd' => [
                     'subject' => 'Public Administration',
                     'institution' => 'University of Dhaka',
-                    'result_type' => 'numeric',
-                    'result' => '3.95',
-                    'result_scale' => '4.00',
                     'degree_completion' => 'degree_awarded',
                     'completion_year' => 2023,
                 ],
@@ -225,7 +222,7 @@ class ApplicationFormTest extends TestCase
             'exam_id' => $exam->id,
             'applicant_name' => 'Rahim Uddin',
             'applicant_email' => 'rahim@example.com',
-            'applicant_phone' => '01710000000',
+            'applicant_phone' => '+8801710000000',
             'gender' => 'Male',
             'status' => 'submitted',
         ]);
@@ -244,7 +241,7 @@ class ApplicationFormTest extends TestCase
         $this->assertSame('numeric', data_get($application->additional_info, 'education.hsc.result_type'));
         $this->assertSame('numeric', data_get($application->additional_info, 'education.graduation.result_type'));
         $this->assertSame('numeric', data_get($application->additional_info, 'education.masters.result_type'));
-        $this->assertSame('numeric', data_get($application->additional_info, 'education.mphil_phd.result_type'));
+        $this->assertNull(data_get($application->additional_info, 'education.mphil_phd.result_type'));
     }
 
     public function test_application_form_accepts_division_style_results_for_all_supported_education_levels(): void
@@ -269,7 +266,7 @@ class ApplicationFormTest extends TestCase
             'date_of_birth' => '1998-01-01',
             'age_as_of_reference' => '27 Years, 0 Months',
             'national_id_number' => '1000000000001',
-            'mobile_number' => '01719999999',
+            'mobile_number_local' => '1719999999',
             'email' => 'division@example.test',
             'signature' => UploadedFile::fake()->image('signature.png', 300, 80),
             'present_address' => [
@@ -324,8 +321,6 @@ class ApplicationFormTest extends TestCase
                 'mphil_phd' => [
                     'subject' => 'Economics',
                     'institution' => 'University of Dhaka',
-                    'result_type' => 'division',
-                    'division' => 'First Division',
                     'degree_completion' => 'degree_awarded',
                     'completion_year' => 2022,
                 ],
@@ -361,8 +356,8 @@ class ApplicationFormTest extends TestCase
         $this->assertSame('First Division', data_get($application->additional_info, 'education.graduation.result'));
         $this->assertSame('division', data_get($application->additional_info, 'education.masters.result_type'));
         $this->assertSame('Second Division', data_get($application->additional_info, 'education.masters.result'));
-        $this->assertSame('division', data_get($application->additional_info, 'education.mphil_phd.result_type'));
-        $this->assertSame('First Division', data_get($application->additional_info, 'education.mphil_phd.result'));
+        $this->assertNull(data_get($application->additional_info, 'education.mphil_phd.result_type'));
+        $this->assertNull(data_get($application->additional_info, 'education.mphil_phd.result'));
     }
 }
 

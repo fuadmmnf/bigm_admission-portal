@@ -7,8 +7,9 @@
 @section('extra-styles')
 <style>
     .col-choice { width: 36pt; text-align: center; font-size: 7.5pt; }
-    .col-marks  { width: 34pt; text-align: center; }
-    .col-total  { width: 36pt; text-align: center; font-weight: bold; }
+    .col-marks-stack { width: 62pt; }
+    .marks-stack { font-size: 7.8pt; line-height: 1.25; }
+    .marks-stack .row-label { font-weight: bold; }
 </style>
 @endsection
 
@@ -21,12 +22,9 @@
 <table class="report-table">
     <thead>
         <tr>
-            <th class="col-sl">SL</th>
             <th class="col-photo">Photo / App. ID</th>
             <th>Applicant Name</th>
-            <th class="col-marks">Written</th>
-            <th class="col-marks">Viva</th>
-            <th class="col-total">Total</th>
+            <th class="col-marks-stack">Marks</th>
             <th class="col-choice">1st Choice</th>
             <th class="col-choice">2nd Choice</th>
             <th class="col-choice">3rd Choice</th>
@@ -36,7 +34,7 @@
         </tr>
     </thead>
     <tbody>
-        @forelse ($applications as $index => $application)
+        @forelse ($applications as $application)
             @php
                 $pref = data_get($application->additional_info, 'course_preferences', []);
                 $written = (float) ($application->written_exam_marks ?? 0);
@@ -47,7 +45,6 @@
                 $shorten = fn(string $name): string => strlen($name) > 18 ? substr($name, 0, 17) . '…' : $name;
             @endphp
             <tr>
-                <td class="col-sl">{{ $index + 1 }}</td>
                 <td class="col-photo photo-with-id">
                     @if($application->photo_data_uri)
                         <img src="{{ $application->photo_data_uri }}" alt="Photo" class="report-photo">
@@ -57,9 +54,13 @@
                     <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
                 </td>
                 <td>{{ $application->applicant_name }}</td>
-                <td class="col-marks">{{ $application->written_exam_marks ?? '—' }}</td>
-                <td class="col-marks">{{ $application->viva_exam_marks ?? '—' }}</td>
-                <td class="col-total">{{ $total }}</td>
+                <td class="col-marks-stack">
+                    <div class="marks-stack">
+                        <div><span class="row-label">Written:</span> {{ $application->written_exam_marks ?? '—' }}</div>
+                        <div><span class="row-label">Viva:</span> {{ $application->viva_exam_marks ?? '—' }}</div>
+                        <div><span class="row-label">Total:</span> {{ $total }}</div>
+                    </div>
+                </td>
                 <td class="col-choice">{{ $shorten(data_get($pref, 'first_choice',  '—')) }}</td>
                 <td class="col-choice">{{ $shorten(data_get($pref, 'second_choice', '—')) }}</td>
                 <td class="col-choice">{{ $shorten(data_get($pref, 'third_choice',  '—')) }}</td>
@@ -69,7 +70,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="12" class="muted" style="text-align:center;">No paid applicants found.</td>
+                <td colspan="9" class="empty-row">No paid applicants found.</td>
             </tr>
         @endforelse
     </tbody>
