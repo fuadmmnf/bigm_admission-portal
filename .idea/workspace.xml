@@ -5,17 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/resources/views/reports/viva-sheet.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/bigm_admission" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-reports.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Applicant/ApplicationFormController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Applicant/ApplicationFormController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-application-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-application-show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/applicant-admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/applicant-admit-card.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/viva-selected-list.blade.php" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/AdminExamPagesTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Feature/EmailSendingTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/EmailSendingTest.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Feature/ReportTablesLayoutTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/ReportTablesLayoutTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/all-applicant-cvs.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/all-applicant-cvs.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/attendance-list.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/attendance-list.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/reports/viva-sheet.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/viva-sheet.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/ApplicationFormTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/ApplicationFormTest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Payment/PaymentGatewayIntegrationRegressionTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Payment/PaymentGatewayIntegrationRegressionTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -222,29 +224,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "copilot.sensitive.allow.copilot_create_file.files_outside_workspace": "true",
-    "copilot.sensitive.allow.copilot_read_file.files_outside_workspace": "true",
-    "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpCreateRemoteSdkForm": "Docker",
-    "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpInplaceEditRemoteSdkForm": "Docker",
-    "git-widget-placeholder": "dev",
-    "last_opened_file_path": "/Users/fuad/misc/projects/innovatech/bigm/admission_portal/storage/app/public",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "reference.webide.settings.project.settings.php",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;copilot.sensitive.allow.copilot_create_file.files_outside_workspace&quot;: &quot;true&quot;,
+    &quot;copilot.sensitive.allow.copilot_read_file.files_outside_workspace&quot;: &quot;true&quot;,
+    &quot;credentialsType com.jetbrains.php.remote.interpreter.ui.PhpCreateRemoteSdkForm&quot;: &quot;Docker&quot;,
+    &quot;credentialsType com.jetbrains.php.remote.interpreter.ui.PhpInplaceEditRemoteSdkForm&quot;: &quot;Docker&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/fuad/misc/projects/innovatech/bigm/admission_portal/storage/app/public&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;reference.webide.settings.project.settings.php&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/storage/app/public" />
@@ -278,6 +280,7 @@
       <workItem from="1777515783024" duration="31883000" />
       <workItem from="1777728802866" duration="13748000" />
       <workItem from="1778024939757" duration="12501000" />
+      <workItem from="1778393249866" duration="2078000" />
     </task>
     <servers />
   </component>

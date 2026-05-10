@@ -8,6 +8,23 @@ use Illuminate\Validation\Validator;
 
 class StoreApplicationRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $mobileLocal = preg_replace('/\D+/', '', (string) $this->input('mobile_number_local', ''));
+
+        if (str_starts_with($mobileLocal, '880')) {
+            $mobileLocal = substr($mobileLocal, 3);
+        }
+
+        if (str_starts_with($mobileLocal, '0')) {
+            $mobileLocal = substr($mobileLocal, 1);
+        }
+
+        $this->merge([
+            'mobile_number_local' => $mobileLocal,
+        ]);
+    }
+
     public function authorize(): bool
     {
         return true;
@@ -31,7 +48,7 @@ class StoreApplicationRequest extends FormRequest
             'age_as_of_reference' => ['nullable', 'string', 'max:120'],
             'gender' => ['required', 'string', Rule::in($genders)],
             'national_id_number' => ['required', 'string', 'max:120'],
-            'mobile_number' => ['required', 'string', 'max:30'],
+            'mobile_number_local' => ['required', 'regex:/^1\d{9}$/'],
             'email' => ['required', 'email', 'max:255'],
             'signature' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:1024', 'dimensions:width=300,height=80'],
 
@@ -103,31 +120,6 @@ class StoreApplicationRequest extends FormRequest
 
             'education.mphil_phd.subject' => ['nullable', 'string', 'max:120'],
             'education.mphil_phd.institution' => ['nullable', 'string', 'max:255'],
-            'education.mphil_phd.result_type' => ['nullable', 'string', Rule::in($resultTypes)],
-            'education.mphil_phd.result' => [
-                'nullable', 'numeric', 'min:0',
-                Rule::requiredIf(function () {
-                    return $this->input('education.mphil_phd.result_type') === 'numeric'
-                        && (filled($this->input('education.mphil_phd.subject'))
-                            || filled($this->input('education.mphil_phd.institution')));
-                }),
-            ],
-            'education.mphil_phd.result_scale' => [
-                'nullable', 'numeric', 'min:0',
-                Rule::requiredIf(function () {
-                    return $this->input('education.mphil_phd.result_type') === 'numeric'
-                        && (filled($this->input('education.mphil_phd.subject'))
-                            || filled($this->input('education.mphil_phd.institution')));
-                }),
-            ],
-            'education.mphil_phd.division' => [
-                'nullable', 'string', Rule::in($divisions),
-                Rule::requiredIf(function () {
-                    return $this->input('education.mphil_phd.result_type') === 'division'
-                        && (filled($this->input('education.mphil_phd.subject'))
-                            || filled($this->input('education.mphil_phd.institution')));
-                }),
-            ],
             'education.mphil_phd.degree_completion' => ['nullable', 'string', Rule::in(['degree_awarded', 'ongoing'])],
             'education.mphil_phd.completion_year' => ['nullable', 'integer', 'between:1950,' . $currentYear],
 
@@ -167,7 +159,6 @@ class StoreApplicationRequest extends FormRequest
             $this->validateResultNotExceedsScale($validator, 'hsc');
             $this->validateResultNotExceedsScale($validator, 'graduation');
             $this->validateResultNotExceedsScale($validator, 'masters');
-            $this->validateResultNotExceedsScale($validator, 'mphil_phd');
         });
     }
 

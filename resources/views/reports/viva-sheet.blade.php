@@ -170,9 +170,10 @@
                     trim((string) data_get($education, 'masters.result', '')) !== ''
                     || trim((string) data_get($education, 'masters.subject', '')) !== ''
                     || trim((string) data_get($education, 'masters.institution', '')) !== ''
-                    || trim((string) data_get($education, 'mphil_phd.result', '')) !== ''
                     || trim((string) data_get($education, 'mphil_phd.subject', '')) !== ''
-                    || trim((string) data_get($education, 'mphil_phd.institution', '')) !== '';
+                    || trim((string) data_get($education, 'mphil_phd.institution', '')) !== ''
+                    || trim((string) data_get($education, 'mphil_phd.degree_completion', '')) !== ''
+                    || trim((string) data_get($education, 'mphil_phd.completion_year', '')) !== '';
 
                 $mastersPoint = $mastersPresent ? 2 : 0;
 

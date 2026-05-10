@@ -225,11 +225,18 @@ class PaymentController extends Controller
     private function buildPrefillInput(Application $application): array
     {
         $info = $application->additional_info ?? [];
+        $phoneDigits = preg_replace('/\D+/', '', (string) $application->applicant_phone);
+        if (str_starts_with($phoneDigits, '880')) {
+            $phoneDigits = substr($phoneDigits, 3);
+        }
+        if (str_starts_with($phoneDigits, '0')) {
+            $phoneDigits = substr($phoneDigits, 1);
+        }
 
         return [
             'applicant_name' => $application->applicant_name,
             'email' => $application->applicant_email,
-            'mobile_number' => $application->applicant_phone,
+            'mobile_number_local' => $phoneDigits,
             'national_id_number' => $application->applicant_nid,
             'gender' => $application->gender,
             'father_name' => data_get($info, 'personal.father_name'),

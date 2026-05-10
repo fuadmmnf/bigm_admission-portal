@@ -235,12 +235,13 @@
                                         $examTitle = trim(($examTitle ?: 'N/A').' - '.data_get($row, 'subject'));
                                     }
                                     $instituteOrBoard = data_get($row, 'institution') ?: data_get($row, 'education_board');
+                                    $resultDisplay = $key === 'mphil_phd' ? 'N/A' : $formatEducationResult($row);
                                 @endphp
                                 <tr>
                                     <td class="px-3 py-3 font-medium text-gray-900">{{ $label }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $toText($examTitle) }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $toText($instituteOrBoard) }}</td>
-                                    <td class="px-3 py-3 text-gray-700">{{ $formatEducationResult($row) }}</td>
+                                    <td class="px-3 py-3 text-gray-700">{{ $resultDisplay }}</td>
                                     <td class="px-3 py-3 text-gray-700">{{ $toText(data_get($row, 'passing_year')) }}</td>
                                     <td class="px-3 py-3">
                                         <div class="flex flex-wrap items-center gap-2">

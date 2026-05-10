@@ -5,71 +5,40 @@
 
 @section('extra-styles')
 <style>
-    .attendance-grid {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-        table-layout: fixed;
+    .attendance-table td {
+        vertical-align: middle !important;
+        font-size: 9pt;
     }
-    .attendance-grid td {
-        width: 50%;
-        vertical-align: top;
-        padding: 5pt;
-    }
-    .att-card {
-        padding: 2pt;
-        min-height: 122pt;
-    }
-    .att-body {
-        display: table;
-        width: 100%;
-    }
-    .att-photo,
-    .att-info {
-        display: table-cell;
-        vertical-align: top;
-    }
-    .att-photo {
-        width: 62pt;
+    .col-sign {
+        width: 120pt;
     }
     .att-photo-box {
-        width: 56pt;
-        height: 68pt;
+        width: 50pt;
+        height: 60pt;
         border: 1px solid #111827;
         text-align: center;
-        line-height: 68pt;
-        font-size: 7.5pt;
+        line-height: 60pt;
+        font-size: 7pt;
         color: #6b7280;
         overflow: hidden;
+        margin: 0 auto;
     }
     .att-photo-box img {
-        width: 56pt;
-        height: 68pt;
+        width: 50pt;
+        height: 60pt;
         object-fit: cover;
         display: block;
     }
-    .att-info {
-        padding-left: 6pt;
-        font-size: 9pt;
-        line-height: 1.45;
-    }
-    .att-row {
-        margin-bottom: 2pt;
-    }
-    .att-label {
-        font-weight: bold;
-    }
-    .att-sign {
-        margin-top: 10pt;
-    }
     .att-sign-box {
-        height: 26pt;
+        height: 28pt;
         border: 1px solid #111827;
         margin-bottom: 2pt;
+        background: #fff;
     }
     .att-sign-label {
         text-align: center;
-        font-size: 8pt;
+        font-size: 7.5pt;
+        color: #374151;
         line-height: 1.2;
     }
 
@@ -128,45 +97,38 @@
 @section('content')
 <div class="report-meta"><span><span class="label">Exam:</span> {{ $exam->name }}</span></div>
 
-@php
-    $rows = $applications->values()->chunk(2);
-@endphp
-
 @if ($applications->isEmpty())
     <div class="empty-row" style="margin-top: 24px;">No paid applicants found for this exam.</div>
 @else
-    <table class="attendance-grid">
-        <tbody>
-        @foreach ($rows as $pair)
+    <table class="report-table attendance-table">
+        <thead>
             <tr>
-                @foreach ($pair as $application)
-                    <td>
-                        <div class="att-card">
-                            <div class="att-body">
-                                <div class="att-photo">
-                                    <div class="att-photo-box">
-                                        @if($application->photo_data_uri)
-                                            <img src="{{ $application->photo_data_uri }}" alt="Photo">
-                                        @else
-                                            Photo
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="att-info">
-                                    <div class="att-row"><span class="att-label">App. ID:</span> {{ $application->application_id ?? $application->ulid }}</div>
-                                    <div class="att-row"><span class="att-label">Name:</span> {{ $application->applicant_name }}</div>
-                                </div>
-                            </div>
-                            <div class="att-sign">
-                                <div class="att-sign-box"></div>
-                                <div class="att-sign-label">Applicant's Signature</div>
-                            </div>
-                        </div>
-                    </td>
-                @endforeach
-                @if($pair->count() === 1)
-                    <td></td>
-                @endif
+                <th class="col-sl">SL No</th>
+                <th>Application ID</th>
+                <th>Name</th>
+                <th class="col-photo">Photo</th>
+                <th class="col-sign">Signature</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach ($applications as $index => $application)
+            <tr>
+                <td class="col-sl">{{ $index + 1 }}</td>
+                <td>{{ $application->application_id ?? $application->ulid }}</td>
+                <td>{{ $application->applicant_name }}</td>
+                <td class="col-photo">
+                    <div class="att-photo-box">
+                        @if($application->photo_data_uri)
+                            <img src="{{ $application->photo_data_uri }}" alt="Photo">
+                        @else
+                            Photo
+                        @endif
+                    </div>
+                </td>
+                <td class="col-sign">
+                    <div class="att-sign-box"></div>
+                    <div class="att-sign-label">Applicant Signature</div>
+                </td>
             </tr>
         @endforeach
         </tbody>
