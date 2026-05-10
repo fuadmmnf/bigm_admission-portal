@@ -3,6 +3,33 @@
 @section('title', 'Choice List By Subject – ' . $subject)
 @section('report-subtitle', 'Choice List By Subject – ' . $subject)
 
+@section('extra-styles')
+    <style>
+
+        .section-table .col-sl {
+            width: 30pt !important;
+            text-align: center;
+        }
+
+        .section-table .col-photo {
+            width: 95pt !important;
+        }
+
+        .section-table .col-name {
+            width: auto !important;
+        }
+
+        .section-table .col-marks {
+            width: 50pt !important;
+            text-align: center;
+        }
+
+        .section-table .col-choices {
+            width: 150pt !important;
+        }
+    </style>
+@endsection
+
 @section('content')
 <div class="report-meta">
     <span><span class="label">Exam:</span> {{ $exam->name }}</span>
@@ -36,10 +63,10 @@ $ordinals = [
                 <tr>
                     <th class="col-sl">SL</th>
                     <th class="col-photo">Photo / App. ID</th>
-                    <th>Applicant Name</th>
+                    <th class="col-name">Applicant Name</th>
                     <th class="col-marks">Written</th>
                     <th class="col-marks">Viva</th>
-                    <th>All 6 Choices</th>
+                    <th class="col-choices">All 6 Choices</th>
                 </tr>
             </thead>
             <tbody>
@@ -65,10 +92,10 @@ $ordinals = [
                             @endif
                             <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
                         </td>
-                        <td>{{ $application->applicant_name }}</td>
+                        <td class="col-name">{{ $application->applicant_name }}</td>
                         <td class="col-marks">{{ $application->written_exam_marks ?? '—' }}</td>
                         <td class="col-marks">{{ $application->viva_exam_marks ?? '—' }}</td>
-                        <td class="small-cell">{{ $allChoices ?: '—' }}</td>
+                        <td class="col-choices">{{ $allChoices ?: '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>

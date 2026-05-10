@@ -358,7 +358,7 @@
 
     {{-- Title tag --}}
     <div class="card-title-row">
-        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>
+{{--        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>--}}
         <div class="card-title-sub">Admit Card</div>
         @if ($mailType !== 'admit_card')
             <span class="card-title-tag" style="margin-top:4pt;">{{ $noticeTitle }}</span>

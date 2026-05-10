@@ -108,13 +108,22 @@
             /* top/bottom margin is handled by @page */
         }
 
-        /* ── Shared table styles ────────────────────────────── */
+        /* ── Shared table styles ────────────────────────── */
         table.report-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
             font-size: 10px;
             table-layout: fixed;
+        }
+
+        /* Allow flexible layout for reports that override with table-layout: auto */
+        table.report-table.auto-layout {
+            table-layout: auto !important;
+        }
+
+        table.section-table.auto-layout {
+            table-layout: auto !important;
         }
 
         table.report-table th,
@@ -249,6 +258,48 @@
 
         .section-table {
             margin-bottom: 14px;
+        }
+
+        /* ── Report Header (reusable across all reports) ────── */
+        .report-header {
+            text-align: center;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .report-header-logo-wrap {
+            margin-bottom: 4px;
+        }
+
+        .report-header-logo {
+            width: 54px;
+            height: auto;
+            display: inline-block;
+        }
+
+        .report-header-title {
+            font-size: 13px;
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 0.15px;
+        }
+
+        .report-header-subtitle {
+            margin-top: 2px;
+            font-size: 9.2px;
+            color: #374151;
+        }
+
+        .report-title-chip {
+            margin-top: 7px;
+            display: inline-block;
+            border: 1px solid #111827;
+            padding: 2px 12px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
         }
     </style>
     @yield('extra-styles')

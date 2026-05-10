@@ -6,8 +6,17 @@
 
 @section('extra-styles')
 <style>
-    .col-choice { width: 36pt; text-align: center; font-size: 7.5pt; }
-    .col-marks-stack { width: 62pt; }
+
+    .report-table .col-photo {
+        width: 95pt !important;
+    }
+
+    .report-table .col-name {
+        width: auto !important;
+    }
+
+    .col-choice { width: 36pt !important; text-align: center; font-size: 7.5pt; }
+    .col-marks-stack { width: 62pt !important; }
     .marks-stack { font-size: 7.8pt; line-height: 1.25; }
     .marks-stack .row-label { font-weight: bold; }
 </style>
@@ -23,7 +32,7 @@
     <thead>
         <tr>
             <th class="col-photo">Photo / App. ID</th>
-            <th>Applicant Name</th>
+            <th class="col-name">Applicant Name</th>
             <th class="col-marks-stack">Marks</th>
             <th class="col-choice">1st Choice</th>
             <th class="col-choice">2nd Choice</th>
@@ -53,7 +62,7 @@
                     @endif
                     <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
                 </td>
-                <td>{{ $application->applicant_name }}</td>
+                <td class="col-name">{{ $application->applicant_name }}</td>
                 <td class="col-marks-stack">
                     <div class="marks-stack">
                         <div><span class="row-label">Written:</span> {{ $application->written_exam_marks ?? '—' }}</div>
