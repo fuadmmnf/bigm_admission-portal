@@ -140,6 +140,10 @@ class ApplicationFormController extends Controller
                     'education' => $validated['education'],
                     'job_experience' => $validated['job_experience'],
                     'course_preferences' => $validated['course_preferences'],
+                    'confirmations' => [
+                        'declaration' => (bool) ($validated['declaration'] ?? false),
+                        'contact_info_confirmation' => (bool) ($validated['contact_info_confirmation'] ?? false),
+                    ],
                     'uploads' => [
                         'applicant_photo' => $applicantPhotoPath,
                         'signature' => $signaturePath,
