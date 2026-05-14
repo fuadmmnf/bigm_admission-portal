@@ -134,10 +134,10 @@ class PaymentController extends Controller
             'ipn_url' => $baseUrl . '/payment/ipn',
         ];
 
-        Log::info('SSLCommerz initiate request', [
-            'application' => $application->ulid,
-            'tran_id' => $transactionId,
-        ]);
+//        Log::info('SSLCommerz initiate request', [
+//            'application' => $application->ulid,
+//            'tran_id' => $transactionId,
+//        ]);
 
         try {
             $response = $this->sslcommerz->initiate($paymentData);
@@ -177,7 +177,7 @@ class PaymentController extends Controller
         $tranId = $request->input('tran_id');
         $valId = $request->input('val_id');
 
-        Log::info('Payment success callback', compact('tranId', 'valId'));
+//        Log::info('Payment success callback', compact('tranId', 'valId'));
 
         $application = Application::withTrashed()->where('transaction_id', $tranId)->first();
         if ($application?->trashed()) {
@@ -313,10 +313,10 @@ class PaymentController extends Controller
             }
         }
 
-        Log::info('Deleted uploaded files for application', [
-            'application_ulid' => $application->ulid,
-            'count' => count($paths),
-        ]);
+//        Log::info('Deleted uploaded files for application', [
+//            'application_ulid' => $application->ulid,
+//            'count' => count($paths),
+//        ]);
     }
 
     /**
@@ -326,7 +326,7 @@ class PaymentController extends Controller
     {
         $tranId = $request->input('tran_id');
 
-        Log::info('Payment failed callback', compact('tranId'));
+//        Log::info('Payment failed callback', compact('tranId'));
 
         $application = Application::where('transaction_id', $tranId)->first();
 
@@ -359,7 +359,8 @@ class PaymentController extends Controller
     {
         $tranId = $request->input('tran_id');
 
-        Log::info('Payment cancel callback', compact('tranId'));
+//        Log::info('Payment cancel callback', compact('tranId'));
+
 
         $application = Application::where('transaction_id', $tranId)->first();
 
@@ -393,7 +394,7 @@ class PaymentController extends Controller
         $tranId = $request->input('tran_id');
         $valId = $request->input('val_id');
 
-        Log::info('IPN received', compact('tranId', 'valId'));
+//        Log::info('IPN received', compact('tranId', 'valId'));
 
         $application = Application::where('transaction_id', $tranId)->first();
 

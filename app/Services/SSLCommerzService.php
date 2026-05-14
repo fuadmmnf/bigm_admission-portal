@@ -48,10 +48,10 @@ class SSLCommerzService
             // DO NOT set callback URLs here (controller owns them)
         ], $data);
 
-        Log::info('SSLCommerz initiate request', [
-            'tran_id' => $data['tran_id'] ?? null,
-            'amount'   => $data['total_amount'] ?? null,
-        ]);
+//        Log::info('SSLCommerz initiate request', [
+//            'tran_id' => $data['tran_id'] ?? null,
+//            'amount'   => $data['total_amount'] ?? null,
+//        ]);
 
         $response = Http::asForm()
             ->timeout(30)
@@ -61,9 +61,9 @@ class SSLCommerzService
 
         $json = $response->json();
 
-        Log::info('SSLCommerz initiate response', [
-            'response' => $json,
-        ]);
+//        Log::info('SSLCommerz initiate response', [
+//            'response' => $json,
+//        ]);
 
         // Strict validation of gateway response
         if (
@@ -107,10 +107,10 @@ class SSLCommerzService
 
         $json = $response->json();
 
-        Log::info('SSLCommerz validation response', [
-            'val_id' => $valId,
-            'response' => $json,
-        ]);
+//        Log::info('SSLCommerz validation response', [
+//            'val_id' => $valId,
+//            'response' => $json,
+//        ]);
 
         return $json;
     }
