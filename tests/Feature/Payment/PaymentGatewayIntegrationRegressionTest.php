@@ -233,6 +233,7 @@ class PaymentGatewayIntegrationRegressionTest extends TestCase
             ],
 
             'declaration' => '1',
+            'contact_info_confirmation' => '1',
         ];
     }
 }

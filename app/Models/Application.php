@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Mail\ApplicationConfirmationMail;
 use App\Models\Concerns\HasPublicUlid;
 use Database\Factories\ApplicationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Activitylog\Models\Concerns\LogsActivity;
 use Spatie\Activitylog\Support\LogOptions;
 
@@ -121,6 +123,20 @@ class Application extends Model
             'application_ulid' => $this->ulid,
             'application_id'   => $this->application_id,
         ]);
+
+        // Send application confirmation email to the applicant
+        if (filled($this->applicant_email)) {
+            try {
+                Mail::to($this->applicant_email)
+                    ->queue(new ApplicationConfirmationMail($this->fresh()));
+            } catch (\Throwable $e) {
+                Log::error('Failed to queue ApplicationConfirmationMail', [
+                    'application_ulid' => $this->ulid,
+                    'email'            => $this->applicant_email,
+                    'error'            => $e->getMessage(),
+                ]);
+            }
+        }
     }
 
 

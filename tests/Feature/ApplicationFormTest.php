@@ -208,6 +208,7 @@ class ApplicationFormTest extends TestCase
             ],
 
             'declaration' => '1',
+            'contact_info_confirmation' => '1',
         ];
 
         $response = $this->post(route('applications.store', $exam), $payload);
@@ -228,6 +229,8 @@ class ApplicationFormTest extends TestCase
         ]);
 
         $this->assertSame('homepage_stepper_form', $application->additional_info['source']);
+        $this->assertTrue((bool) data_get($application->additional_info, 'confirmations.declaration'));
+        $this->assertTrue((bool) data_get($application->additional_info, 'confirmations.contact_info_confirmation'));
         $this->assertSame('Male', data_get($application->additional_info, 'personal.gender'));
         $this->assertSame('Dhaka', $application->additional_info['present_address']['district_name']);
         $this->assertSame('Dhanmondi', $application->additional_info['present_address']['upazila_name']);
@@ -340,6 +343,7 @@ class ApplicationFormTest extends TestCase
                 'sixth_choice' => 'PPFM',
             ],
             'declaration' => '1',
+            'contact_info_confirmation' => '1',
         ];
 
         $response = $this->post(route('applications.store', $exam), $payload);

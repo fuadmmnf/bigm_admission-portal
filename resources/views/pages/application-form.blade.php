@@ -95,7 +95,7 @@
                 break;
             }
 
-            if (in_array($errorKey, ['declaration'], true)) {
+            if (in_array($errorKey, ['declaration', 'contact_info_confirmation'], true)) {
                 $initialStep = 6;
                 break;
             }
@@ -865,6 +865,13 @@
                         I hereby declare that all information provided in this application is true and complete to the best of my knowledge.
                     </span>
                 </label>
+
+                <label class="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                    <input name="contact_info_confirmation" type="checkbox" value="1" class="mt-1 rounded border-gray-300" {{ old('contact_info_confirmation') ? 'checked' : '' }} required>
+                    <span class="text-sm text-gray-700">
+                        I confirm that my name, email, and phone number are correct. I understand BIGM will use these for important mailing and administrative communication.
+                    </span>
+                </label>
             </section>
 
             {{-- Per-step client-side validation errors --}}
@@ -1260,6 +1267,12 @@
                         declaration.dispatchEvent(new Event('change', { bubbles: true }));
                     }
 
+                    const contactConfirm = document.querySelector('input[name="contact_info_confirmation"]');
+                    if (contactConfirm) {
+                        contactConfirm.checked = true;
+                        contactConfirm.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+
                     const [photoFile, signatureFile] = await Promise.all([
                         this.createDummyImageFile(300, 300, 'dev-photo.png', 'DEV PHOTO 300x300', '#4f46e5'),
                         this.createDummyImageFile(300, 80, 'dev-signature.png', 'DEV SIGN 300x80', '#0f766e'),
@@ -1544,6 +1557,20 @@
                                 lbl.style.borderColor = '#ef4444';
                                 lbl.style.boxShadow = '0 0 0 2px #fecaca';
                                 decl.addEventListener('change', () => {
+                                    lbl.style.borderColor = '';
+                                    lbl.style.boxShadow = '';
+                                }, { once: true });
+                            }
+                        }
+
+                        const contactConfirm = document.querySelector('[name="contact_info_confirmation"]');
+                        if (!contactConfirm?.checked) {
+                            errors.push('Please confirm your name, email, and phone number before proceeding to payment.');
+                            const lbl = contactConfirm?.closest('label');
+                            if (lbl) {
+                                lbl.style.borderColor = '#ef4444';
+                                lbl.style.boxShadow = '0 0 0 2px #fecaca';
+                                contactConfirm.addEventListener('change', () => {
                                     lbl.style.borderColor = '';
                                     lbl.style.boxShadow = '';
                                 }, { once: true });

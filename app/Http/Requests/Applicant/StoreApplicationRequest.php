@@ -149,6 +149,14 @@ class StoreApplicationRequest extends FormRequest
             'course_preferences.sixth_choice' => ['required', 'string', Rule::in($programs), 'different:course_preferences.first_choice', 'different:course_preferences.second_choice', 'different:course_preferences.third_choice', 'different:course_preferences.fourth_choice', 'different:course_preferences.fifth_choice'],
 
             'declaration' => ['accepted'],
+            'contact_info_confirmation' => ['accepted'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'contact_info_confirmation.accepted' => 'Please confirm your name, email, and phone number before proceeding to payment.',
         ];
     }
 
