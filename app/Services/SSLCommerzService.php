@@ -92,15 +92,13 @@ class SSLCommerzService
             throw new RuntimeException('Missing val_id for validation');
         }
 
-
-        $response = Http::asForm()
-            ->timeout(30)
-            ->post($this->validateUrl, [
-                'val_id'        => $valId,
-                'store_id'      => $this->storeId,
-                'store_passwd'  => $this->storePassword,
-                'v'             => 1,
-                'format'        => 'json',
+        $response = Http::timeout(30)
+            ->get($this->validateUrl, [
+                'val_id'       => $valId,
+                'store_id'     => $this->storeId,
+                'store_passwd' => $this->storePassword,
+                'v'            => 1,
+                'format'       => 'json',
             ]);
 
         $this->throwOnHttpError($response, 'Validation');
@@ -114,7 +112,6 @@ class SSLCommerzService
 
         return $json;
     }
-
     /**
      * Verify payment authenticity and integrity
      */
@@ -122,20 +119,45 @@ class SSLCommerzService
     {
         $status = $validation['status'] ?? null;
 
-        if (!in_array($status, ['VALID', 'VALIDATED'])) {
+        // Accept both VALID and VALIDATED states
+        if (!in_array($status, ['VALID', 'VALIDATED', 'COMPLETED'], true)) {
+            Log::warning('Invalid payment status', [
+                'expected' => ['VALID', 'VALIDATED', 'COMPLETED'],
+                'received' => $status,
+                'full_response' => $validation,
+            ]);
             return false;
         }
 
-        if (($validation['tran_id'] ?? null) !== $transactionId) {
+        // Check transaction ID matches exactly
+        $validationTranId = $validation['tran_id'] ?? null;
+        if ($validationTranId !== $transactionId) {
+            Log::error('Transaction ID mismatch', [
+                'expected' => $transactionId,
+                'received' => $validationTranId,
+            ]);
             return false;
         }
 
+        // Verify amount matches (with 1 unit tolerance for rounding)
         $paidAmount = (float) ($validation['amount'] ?? 0);
+        $expectedAmount = (float) $amount;
+        $difference = abs($paidAmount - $expectedAmount);
 
-        // Allow small rounding tolerance
-        if (abs($paidAmount - (float) $amount) > 1) {
+        if ($difference > 1) {
+            Log::error('Amount mismatch', [
+                'expected' => $expectedAmount,
+                'received' => $paidAmount,
+                'difference' => $difference,
+            ]);
             return false;
         }
+
+        Log::info('Payment validation successful', [
+            'tran_id' => $transactionId,
+            'status' => $status,
+            'amount' => $paidAmount,
+        ]);
 
         return true;
     }

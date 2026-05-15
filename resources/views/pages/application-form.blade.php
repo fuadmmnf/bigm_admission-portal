@@ -198,6 +198,7 @@
             action="{{ route('applications.store', $exam) }}"
             method="POST"
             enctype="multipart/form-data"
+            x-on:submit.prevent="submitWithUniquenessCheck($event)"
             x-data="applicationStepper({
                 initialStep: {{ $initialStep }},
                 totalSteps: 6,
@@ -330,6 +331,19 @@
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700">Email *</label>
                         <input id="email" name="email" type="email" value="{{ old('email') }}" class="mt-1 block w-full rounded-md border-gray-300" required>
+                    </div>
+
+                    <!-- User Uniqueness Check Alert -->
+                    <div id="uniquenesAlert" x-show="showUniquenessAlert" x-cloak class="rounded-lg border-l-4 border-red-400 bg-red-50 p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-semibold text-red-800">Duplicate Application Found</h3>
+                                <p class="text-sm text-red-700 mt-1" x-text="uniquenessMessage"></p>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
@@ -899,17 +913,27 @@
                         type="button"
                         x-show="step < totalSteps"
                         x-on:click="next()"
-                        class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                        :disabled="isCheckingUniqueness"
+                        class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                        Next Step
+                        <svg x-show="isCheckingUniqueness" x-cloak class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        <span x-text="isCheckingUniqueness ? 'Checking...' : 'Next Step'"></span>
                     </button>
 
                     <button
                         type="submit"
                         x-show="step === totalSteps"
-                        class="inline-flex items-center rounded-md border border-transparent bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                        :disabled="isCheckingUniqueness"
+                        class="inline-flex items-center rounded-md border border-transparent bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                        Submit & Proceed to Payment
+                        <svg x-show="isCheckingUniqueness" x-cloak class="mr-2 h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        <span x-text="isCheckingUniqueness ? 'Checking...' : 'Submit & Proceed to Payment'"></span>
                     </button>
                 </div>
             </div>
@@ -971,6 +995,9 @@
                     masters: (initialEducationResultTypes && initialEducationResultTypes.masters) ? initialEducationResultTypes.masters : 'numeric',
                 },
                 allPrograms: programs,
+                showUniquenessAlert: false,
+                uniquenessMessage: '',
+                isCheckingUniqueness: false,
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
                     ? initialCourseChoices.map(v => v ?? '')
                     : ['', '', '', '', '', ''],
@@ -1374,13 +1401,78 @@
                         this.permanentUpazilaText = '';
                     }
                 },
-                next() {
+                async checkUserUniqueness() {
+                    const email = document.getElementById('email')?.value?.trim();
+                    const phoneLocal = document.getElementById('mobile_number')?.value?.trim();
+
+                    // Reset alert if either field is empty
+                    if (!email || !phoneLocal) {
+                        this.showUniquenessAlert = false;
+                        this.uniquenessMessage = '';
+                        return true;
+                    }
+
+                    // Normalize phone to +880 format
+                    const normalizedPhone = '+880' + phoneLocal;
+
+                    if (this.isCheckingUniqueness) {
+                        return true;
+                    }
+
+                    this.isCheckingUniqueness = true;
+
+                    try {
+                        const params = new URLSearchParams({
+                            email: email,
+                            phone: normalizedPhone,
+                        });
+
+                        const response = await fetch(`{{ route('applications.check-uniqueness', $exam) }}?${params.toString()}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        const data = await response.json();
+
+                        if (data.isDuplicate) {
+                            this.showUniquenessAlert = true;
+                            this.uniquenessMessage = data.message;
+                            return false;
+                        } else {
+                            this.showUniquenessAlert = false;
+                            this.uniquenessMessage = '';
+                            return true;
+                        }
+                    } catch (error) {
+                        console.error('Uniqueness check failed:', error);
+                        this.showUniquenessAlert = false;
+                        this.uniquenessMessage = '';
+                        // Fail open here; backend store() still enforces duplicate blocking.
+                        return true;
+                    } finally {
+                        this.isCheckingUniqueness = false;
+                    }
+                },
+                async next() {
                     const errors = this.validateStep(this.step);
                     if (errors.length > 0) {
                         this.stepErrors = errors;
                         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return;
                     }
+
+                    if (this.step === 1) {
+                        const canProceed = await this.checkUserUniqueness();
+                        if (!canProceed) {
+                            this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                            return;
+                        }
+                    }
+
                     this.stepErrors = [];
                     if (this.step < this.totalSteps) {
                         this.step += 1;
@@ -1394,7 +1486,7 @@
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                 },
-                goTo(targetStep) {
+                async goTo(targetStep) {
                     if (targetStep < this.step) {
                         // Always allow stepping backward
                         this.step = targetStep;
@@ -1410,10 +1502,41 @@
                             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                             return;
                         }
+
+                        if (s === 1) {
+                            const canProceed = await this.checkUserUniqueness();
+                            if (!canProceed) {
+                                this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
+                                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                                return;
+                            }
+                        }
                     }
                     this.stepErrors = [];
                     this.step = targetStep;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                async submitWithUniquenessCheck(event) {
+                    if (this.step !== this.totalSteps) {
+                        return;
+                    }
+
+                    const errors = this.validateStep(this.step);
+                    if (errors.length > 0) {
+                        this.stepErrors = errors;
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        return;
+                    }
+
+                    const canSubmit = await this.checkUserUniqueness();
+                    if (!canSubmit) {
+                        this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                        return;
+                    }
+
+                    this.stepErrors = [];
+                    event.target.submit();
                 },
                 validateStep(stepNum) {
                     const errors = [];

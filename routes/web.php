@@ -32,6 +32,7 @@ Route::get('/media/public/{path}', function (string $path) {
 
 Route::get('/apply/{exam:ulid}', [ApplicationFormController::class, 'create'])->name('applications.create');
 Route::post('/apply/{exam:ulid}', [ApplicationFormController::class, 'store'])->name('applications.store');
+Route::get('/apply/{exam:ulid}/check-uniqueness', [ApplicationFormController::class, 'checkUserUniqueness'])->name('applications.check-uniqueness');
 
 Volt::route('/admin/login', 'admin-login')->name('admin-login')->middleware('guest');
 

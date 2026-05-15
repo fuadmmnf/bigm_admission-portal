@@ -177,38 +177,71 @@ class PaymentController extends Controller
         $tranId = $request->input('tran_id');
         $valId = $request->input('val_id');
 
-        Log::info('Payment success callback', compact('tranId', 'valId'));
+        Log::info('Payment success callback', [
+            'tran_id' => $tranId,
+            'val_id' => $valId,
+            'all_params' => $request->all(),
+            'mode' => $this->isSandboxMode() ? 'sandbox' : 'production',
+        ]);
 
         $application = Application::withTrashed()->where('transaction_id', $tranId)->first();
         if ($application?->trashed()) {
             $application->restore();
         }
         if (!$application) {
+            Log::error('Application not found for transaction', ['tran_id' => $tranId]);
             return view('pages.payment-failed', ['error' => 'Invalid transaction']);
         }
 
         if ($application->status === 'paid') {
+            Log::info('Application already paid', ['application_id' => $application->id]);
             return view('pages.payment-success', ['application' => $application->ulid]);
         }
 
         try {
             $validation = $this->sslcommerz->validate($valId);
+            Log::info('Validation response received', [
+                'status' => $validation['status'] ?? null,
+                'amount' => $validation['amount'] ?? null,
+                'tran_id' => $validation['tran_id'] ?? null,
+            ]);
         } catch (RuntimeException $e) {
+            Log::error('Validation exception', [
+                'error' => $e->getMessage(),
+                'val_id' => $valId,
+                'application_id' => $application->id,
+            ]);
+
             if ($this->isSandboxMode()) {
                 return $this->handleSandboxFallback($request, $application);
             }
-            Log::error('Validation failed', ['val_id' => $valId]);
 
-            return view('pages.payment-failed', ['error' => 'Validation failed']);
+            // In production, keep application pending and wait for IPN confirmation.
+            $application->update(['status' => 'pending']);
+            return view('pages.payment-pending', [
+                'message' => 'Your payment is being confirmed. Please wait...',
+                'application' => $application->ulid,
+            ]);
         }
 
         if ($this->sslcommerz->isPaymentValid($validation, $tranId, $application->payment_amount)) {
             $application->markAsPaid($tranId, $validation);
+            $request->session()->forget('active_payment_application_ulid');
+
+            Log::info('Payment confirmed', ['application_id' => $application->id]);
 
             return view('pages.payment-success', [
                 'application' => $application->ulid
             ]);
         }
+
+        Log::error('Payment validation failed', [
+            'validation' => $validation,
+            'tran_id' => $tranId,
+            'expected_amount' => $application->payment_amount,
+            'received_amount' => $validation['amount'] ?? null,
+            'validation_status' => $validation['status'] ?? null,
+        ]);
 
         $application->update(['status' => 'failed']);
 
@@ -393,24 +426,52 @@ class PaymentController extends Controller
         $tranId = $request->input('tran_id');
         $valId = $request->input('val_id');
 
-        Log::info('IPN received', compact('tranId', 'valId'));
+        Log::info('IPN received', [
+            'tran_id' => $tranId,
+            'val_id' => $valId,
+            'all_params' => $request->all(),
+        ]);
 
         $application = Application::where('transaction_id', $tranId)->first();
 
-        if (!$application || $application->status === 'paid') {
+        if (!$application) {
+            Log::warning('IPN: Application not found', ['tran_id' => $tranId]);
             return response()->json(['status' => 'ignored']);
+        }
+
+        if ($application->status === 'paid') {
+            Log::info('IPN: Already paid', ['application_id' => $application->id]);
+            return response()->json(['status' => 'already_paid']);
         }
 
         try {
             $validation = $this->sslcommerz->validate($valId);
+            Log::info('IPN: Validation response received', [
+                'status' => $validation['status'] ?? null,
+                'amount' => $validation['amount'] ?? null,
+            ]);
         } catch (RuntimeException $e) {
+            Log::error('IPN: Validation failed', [
+                'error' => $e->getMessage(),
+                'val_id' => $valId,
+                'application_id' => $application->id,
+            ]);
             return response()->json(['status' => 'error'], 500);
         }
 
         if ($this->sslcommerz->isPaymentValid($validation, $tranId, $application->payment_amount)) {
             $application->markAsPaid($tranId, $validation);
+            Log::info('IPN: Payment confirmed and marked as paid', ['application_id' => $application->id]);
             return response()->json(['status' => 'success']);
         }
+
+        Log::error('IPN: Payment validation failed', [
+            'validation' => $validation,
+            'tran_id' => $tranId,
+            'expected_amount' => $application->payment_amount,
+            'received_amount' => $validation['amount'] ?? null,
+            'validation_status' => $validation['status'] ?? null,
+        ]);
 
         $application->update(['status' => 'failed']);
 

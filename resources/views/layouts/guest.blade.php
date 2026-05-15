@@ -22,7 +22,11 @@
     </head>
     <body>
         <div class="font-sans text-gray-900 antialiased">
-            {{ $slot }}
+            @if (isset($slot))
+                {{ $slot }}
+            @else
+                @yield('content')
+            @endif
         </div>
 
         @livewireScripts

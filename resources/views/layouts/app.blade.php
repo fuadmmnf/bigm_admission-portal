@@ -28,15 +28,21 @@
 
         <div class="min-h-screen bg-gray-100 flex flex-col">
             <!-- Navbar -->
-            <nav class="bg-white border-b border-gray-200">
-                @livewire('navigation-menu')
-            </nav>
+            @auth
+                <nav class="bg-white border-b border-gray-200">
+                    @livewire('navigation-menu')
+                </nav>
+            @endauth
 
             <!-- Page Heading -->
-            @if (isset($header))
+            @if (isset($header) || View::hasSection('header'))
                 <header class="bg-white shadow">
                     <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
+                        @if (isset($header))
+                            {{ $header }}
+                        @else
+                            @yield('header')
+                        @endif
                     </div>
                 </header>
             @endif
@@ -44,7 +50,11 @@
             <!-- Page Content -->
             <main class="flex-1 overflow-y-auto py-4">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {{ $slot }}
+                    @if (isset($slot))
+                        {{ $slot }}
+                    @else
+                        @yield('content')
+                    @endif
                 </div>
             </main>
         </div>
