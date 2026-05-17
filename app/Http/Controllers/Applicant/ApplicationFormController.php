@@ -38,9 +38,9 @@ class ApplicationFormController extends Controller
             ->get(['id', 'name']);
 
         $upazilas = Category::query()
-            ->where('type', 'upazila')
+            ->whereIn('type', ['upazila', 'thana'])
             ->orderBy('name')
-            ->get(['id', 'name', 'parent_id']);
+            ->get(['id', 'name', 'parent_id', 'type']);
 
         return view('pages.application-form', [
             'exam' => $exam,
@@ -267,7 +267,7 @@ class ApplicationFormController extends Controller
             return response()->json([
                 'status' => 'duplicate',
                 'isDuplicate' => true,
-                'message' => 'You have already successfully applied and paid for this exam. Your existing application (ID: ' . $duplicateApplication->application_id . ') is active.',
+                'message' => 'You have already successfully applied and paid for this exam. Your existing application is active.',
                 'applicationId' => $duplicateApplication->application_id,
                 'existingApplicationEmail' => $duplicateApplication->applicant_email,
                 'existingApplicationPhone' => $duplicateApplication->applicant_phone,

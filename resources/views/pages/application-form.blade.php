@@ -49,6 +49,7 @@
         $photoRules = $uploadRules['photo'] ?? [];
         $signatureRules = $uploadRules['signature'] ?? [];
         $certificateRules = $uploadRules['certificate_pdf'] ?? [];
+        $applicationFee = (float) config('sslcommerz.default_amount', 0);
         $educationResultTypes = $formOptions['education_result_types'] ?? ['numeric' => 'GPA/CGPA', 'division' => 'Division'];
         $educationDivisions = $formOptions['education_divisions'] ?? ['First Division', 'Second Division', 'Third Division'];
         $applicationStartAt = optional($exam->start_date)->format('d M Y, h:i A');
@@ -119,6 +120,13 @@
                     <p class="mt-1 text-indigo-800">
                         Start: <strong>{{ $applicationStartAt ?? 'Immediately' }}</strong><br>
                         End: <strong>{{ $applicationEndAt ?? 'Until exam closes' }}</strong>
+                    </p>
+                </div>
+
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                    <p class="font-semibold text-emerald-900">Payment Information</p>
+                    <p class="mt-1 text-emerald-800">
+                        Application Fee: <strong>BDT {{ number_format($applicationFee, 2) }}</strong>
                     </p>
                 </div>
 
@@ -432,11 +440,11 @@
                                             type="button"
                                             class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
                                             :class="presentUpazilaId === String(upazila.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
-                                            x-on:mousedown.prevent="presentUpazilaId = String(upazila.id); presentUpazilaText = upazila.name; presentUpazilaOpen = false; if (sameAsPresentAddress) syncPermanentFromPresent()"
-                                            x-text="upazila.name"
+                                            x-on:mousedown.prevent="presentUpazilaId = String(upazila.id); presentUpazilaText = locationLabel(upazila); presentUpazilaOpen = false; if (sameAsPresentAddress) syncPermanentFromPresent()"
+                                            x-text="locationLabel(upazila)"
                                         ></button>
                                     </template>
-                                    <div x-show="filteredUpazilas(presentDistrictId, presentUpazilaText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No upazilas found</div>
+                                    <div x-show="filteredUpazilas(presentDistrictId, presentUpazilaText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No upazila/thana found</div>
                                 </div>
                                 <input type="hidden" name="present_address[upazila_id]" :value="presentUpazilaId">
                             </div>
@@ -518,11 +526,11 @@
                                             type="button"
                                             class="block w-full text-left px-3 py-2 text-sm hover:bg-indigo-50"
                                             :class="permanentUpazilaId === String(upazila.id) ? 'bg-indigo-100 font-semibold text-indigo-700' : 'text-gray-700'"
-                                            x-on:mousedown.prevent="permanentUpazilaId = String(upazila.id); permanentUpazilaText = upazila.name; permanentUpazilaOpen = false"
-                                            x-text="upazila.name"
+                                            x-on:mousedown.prevent="permanentUpazilaId = String(upazila.id); permanentUpazilaText = locationLabel(upazila); permanentUpazilaOpen = false"
+                                            x-text="locationLabel(upazila)"
                                         ></button>
                                     </template>
-                                    <div x-show="filteredUpazilas(permanentDistrictId, permanentUpazilaText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No upazilas found</div>
+                                    <div x-show="filteredUpazilas(permanentDistrictId, permanentUpazilaText).length === 0" class="px-3 py-2 text-sm text-gray-400 italic">No upazila/thana found</div>
                                 </div>
                                 <input type="hidden" name="permanent_address[upazila_id]" :value="permanentUpazilaId">
                             </div>
@@ -1062,7 +1070,7 @@
                     }
                     if (this.presentUpazilaId) {
                         const u = this.upazilas.find(u => String(u.id) === this.presentUpazilaId);
-                        if (u) this.presentUpazilaText = u.name;
+                        if (u) this.presentUpazilaText = this.locationLabel(u);
                     }
                     if (this.permanentDistrictId) {
                         const d = this.districts.find(d => String(d.id) === this.permanentDistrictId);
@@ -1070,7 +1078,7 @@
                     }
                     if (this.permanentUpazilaId) {
                         const u = this.upazilas.find(u => String(u.id) === this.permanentUpazilaId);
-                        if (u) this.permanentUpazilaText = u.name;
+                        if (u) this.permanentUpazilaText = this.locationLabel(u);
                     }
                 },
                 restoreLabel(fieldType) {
@@ -1079,13 +1087,13 @@
                         this.presentDistrictText = d ? d.name : '';
                     } else if (fieldType === 'presentUpazila') {
                         const u = this.upazilas.find(u => String(u.id) === this.presentUpazilaId);
-                        this.presentUpazilaText = u ? u.name : '';
+                        this.presentUpazilaText = u ? this.locationLabel(u) : '';
                     } else if (fieldType === 'permanentDistrict') {
                         const d = this.districts.find(d => String(d.id) === this.permanentDistrictId);
                         this.permanentDistrictText = d ? d.name : '';
                     } else if (fieldType === 'permanentUpazila') {
                         const u = this.upazilas.find(u => String(u.id) === this.permanentUpazilaId);
-                        this.permanentUpazilaText = u ? u.name : '';
+                        this.permanentUpazilaText = u ? this.locationLabel(u) : '';
                     }
                 },
                 closeAddressDropdowns() {
@@ -1224,7 +1232,7 @@
                         const presentUpazila = this.upazilas.find((u) => String(u.parent_id) === String(presentDistrict.id));
                         if (presentUpazila) {
                             this.presentUpazilaId = String(presentUpazila.id);
-                            this.presentUpazilaText = presentUpazila.name;
+                            this.presentUpazilaText = this.locationLabel(presentUpazila);
                         }
                     }
 
@@ -1237,7 +1245,7 @@
                         const permanentUpazila = this.upazilas.find((u) => String(u.parent_id) === String(permanentDistrict.id));
                         if (permanentUpazila) {
                             this.permanentUpazilaId = String(permanentUpazila.id);
-                            this.permanentUpazilaText = permanentUpazila.name;
+                            this.permanentUpazilaText = this.locationLabel(permanentUpazila);
                         }
                     }
 
@@ -1385,7 +1393,22 @@
 
                     return this.upazilas
                         .filter((upazila) => String(upazila.parent_id) === String(districtId))
-                        .filter((upazila) => !needle || upazila.name.toLowerCase().includes(needle));
+                        .filter((upazila) => {
+                            if (!needle) {
+                                return true;
+                            }
+
+                            const typeLabel = upazila.type === 'thana' ? 'thana' : 'upazila';
+                            return upazila.name.toLowerCase().includes(needle) || typeLabel.includes(needle);
+                        });
+                },
+                locationLabel(location) {
+                    if (!location) {
+                        return '';
+                    }
+
+                    const suffix = location.type === 'thana' ? 'Thana' : 'Upazila';
+                    return `${location.name} (${suffix})`;
                 },
                 onDistrictChange(addressType) {
                     if (addressType === 'present') {

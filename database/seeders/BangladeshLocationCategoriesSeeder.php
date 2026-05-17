@@ -13,6 +13,7 @@ class BangladeshLocationCategoriesSeeder extends Seeder
         $divisions = require database_path('seeders/data/bangladesh_divisions.php');
         $districts = require database_path('seeders/data/bangladesh_districts.php');
         $upazilas = require database_path('seeders/data/bangladesh_upazilas.php');
+        $thanas = require database_path('seeders/data/bangladesh_thanas.php');
 
         $districtsByDivision = [];
         foreach ($districts as $district) {
@@ -24,10 +25,16 @@ class BangladeshLocationCategoriesSeeder extends Seeder
             $upazilasByDistrict[$upazila['district_source_id']][] = $upazila;
         }
 
+        $thanasByDistrict = [];
+        foreach ($thanas as $thana) {
+            $thanasByDistrict[$thana['district_source_id']][] = $thana;
+        }
+
         $bounds = [
             'division' => [],
             'district' => [],
             'upazila' => [],
+            'thana' => [],
         ];
 
         $cursor = 1;
@@ -45,6 +52,14 @@ class BangladeshLocationCategoriesSeeder extends Seeder
                     ];
                 }
 
+                foreach ($thanasByDistrict[$district['source_id']] ?? [] as $thana) {
+                    $thanaLeft = $cursor++;
+                    $bounds['thana'][$thana['source_id']] = [
+                        'left' => $thanaLeft,
+                        'right' => $cursor++,
+                    ];
+                }
+
                 $bounds['district'][$district['source_id']] = [
                     'left' => $districtLeft,
                     'right' => $cursor++,
@@ -57,11 +72,11 @@ class BangladeshLocationCategoriesSeeder extends Seeder
             ];
         }
 
-        DB::transaction(function () use ($divisions, $districts, $upazilas, $bounds): void {
+        DB::transaction(function () use ($divisions, $districts, $upazilas, $thanas, $bounds): void {
             $now = now();
 
             DB::table('categories')
-                ->whereIn('type', ['division', 'district', 'upazila'])
+                ->whereIn('type', ['division', 'district', 'upazila', 'thana'])
                 ->delete();
 
             $divisionIds = [];
@@ -122,6 +137,26 @@ class BangladeshLocationCategoriesSeeder extends Seeder
                     '_lft' => $bounds['upazila'][$upazila['source_id']]['left'],
                     '_rgt' => $bounds['upazila'][$upazila['source_id']]['right'],
                     'parent_id' => $districtIds[$upazila['district_source_id']],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+
+            foreach ($thanas as $thana) {
+                DB::table('categories')->insert([
+                    'ulid' => (string) Str::ulid(),
+                    'name' => $thana['name'],
+                    'type' => 'thana',
+                    'additional_info' => json_encode([
+                        'source_id' => $thana['source_id'],
+                        'district_source_id' => $thana['district_source_id'],
+                        'bn_name' => $thana['bn_name'],
+                        'legacy_name' => $thana['legacy_name'],
+                        'url' => $thana['url'],
+                    ], JSON_UNESCAPED_UNICODE),
+                    '_lft' => $bounds['thana'][$thana['source_id']]['left'],
+                    '_rgt' => $bounds['thana'][$thana['source_id']]['right'],
+                    'parent_id' => $districtIds[$thana['district_source_id']],
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);

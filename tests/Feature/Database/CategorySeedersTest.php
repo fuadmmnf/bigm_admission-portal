@@ -46,6 +46,7 @@ class CategorySeedersTest extends TestCase
         $this->assertSame(8, Category::query()->where('type', 'division')->count());
         $this->assertSame(64, Category::query()->where('type', 'district')->count());
         $this->assertSame(495, Category::query()->where('type', 'upazila')->count());
+        $this->assertSame(26, Category::query()->where('type', 'thana')->count());
 
         $chattogram = Category::query()
             ->where('type', 'division')
@@ -62,8 +63,19 @@ class CategorySeedersTest extends TestCase
             ->where('name', 'Debidwar')
             ->firstOrFail();
 
+        $dhaka = Category::query()
+            ->where('type', 'district')
+            ->where('name', 'Dhaka')
+            ->firstOrFail();
+
+        $motijheelThana = Category::query()
+            ->where('type', 'thana')
+            ->where('name', 'Motijheel Thana')
+            ->firstOrFail();
+
         $this->assertSame($chattogram->id, $cumilla->parent_id);
         $this->assertSame($cumilla->id, $debidwar->parent_id);
+        $this->assertSame($dhaka->id, $motijheelThana->parent_id);
     }
 
     public function test_location_seeders_store_legacy_names_for_form_compatibility(): void

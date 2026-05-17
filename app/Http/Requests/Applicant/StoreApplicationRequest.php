@@ -58,7 +58,7 @@ class StoreApplicationRequest extends FormRequest
                 'integer',
                 Rule::exists('categories', 'id')->where(function ($query): void {
                     $query
-                        ->where('type', 'upazila')
+                        ->whereIn('type', ['upazila', 'thana'])
                         ->where('parent_id', $this->integer('present_address.district_id'));
                 }),
             ],
@@ -72,7 +72,7 @@ class StoreApplicationRequest extends FormRequest
                 'integer',
                 Rule::exists('categories', 'id')->where(function ($query): void {
                     $query
-                        ->where('type', 'upazila')
+                        ->whereIn('type', ['upazila', 'thana'])
                         ->where('parent_id', $this->integer('permanent_address.district_id'));
                 }),
             ],

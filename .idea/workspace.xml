@@ -5,15 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/resources/views/pages/payment-pending.blade.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/database/seeders/data/bangladesh_thanas.php" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tests/Feature/HomePageTest.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Applicant/ApplicationFormController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Applicant/ApplicationFormController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Payment/PaymentController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Services/SSLCommerzService.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Services/SSLCommerzService.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/layouts/app.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/layouts/guest.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/layouts/guest.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/HomeController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Requests/Applicant/StoreApplicationRequest.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database/seeders/BangladeshLocationCategoriesSeeder.php" beforeDir="false" afterPath="$PROJECT_DIR$/database/seeders/BangladeshLocationCategoriesSeeder.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/application-form.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/Feature/Database/CategorySeedersTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Database/CategorySeedersTest.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,6 +28,41 @@
   <component name="ComposerSettings" synchronizationState="SYNCHRONIZE">
     <pharConfigPath>$PROJECT_DIR$/composer.json</pharConfigPath>
     <execution />
+  </component>
+  <component name="CopilotChats">
+    <option name="panelChat">
+      <chat>
+        <option name="activeSessionId" value="e72ab5c4-c483-467e-b827-e5be2f7d700e" />
+        <option name="sessions">
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="9b193e04-f04d-46f8-868d-80fc4886a834" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="status" value="Processing" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="e35238e2-c357-47f2-949e-d082d0f2cb68" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+          <session>
+            <option name="chatType" value="PANEL" />
+            <option name="id" value="e72ab5c4-c483-467e-b827-e5be2f7d700e" />
+            <option name="modeId" value="Agent" />
+            <option name="modelType" value="builtin_family" />
+            <option name="modelValue" value="auto" />
+            <option name="targetType" value="LOCAL" />
+          </session>
+        </option>
+        <option name="type" value="PANEL" />
+      </chat>
+    </option>
   </component>
   <component name="CopilotPersistence">
     <persistenceIdMap>
@@ -66,7 +101,7 @@
     &quot;accountId&quot;: &quot;01511ea2-1fd2-4c00-841c-e87e665f4b60&quot;
   }
 }</component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="bigm_admission-workspace:latest">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="dk-workspace:latest">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/guzzle" />
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/promises" />
@@ -277,6 +312,8 @@
       <workItem from="1777728802866" duration="13748000" />
       <workItem from="1778024939757" duration="12501000" />
       <workItem from="1778858514534" duration="3576000" />
+      <workItem from="1779010787355" duration="2446000" />
+      <workItem from="1779027362331" duration="1542000" />
     </task>
     <servers />
   </component>

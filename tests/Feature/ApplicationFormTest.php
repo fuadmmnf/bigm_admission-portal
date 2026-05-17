@@ -28,6 +28,7 @@ class ApplicationFormTest extends TestCase
         $response->assertSee('Admission Application Form');
         $response->assertSee($exam->name);
         $response->assertSee('Read Before You Start Application');
+        $response->assertSeeText('Payment Information');
         $response->assertSee('If payment fails or is cancelled, the submitted application will be deleted.');
     }
 
