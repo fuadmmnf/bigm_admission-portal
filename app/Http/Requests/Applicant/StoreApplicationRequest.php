@@ -128,7 +128,7 @@ class StoreApplicationRequest extends FormRequest
             'education_documents.graduation.certificate' => ['required', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
             'education_documents.masters.certificate' => ['nullable', 'file', 'mimes:pdf', 'max:'.$certificateMaxKb],
 
-            'job_experience.total_years' => ['required', 'numeric', 'min:0', 'max:60'],
+            'job_experience.total_years' => ['nullable', 'numeric', 'gt:0', 'max:60'],
             'job_experience.current.job_category' => ['nullable', 'string', 'max:120'],
             'job_experience.current.organization_name' => ['nullable', 'string', 'max:255'],
             'job_experience.current.designation' => ['nullable', 'string', 'max:255'],
@@ -157,6 +157,7 @@ class StoreApplicationRequest extends FormRequest
     {
         return [
             'contact_info_confirmation.accepted' => 'Please confirm your name, email, and phone number before proceeding to payment.',
+            'job_experience.total_years.gt' => 'Total job experience must be greater than 0.',
         ];
     }
 

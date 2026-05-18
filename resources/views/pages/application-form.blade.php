@@ -235,7 +235,7 @@
                     'ssc' => old('education.ssc.result_type', 'numeric'),
                     'hsc' => old('education.hsc.result_type', 'numeric'),
                     'graduation' => old('education.graduation.result_type', 'numeric'),
-                    'masters' => old('education.masters.result_type', 'numeric'),
+                    'masters' => old('education.masters.result_type', ''),
                 ]),
             })"
             class="space-y-6"
@@ -688,6 +688,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Result Style</label>
                             <select name="education[masters][result_type]" x-model="educationResultTypes.masters" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Result Style</option>
                                 @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
                                     <option value="{{ $resultTypeKey }}">{{ $resultTypeLabel }}</option>
                                 @endforeach
@@ -746,8 +747,8 @@
                     <legend class="px-2 text-sm font-semibold text-gray-700">Job Experience</legend>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Total Job Experience (Years) *</label>
-                        <input name="job_experience[total_years]" type="number" step="0.1" value="{{ old('job_experience.total_years') }}" placeholder="Total Job Experience (Years)" class="rounded-md border-gray-300 w-full" required>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Total Job Experience (Years)</label>
+                        <input name="job_experience[total_years]" type="number" step="0.1" value="{{ old('job_experience.total_years') }}" placeholder="Total Job Experience (Years)" class="rounded-md border-gray-300 w-full">
                     </div>
 
                     <h3 class="text-sm font-semibold text-gray-700 pt-2">Current Job (If Applicable)</h3>

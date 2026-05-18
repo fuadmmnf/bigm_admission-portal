@@ -364,5 +364,131 @@ class ApplicationFormTest extends TestCase
         $this->assertNull(data_get($application->additional_info, 'education.mphil_phd.result_type'));
         $this->assertNull(data_get($application->additional_info, 'education.mphil_phd.result'));
     }
+
+    public function test_application_form_allows_submission_without_masters_and_total_work_experience(): void
+    {
+        Storage::fake('public');
+
+        $exam = Exam::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->subDay(),
+            'end_date' => now()->addDay(),
+        ]);
+
+        $district = Category::factory()->create(['type' => 'district']);
+        $upazila = Category::factory()->create(['type' => 'upazila', 'parent_id' => $district->id]);
+
+        $payload = $this->validApplicationPayload($district, $upazila, 'nomasters@example.test', '1712222222');
+        unset($payload['education']['masters'], $payload['job_experience']['total_years']);
+
+        $response = $this->post(route('applications.store', $exam), $payload);
+
+        $application = Application::query()->latest('id')->first();
+        $response->assertRedirect(route('payment.initiate', $application));
+        $this->assertNull(data_get($application->additional_info, 'education.masters.result_type'));
+        $this->assertNull(data_get($application->additional_info, 'job_experience.total_years'));
+    }
+
+    public function test_application_form_rejects_zero_total_work_experience(): void
+    {
+        Storage::fake('public');
+
+        $exam = Exam::factory()->create([
+            'status' => 'active',
+            'start_date' => now()->subDay(),
+            'end_date' => now()->addDay(),
+        ]);
+
+        $district = Category::factory()->create(['type' => 'district']);
+        $upazila = Category::factory()->create(['type' => 'upazila', 'parent_id' => $district->id]);
+
+        $payload = $this->validApplicationPayload($district, $upazila, 'zeroexp@example.test', '1713333333');
+        $payload['job_experience']['total_years'] = 0;
+
+        $response = $this->from(route('applications.create', $exam))
+            ->post(route('applications.store', $exam), $payload);
+
+        $response->assertRedirect(route('applications.create', $exam));
+        $response->assertSessionHasErrors(['job_experience.total_years']);
+    }
+
+    private function validApplicationPayload(Category $district, Category $upazila, string $email, string $mobile): array
+    {
+        return [
+            'applicant_name' => 'Validation Candidate',
+            'applicant_photo' => UploadedFile::fake()->image('photo.png', 300, 300),
+            'father_name' => 'Father',
+            'mother_name' => 'Mother',
+            'gender' => 'Male',
+            'date_of_birth' => '1998-01-01',
+            'age_as_of_reference' => '27 Years, 0 Months',
+            'national_id_number' => '1000000000002',
+            'mobile_number_local' => $mobile,
+            'email' => $email,
+            'signature' => UploadedFile::fake()->image('signature.png', 300, 80),
+            'present_address' => [
+                'district_id' => $district->id,
+                'upazila_id' => $upazila->id,
+                'post_office' => 'PO',
+                'post_code' => '1200',
+                'address_line' => 'Address 1',
+            ],
+            'permanent_address' => [
+                'district_id' => $district->id,
+                'upazila_id' => $upazila->id,
+                'post_office' => 'PO',
+                'post_code' => '1200',
+                'address_line' => 'Address 2',
+            ],
+            'education' => [
+                'ssc' => [
+                    'examination' => 'SSC',
+                    'education_board' => 'Dhaka',
+                    'result_type' => 'numeric',
+                    'result' => '5.00',
+                    'result_scale' => '5.00',
+                    'group' => 'Science',
+                    'passing_year' => 2012,
+                ],
+                'hsc' => [
+                    'examination' => 'HSC',
+                    'education_board' => 'Dhaka',
+                    'result_type' => 'numeric',
+                    'result' => '5.00',
+                    'result_scale' => '5.00',
+                    'group' => 'Science',
+                    'passing_year' => 2014,
+                ],
+                'graduation' => [
+                    'examination' => 'Honors',
+                    'subject' => 'Economics',
+                    'institution' => 'University of Dhaka',
+                    'result_type' => 'numeric',
+                    'result' => '3.70',
+                    'result_scale' => '4.00',
+                    'passing_year' => 2018,
+                    'course_duration_years' => 4,
+                ],
+            ],
+            'education_documents' => [
+                'ssc' => ['certificate' => UploadedFile::fake()->create('ssc-certificate.pdf', 300, 'application/pdf')],
+                'hsc' => ['certificate' => UploadedFile::fake()->create('hsc-certificate.pdf', 300, 'application/pdf')],
+                'graduation' => ['certificate' => UploadedFile::fake()->create('graduation-certificate.pdf', 300, 'application/pdf')],
+            ],
+            'job_experience' => [
+                'total_years' => 2,
+            ],
+            'course_preferences' => [
+                'first_choice' => 'HRM',
+                'second_choice' => 'GPP',
+                'third_choice' => 'IER',
+                'fourth_choice' => 'PM',
+                'fifth_choice' => 'PSCM',
+                'sixth_choice' => 'PPFM',
+            ],
+            'declaration' => '1',
+            'contact_info_confirmation' => '1',
+        ];
+    }
 }
 
