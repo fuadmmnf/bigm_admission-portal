@@ -1001,7 +1001,7 @@
                     ssc: (initialEducationResultTypes && initialEducationResultTypes.ssc) ? initialEducationResultTypes.ssc : 'numeric',
                     hsc: (initialEducationResultTypes && initialEducationResultTypes.hsc) ? initialEducationResultTypes.hsc : 'numeric',
                     graduation: (initialEducationResultTypes && initialEducationResultTypes.graduation) ? initialEducationResultTypes.graduation : 'numeric',
-                    masters: (initialEducationResultTypes && initialEducationResultTypes.masters) ? initialEducationResultTypes.masters : 'numeric',
+                    masters: (initialEducationResultTypes && initialEducationResultTypes.masters) ? initialEducationResultTypes.masters : '',
                 },
                 allPrograms: programs,
                 showUniquenessAlert: false,
@@ -1143,6 +1143,40 @@
                         URL.revokeObjectURL(this.pdfPreviewUrls[key]);
                     }
                     this.pdfPreviewUrls[key] = file ? URL.createObjectURL(file) : null;
+                },
+                clearUploadedFiles() {
+                    const fileInputIds = [
+                        'applicant_photo',
+                        'signature_input',
+                        'ssc_certificate',
+                        'hsc_certificate',
+                        'graduation_certificate',
+                        'masters_certificate',
+                    ];
+
+                    fileInputIds.forEach((id) => {
+                        const input = document.getElementById(id);
+                        if (input) {
+                            input.value = '';
+                        }
+                    });
+
+                    if (this.photoPreviewUrl) {
+                        URL.revokeObjectURL(this.photoPreviewUrl);
+                    }
+                    if (this.signaturePreviewUrl) {
+                        URL.revokeObjectURL(this.signaturePreviewUrl);
+                    }
+                    this.photoPreviewUrl = null;
+                    this.signaturePreviewUrl = null;
+
+                    Object.keys(this.pdfPreviewUrls).forEach((key) => {
+                        const url = this.pdfPreviewUrls[key];
+                        if (url) {
+                            URL.revokeObjectURL(url);
+                        }
+                        this.pdfPreviewUrls[key] = null;
+                    });
                 },
                 setInputValue(name, value) {
                     const input = document.querySelector(`[name="${name}"]`);
@@ -1483,6 +1517,7 @@
                 async next() {
                     const errors = this.validateStep(this.step);
                     if (errors.length > 0) {
+                        this.clearUploadedFiles();
                         this.stepErrors = errors;
                         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return;
@@ -1491,6 +1526,7 @@
                     if (this.step === 1) {
                         const canProceed = await this.checkUserUniqueness();
                         if (!canProceed) {
+                            this.clearUploadedFiles();
                             this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
                             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                             return;
@@ -1522,6 +1558,7 @@
                     for (let s = this.step; s < targetStep; s++) {
                         const errors = this.validateStep(s);
                         if (errors.length > 0) {
+                            this.clearUploadedFiles();
                             this.stepErrors = errors;
                             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                             return;
@@ -1530,6 +1567,7 @@
                         if (s === 1) {
                             const canProceed = await this.checkUserUniqueness();
                             if (!canProceed) {
+                                this.clearUploadedFiles();
                                 this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
                                 window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                                 return;
@@ -1547,6 +1585,7 @@
 
                     const errors = this.validateStep(this.step);
                     if (errors.length > 0) {
+                        this.clearUploadedFiles();
                         this.stepErrors = errors;
                         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return;
@@ -1554,6 +1593,7 @@
 
                     const canSubmit = await this.checkUserUniqueness();
                     if (!canSubmit) {
+                        this.clearUploadedFiles();
                         this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
                         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return;
