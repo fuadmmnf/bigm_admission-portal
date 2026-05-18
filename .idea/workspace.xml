@@ -32,7 +32,7 @@
             <option name="modeId" value="Agent" />
             <option name="modelType" value="builtin_family" />
             <option name="modelValue" value="auto" />
-            <option name="status" value="Processing" />
+            <option name="status" value="Completed" />
             <option name="targetType" value="LOCAL" />
           </session>
           <session>
@@ -315,7 +315,7 @@
       <workItem from="1778858514534" duration="3576000" />
       <workItem from="1779010787355" duration="2446000" />
       <workItem from="1779027362331" duration="2049000" />
-      <workItem from="1779078611577" duration="2945000" />
+      <workItem from="1779078611577" duration="3657000" />
     </task>
     <servers />
   </component>

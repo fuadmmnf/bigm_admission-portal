@@ -854,6 +854,7 @@
                                 <select
                                     :name="`course_preferences[${choice.field}]`"
                                     x-model="courseChoices[idx]"
+                                    x-on:change="persistCourseChoices()"
                                     class="rounded-md border-gray-300 w-full"
                                     :class="isDuplicateChoice(idx) ? 'border-red-400 bg-red-50' : ''"
                                     required
@@ -1007,6 +1008,7 @@
                 showUniquenessAlert: false,
                 uniquenessMessage: '',
                 isCheckingUniqueness: false,
+                courseChoicesStorageKey: 'application-course-choices-{{ $exam->ulid }}',
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
                     ? initialCourseChoices.map(v => v ?? '')
                     : ['', '', '', '', '', ''],
@@ -1041,6 +1043,7 @@
                 stepTitles: ['Personal', 'Address', 'Education', 'Job Experience', 'Course Choice', 'Confirm'],
                 stepErrors: [],
                 init() {
+                    this.restoreCourseChoices();
                     this._initComboboxLabels();
 
                     if (initialDob) {
@@ -1063,6 +1066,36 @@
                     this.$watch('presentUpazilaId',   v => { if (v) this._clearInvalid(document.getElementById('present_upazila_input')); });
                     this.$watch('permanentDistrictId',v => { if (v) this._clearInvalid(document.getElementById('permanent_district_input')); });
                     this.$watch('permanentUpazilaId', v => { if (v) this._clearInvalid(document.getElementById('permanent_upazila_input')); });
+                },
+                restoreCourseChoices() {
+                    const hasInitialServerValues = this.courseChoices.some((choice) => String(choice ?? '').trim() !== '');
+                    if (hasInitialServerValues) {
+                        this.persistCourseChoices();
+                        return;
+                    }
+
+                    try {
+                        const raw = window.sessionStorage.getItem(this.courseChoicesStorageKey);
+                        if (!raw) {
+                            return;
+                        }
+
+                        const parsed = JSON.parse(raw);
+                        if (!Array.isArray(parsed) || parsed.length !== 6) {
+                            return;
+                        }
+
+                        this.courseChoices = parsed.map((choice) => String(choice ?? ''));
+                    } catch (_e) {
+                        // Ignore malformed storage data and continue with default choices.
+                    }
+                },
+                persistCourseChoices() {
+                    try {
+                        window.sessionStorage.setItem(this.courseChoicesStorageKey, JSON.stringify(this.courseChoices));
+                    } catch (_e) {
+                        // Ignore storage write errors.
+                    }
                 },
                 _initComboboxLabels() {
                     if (this.presentDistrictId) {
