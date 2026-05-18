@@ -365,7 +365,7 @@ class ApplicationFormTest extends TestCase
         $this->assertNull(data_get($application->additional_info, 'education.mphil_phd.result'));
     }
 
-    public function test_application_form_allows_submission_without_masters_and_total_work_experience(): void
+    public function test_application_form_allows_submission_without_masters_and_defaults_total_work_experience_to_zero(): void
     {
         Storage::fake('public');
 
@@ -386,10 +386,10 @@ class ApplicationFormTest extends TestCase
         $application = Application::query()->latest('id')->first();
         $response->assertRedirect(route('payment.initiate', $application));
         $this->assertNull(data_get($application->additional_info, 'education.masters.result_type'));
-        $this->assertNull(data_get($application->additional_info, 'job_experience.total_years'));
+        $this->assertSame(0, data_get($application->additional_info, 'job_experience.total_years'));
     }
 
-    public function test_application_form_rejects_zero_total_work_experience(): void
+    public function test_application_form_allows_zero_total_work_experience(): void
     {
         Storage::fake('public');
 
@@ -405,11 +405,11 @@ class ApplicationFormTest extends TestCase
         $payload = $this->validApplicationPayload($district, $upazila, 'zeroexp@example.test', '1713333333');
         $payload['job_experience']['total_years'] = 0;
 
-        $response = $this->from(route('applications.create', $exam))
-            ->post(route('applications.store', $exam), $payload);
+        $response = $this->post(route('applications.store', $exam), $payload);
 
-        $response->assertRedirect(route('applications.create', $exam));
-        $response->assertSessionHasErrors(['job_experience.total_years']);
+        $application = Application::query()->latest('id')->first();
+        $response->assertRedirect(route('payment.initiate', $application));
+        $this->assertSame(0, data_get($application->additional_info, 'job_experience.total_years'));
     }
 
     private function validApplicationPayload(Category $district, Category $upazila, string $email, string $mobile): array
@@ -491,4 +491,3 @@ class ApplicationFormTest extends TestCase
         ];
     }
 }
-

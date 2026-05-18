@@ -748,7 +748,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Total Job Experience (Years)</label>
-                        <input name="job_experience[total_years]" type="number" step="0.1" value="{{ old('job_experience.total_years') }}" placeholder="Total Job Experience (Years)" class="rounded-md border-gray-300 w-full">
+                        <input name="job_experience[total_years]" type="number" min="0" step="0.1" value="{{ old('job_experience.total_years', 0) }}" placeholder="Total Job Experience (Years)" class="rounded-md border-gray-300 w-full">
                     </div>
 
                     <h3 class="text-sm font-semibold text-gray-700 pt-2">Current Job (If Applicable)</h3>
@@ -1681,7 +1681,10 @@
                     }
 
                     if (stepNum === 4) {
-                        req('job_experience[total_years]', 'Total Job Experience (Years)');
+                        const totalYearsInput = document.querySelector('[name="job_experience[total_years]"]');
+                        if (totalYearsInput && !String(totalYearsInput.value ?? '').trim()) {
+                            totalYearsInput.value = '0';
+                        }
                     }
 
                     if (stepNum === 5) {
