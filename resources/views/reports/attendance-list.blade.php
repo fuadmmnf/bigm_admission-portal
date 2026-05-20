@@ -65,18 +65,8 @@
             display: block;
         }
 
-        .att-sign-box {
-            height: 28pt;
-            border: 1px solid #111827;
-            margin-bottom: 2pt;
-            background: #fff;
-        }
-
-        .att-sign-label {
-            text-align: center;
-            font-size: 7.5pt;
-            color: #374151;
-            line-height: 1.2;
+        .att-sign-blank {
+            height: 34pt;
         }
 
         .att-footer-field {
@@ -138,11 +128,9 @@
 
 @section('content')
 
-    <div class="report-meta">
-    <span>
-        <span class="label">Exam:</span>
-        {{ $exam->name }}
-    </span>
+    <div class="report-header" style="margin-bottom: 10px;">
+        <p class="report-header-subtitle" style="font-size: 10px; margin: 0; color: #111827;">{{ $exam->name }}</p>
+        <p class="report-title-chip" style="margin-top: 6px;">Attendance Sheet</p>
     </div>
 
     @if ($applications->isEmpty())
@@ -193,11 +181,7 @@
                     </td>
 
                     <td class="sign-col">
-                        <div class="att-sign-box"></div>
-
-                        <div class="att-sign-label">
-                            Applicant Signature
-                        </div>
+                        <div class="att-sign-blank"></div>
                     </td>
 
                 </tr>

@@ -56,6 +56,20 @@
             text-align: center;
         }
 
+        .pdf-header-logo {
+            width: 60px;
+            height: auto;
+            display: inline-block;
+            margin-bottom: 2pt;
+        }
+
+        .pdf-header-short {
+            font-size: 9.5pt;
+            font-weight: bold;
+            letter-spacing: 0.4pt;
+            margin: 0;
+        }
+
         .pdf-header-org {
             font-size: 10pt;
             font-weight: bold;
@@ -310,6 +324,7 @@
 {{-- Fixed Header --}}
 <div class="pdf-header">
     <div class="pdf-header-inner">
+        <img src="{{ public_path('images/logo.png') }}" alt="BIGM Logo" class="pdf-header-logo">
         <p class="pdf-header-org">Bangladesh Institute of Governance and Management (BIGM)</p>
         <p class="pdf-header-report-title">@yield('report-subtitle', 'Exam Report')</p>
     </div>
