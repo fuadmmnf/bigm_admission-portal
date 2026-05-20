@@ -46,6 +46,7 @@
     @php
         $errorKeys = $errors->keys();
         $initialStep = 1;
+        $hasAnyErrors = $errors->any();
         $photoRules = $uploadRules['photo'] ?? [];
         $signatureRules = $uploadRules['signature'] ?? [];
         $certificateRules = $uploadRules['certificate_pdf'] ?? [];
@@ -71,6 +72,12 @@
         $initialPdfUrls      = array_fill_keys([
             'ssc_certificate','hsc_certificate','graduation_certificate','masters_certificate',
         ], null);
+
+        $hasUploadErrors = collect($errorKeys)->contains(function ($errorKey) {
+            return $errorKey === 'applicant_photo'
+                || $errorKey === 'signature'
+                || str_starts_with($errorKey, 'education_documents.');
+        });
 
         foreach ($errorKeys as $errorKey) {
             if (
@@ -100,6 +107,11 @@
                 $initialStep = 6;
                 break;
             }
+        }
+
+        // Always return applicants to step 1 when the submission fails.
+        if ($hasAnyErrors) {
+            $initialStep = 1;
         }
     @endphp
 
@@ -156,6 +168,7 @@
                     <ul class="list-disc list-inside mt-2 space-y-1">
                         <li>If payment fails or is cancelled, the submitted application will be deleted.</li>
                         <li>If the payment page is reloaded before completion, the application will be deleted.</li>
+                        <li>If submission fails for validation/duplicate checks, your uploaded photo, signature, and certificate PDFs are cleared and must be uploaded again.</li>
                     </ul>
                 </div>
             </div>
@@ -194,6 +207,9 @@
         @if ($errors->any())
             <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
                 <p class="font-semibold text-red-800">Please fix the highlighted errors and continue.</p>
+                @if ($hasUploadErrors)
+                    <p class="mt-2 text-sm font-medium text-red-700">Uploads are not retained after failed attempts. Please re-upload required photo/signature/certificate files.</p>
+                @endif
                 <ul class="mt-2 list-disc list-inside text-sm text-red-700">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -231,6 +247,8 @@
                 initialPhotoUrl: @js($initialPhotoUrl),
                 initialSignatureUrl: @js($initialSignatureUrl),
                 initialPdfUrls: @js($initialPdfUrls),
+                initialUploadError: @js($hasUploadErrors),
+                initialHasErrors: @js($hasAnyErrors),
                 initialEducationResultTypes: @js([
                     'ssc' => old('education.ssc.result_type', 'numeric'),
                     'hsc' => old('education.hsc.result_type', 'numeric'),
@@ -908,6 +926,22 @@
                 </ul>
             </div>
 
+            <div
+                x-show="showUploadResetToast"
+                x-cloak
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-2"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 translate-y-2"
+                class="fixed bottom-6 right-6 z-[9999] max-w-sm rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 shadow-lg"
+                role="status"
+                aria-live="polite"
+            >
+                <p class="font-semibold" x-text="uploadResetToastMessage"></p>
+            </div>
+
             <div class="flex items-center justify-between">
                 <button
                     type="button"
@@ -969,6 +1003,8 @@
             initialPhotoUrl,
             initialSignatureUrl,
             initialPdfUrls,
+            initialUploadError,
+            initialHasErrors,
             initialEducationResultTypes,
         }) {
             return {
@@ -1008,6 +1044,9 @@
                 showUniquenessAlert: false,
                 uniquenessMessage: '',
                 isCheckingUniqueness: false,
+                showUploadResetToast: false,
+                uploadResetToastMessage: '',
+                uploadResetToastTimeoutId: null,
                 courseChoicesStorageKey: 'application-course-choices-{{ $exam->ulid }}',
                 courseChoices: (initialCourseChoices && initialCourseChoices.length === 6)
                     ? initialCourseChoices.map(v => v ?? '')
@@ -1045,6 +1084,15 @@
                 init() {
                     this.restoreCourseChoices();
                     this._initComboboxLabels();
+
+                    if (initialUploadError) {
+                        this.showUploadResetReminder();
+                    }
+
+                    if (initialHasErrors) {
+                        this.step = 1;
+                        this.highlightAllUploadFields();
+                    }
 
                     if (initialDob) {
                         this.calculateAge(initialDob);
@@ -1210,6 +1258,36 @@
                         }
                         this.pdfPreviewUrls[key] = null;
                     });
+
+                    this.highlightAllUploadFields();
+                    this.showUploadResetReminder();
+                },
+                highlightAllUploadFields() {
+                    const fileInputIds = [
+                        'applicant_photo',
+                        'signature_input',
+                        'ssc_certificate',
+                        'hsc_certificate',
+                        'graduation_certificate',
+                        'masters_certificate',
+                    ];
+
+                    fileInputIds.forEach((id) => {
+                        const input = document.getElementById(id);
+                        if (input) {
+                            this._markInvalid(input);
+                        }
+                    });
+                },
+                showUploadResetReminder() {
+                    this.uploadResetToastMessage = 'Validation failed: please re-upload photo, signature, and certificate files.';
+                    this.showUploadResetToast = true;
+                    if (this.uploadResetToastTimeoutId) {
+                        clearTimeout(this.uploadResetToastTimeoutId);
+                    }
+                    this.uploadResetToastTimeoutId = setTimeout(() => {
+                        this.showUploadResetToast = false;
+                    }, 4500);
                 },
                 setInputValue(name, value) {
                     const input = document.querySelector(`[name="${name}"]`);
@@ -1475,8 +1553,7 @@
                         return '';
                     }
 
-                    const suffix = location.type === 'thana' ? 'Thana' : 'Upazila';
-                    return `${location.name} (${suffix})`;
+                    return location.name;
                 },
                 onDistrictChange(addressType) {
                     if (addressType === 'present') {
@@ -1616,17 +1693,21 @@
                         return;
                     }
 
-                    const errors = this.validateStep(this.step);
-                    if (errors.length > 0) {
-                        this.clearUploadedFiles();
-                        this.stepErrors = errors;
-                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                        return;
+                    for (let s = 1; s <= this.totalSteps; s++) {
+                        const errors = this.validateStep(s);
+                        if (errors.length > 0) {
+                            this.clearUploadedFiles();
+                            this.step = 1;
+                            this.stepErrors = errors;
+                            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                            return;
+                        }
                     }
 
                     const canSubmit = await this.checkUserUniqueness();
                     if (!canSubmit) {
                         this.clearUploadedFiles();
+                        this.step = 1;
                         this.stepErrors = ['Duplicate paid application found for this email and mobile number.'];
                         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
                         return;
