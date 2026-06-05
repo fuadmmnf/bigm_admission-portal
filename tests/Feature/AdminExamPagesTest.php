@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\Category;
 use App\Models\Exam;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -124,6 +125,38 @@ class AdminExamPagesTest extends TestCase
         $response->assertOk();
         $response->assertSee('Applicant Details');
         $response->assertSee('Details Candidate');
+    }
+
+    public function test_admin_can_open_education_documents_in_new_tabs(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $application = Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Document Candidate',
+            'additional_info' => [
+                'uploads' => [
+                    'education_documents' => [
+                        'ssc' => [
+                            'marksheet' => 'education/ssc-marksheet.pdf',
+                            'certificate' => 'education/ssc-certificate.pdf',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $response = $this->get(route('admin.applications.show', $application));
+
+        $response->assertOk();
+        $this->assertMatchesRegularExpression('/<a href="[^"]+" target="_blank" rel="noopener" class="[^"]+">Marksheet<\/a>/', $response->getContent());
+        $this->assertMatchesRegularExpression('/<a href="[^"]+" target="_blank" rel="noopener" class="[^"]+">Certificate<\/a>/', $response->getContent());
     }
 
     public function test_admin_can_stream_single_applicant_admit_card_pdf(): void
@@ -689,6 +722,49 @@ class AdminExamPagesTest extends TestCase
             'status' => 'pending',
             'applicant_name' => 'Pending Candidate',
         ]);
+
+        $response = $this->get(route('admin.exams.reports.attendance-list', $exam));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_admin_can_stream_attendance_pdf_report_sorted_by_application_id(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'application_id' => '20260003',
+            'applicant_name' => 'Later Candidate',
+        ]);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'application_id' => '20260001',
+            'applicant_name' => 'Earlier Candidate',
+        ]);
+
+        $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        $pdf->shouldReceive('setPaper')->andReturnSelf();
+        $pdf->shouldReceive('stream')->andReturn(response('', 200, ['content-type' => 'application/pdf']));
+
+        Pdf::shouldReceive('loadView')
+            ->once()
+            ->with('reports.attendance-list', \Mockery::on(function (array $data) use ($exam) {
+                $this->assertSame($exam->id, $data['exam']->id);
+                $this->assertSame(['20260001', '20260003'], $data['applications']->pluck('application_id')->values()->all());
+
+                return true;
+            }))
+            ->andReturn($pdf);
 
         $response = $this->get(route('admin.exams.reports.attendance-list', $exam));
 

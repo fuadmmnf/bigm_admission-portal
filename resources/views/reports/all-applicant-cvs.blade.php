@@ -118,7 +118,7 @@
             @endif
         </div>
         <p class="report-header-title">Bangladesh Institute of Governance and Management (BIGM)</p>
-        <p class="report-header-subtitle">Curriculum Vitae (CV) Report</p>
+        <p class="report-header-subtitle">Curriculum Vitae (CV)</p>
 {{--        <span class="report-title-chip">Program wise CVs (1st Choice)</span>--}}
     </div>
 {{--    <h1>Program wise CVs (1st Choice)</h1>--}}
@@ -159,7 +159,7 @@
                 @endif
             </div>
             <p class="report-header-title">Bangladesh Institute of Governance and Management (BIGM)</p>
-            <p class="report-header-subtitle">Curriculum Vitae (CV) Report</p>
+            <p class="report-header-subtitle">Curriculum Vitae (CV)</p>
 {{--            <span class="report-title-chip">Program wise CVs (1st Choice)</span>--}}
         </div>
 

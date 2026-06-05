@@ -246,10 +246,10 @@
                                     <td class="px-3 py-3">
                                         <div class="flex flex-wrap items-center gap-2">
                                             @if ($marksheetUrl)
-                                                <a href="{{ $marksheetUrl }}" download class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Marksheet</a>
+                                                <a href="{{ $marksheetUrl }}" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100">Marksheet</a>
                                             @endif
                                             @if ($certificateUrl)
-                                                <a href="{{ $certificateUrl }}" download class="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">Certificate</a>
+                                                <a href="{{ $certificateUrl }}" target="_blank" rel="noopener" class="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">Certificate</a>
                                             @endif
                                             @if (! $marksheetUrl && ! $certificateUrl)
                                                 <span class="text-xs text-gray-400">N/A</span>

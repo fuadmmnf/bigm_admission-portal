@@ -57,10 +57,11 @@
         }
 
         .pdf-header-logo {
-            width: 60px;
+            width: 100px;
             height: auto;
             display: inline-block;
             margin-bottom: 2pt;
+            margin-top: 15pt;
         }
 
         .pdf-header-short {

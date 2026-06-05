@@ -117,11 +117,31 @@
 
     <div class="viva-top-sheet">
         <div class="viva-top-left">
-            <span class="viva-label">Invigilator Name:</span><span class="viva-box"></span>
+            <span class="viva-label">Invigilator Name:</span><span class="viva-box" style="width: 270pt;"></span>
         </div>
 
         <div class="viva-top-right">
-            <span class="viva-label">Invigilator Signature:</span><span class="viva-box"></span>
+            <span class="viva-label">Signature:</span><span class="viva-box"></span>
+        </div>
+    </div>
+
+    <div class="viva-top-sheet">
+        <div class="viva-top-left">
+            <span class="viva-label">Invigilator Name:</span><span class="viva-box" style="width: 270pt;"></span>
+        </div>
+
+        <div class="viva-top-right">
+            <span class="viva-label">Signature:</span><span class="viva-box"></span>
+        </div>
+    </div>
+
+    <div class="viva-top-sheet">
+        <div class="viva-top-left">
+            <span class="viva-label">Invigilator Name:</span><span class="viva-box" style="width: 270pt;"></span>
+        </div>
+
+        <div class="viva-top-right">
+            <span class="viva-label">Signature:</span><span class="viva-box"></span>
         </div>
     </div>
 
@@ -129,9 +149,9 @@
         <thead>
         <tr>
             <th class="col-name">Name</th>
-            <th class="col-exp">Exp.</th>
             <th class="col-workplace">Workplace</th>
             <th class="col-designation">Designation</th>
+            <th class="col-exp">Total Exp.</th>
             <th class="col-edu">SSC</th>
             <th class="col-edu">HSC</th>
             <th class="col-edu">Grad.</th>
@@ -214,9 +234,7 @@
                     </div>
                 </td>
 
-                <td class="col-exp">
-                    {{ data_get($jobExp, 'total_years', '') }}
-                </td>
+
 
                 <td class="col-workplace">
                     {{ data_get($jobExp, 'current.organization_name', '') }}
@@ -224,6 +242,10 @@
 
                 <td class="col-designation">
                     {{ data_get($jobExp, 'current.designation', '') }}
+                </td>
+
+                <td class="col-exp">
+                    {{ data_get($jobExp, 'total_years', '') }}
                 </td>
 
                 <td class="col-edu">
