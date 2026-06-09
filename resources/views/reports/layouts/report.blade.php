@@ -7,7 +7,7 @@
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <style>
         @page {
-            margin: 45mm 14mm 22mm 14mm;
+            margin: 40mm 14mm 22mm 14mm;
             size: {{ $pageOrientation ?? 'portrait' }};
         }
 
@@ -277,10 +277,12 @@
 
         /* ── Report Header (reusable across all reports) ────── */
         .report-header {
+
             text-align: center;
             border-bottom: 1px solid #d1d5db;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 6px !important;
+            padding-bottom: 4px !important;
+
         }
 
         .report-header-logo-wrap {
@@ -301,7 +303,6 @@
         }
 
         .report-header-subtitle {
-            margin-top: 2px;
             font-size: 9.2px;
             color: #374151;
         }

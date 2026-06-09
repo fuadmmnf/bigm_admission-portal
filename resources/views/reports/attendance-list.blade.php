@@ -6,19 +6,19 @@
 @section('extra-styles')
     <style>
 
-        @page {
-            margin: 28mm 14mm 48mm 14mm;
-        }
+        /*@page {*/
+        /*    margin: 28mm 14mm 48mm 14mm;*/
+        /*}*/
 
-        .pdf-footer {
-            bottom: -48mm;
-            padding: 2pt 14mm 12pt;
-        }
+        /*.pdf-footer {*/
+        /*    bottom: -48mm;*/
+        /*    padding: 2pt 14mm 12pt;*/
+        /*}*/
 
-        .pdf-footer-left,
-        .pdf-footer-right {
-            vertical-align: top;
-        }
+        /*.pdf-footer-left,*/
+        /*.pdf-footer-right {*/
+        /*    vertical-align: top;*/
+        /*}*/
 
         .attendance-table {
             width: 100%;
