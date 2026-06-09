@@ -6,13 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/choice-list-by-subject.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/choice-list-by-subject.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/choice-list-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/choice-list-wise-applicants.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/employer-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/employer-wise-applicants.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/enrolled-students.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/enrolled-students.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/gender-wise-applicants.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/gender-wise-applicants.blade.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/resources/views/reports/layouts/report.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/layouts/report.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/program-selected-by-code.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/program-selected-by-code.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -333,7 +327,7 @@
       <workItem from="1779027362331" duration="2049000" />
       <workItem from="1779078611577" duration="3961000" />
       <workItem from="1779253889370" duration="917000" />
-      <workItem from="1781028650672" duration="261000" />
+      <workItem from="1781028650672" duration="533000" />
     </task>
     <servers />
   </component>

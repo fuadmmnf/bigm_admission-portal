@@ -6,9 +6,8 @@
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <style>
-
         @page {
-            margin: 28mm 14mm 22mm 14mm;
+            margin: 45mm 14mm 22mm 14mm;
             size: {{ $pageOrientation ?? 'portrait' }};
         }
 
@@ -44,7 +43,7 @@
         /* ── Fixed Header ──────────────────────────────────── */
         .pdf-header {
             position: fixed;
-            top: -28mm;
+            top: -45mm;
             left: -14mm;
             right: -14mm;
             color: #111827;
@@ -122,7 +121,6 @@
         /* ── Content area ──────────────────────────────────── */
         .report-content {
             /* top/bottom margin is handled by @page */
-            margin-top: 20px;
         }
 
         /* ── Shared table styles ────────────────────────── */
