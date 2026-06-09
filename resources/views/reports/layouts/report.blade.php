@@ -6,6 +6,7 @@
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <style>
+
         @page {
             margin: 28mm 14mm 22mm 14mm;
             size: {{ $pageOrientation ?? 'portrait' }};
@@ -121,6 +122,7 @@
         /* ── Content area ──────────────────────────────────── */
         .report-content {
             /* top/bottom margin is handled by @page */
+            margin-top: 20px;
         }
 
         /* ── Shared table styles ────────────────────────── */

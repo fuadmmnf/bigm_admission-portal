@@ -34,7 +34,7 @@
 <div class="report-meta">
     <span><span class="label">Exam:</span> {{ $exam->name }}</span>
     <span><span class="label">Subject:</span> <strong>{{ $subject }}</strong></span>
-    <span><span class="label">Total Across All Choices:</span><span class="summary-badge">{{ $totalCount }}</span></span>
+{{--    <span><span class="label">Total Across All Choices:</span><span class="summary-badge">{{ $totalCount }}</span></span>--}}
 </div>
 
 @php
