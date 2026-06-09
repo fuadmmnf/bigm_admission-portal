@@ -43,7 +43,7 @@
         /* ── Fixed Header ──────────────────────────────────── */
         .pdf-header {
             position: fixed;
-            top: -45mm;
+            top: -38mm;
             left: -14mm;
             right: -14mm;
             color: #111827;
