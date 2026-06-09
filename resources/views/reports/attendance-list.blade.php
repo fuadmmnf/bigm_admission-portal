@@ -6,9 +6,9 @@
 @section('extra-styles')
     <style>
 
-        /*@page {*/
-        /*    margin: 28mm 14mm 48mm 14mm;*/
-        /*}*/
+        @page {
+            margin: 32mm 14mm 35mm 14mm; /* bottom reserved space */
+        }
 
         /*.pdf-footer {*/
         /*    bottom: -48mm;*/
