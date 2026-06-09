@@ -152,10 +152,13 @@
 @section('content')
 
     <div class="report-header">
-        <p class="report-header-subtitle" style="font-size: 15px; margin: 0; color: #111827;">{{ $exam->name }}</p>
-        <p class="report-header-subtitle">Attendance Sheet</p>
+        <p style="font-size: 15px; margin: 0; line-height: 1.1; font-weight: bold;">
+            {{ $exam->name }}
+        </p>
+        <p style="margin: 2px 0 0; font-size: 10px; line-height: 1.1;">
+            Attendance Sheet
+        </p>
     </div>
-
     @if ($applications->isEmpty())
 
         <div class="empty-row" style="margin-top: 24px;">
