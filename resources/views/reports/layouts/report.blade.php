@@ -43,7 +43,7 @@
         /* ── Fixed Header ──────────────────────────────────── */
         .pdf-header {
             position: fixed;
-            top: -38mm;
+            top: -32mm;
             left: -14mm;
             right: -14mm;
             color: #111827;
@@ -335,8 +335,8 @@
 {{-- Fixed Footer --}}
 <div class="pdf-footer">
     <div class="pdf-footer-inner">
-        <div class="pdf-footer-left">@yield('footer-left', 'BIGM Admission Portal &mdash; Confidential')</div>
-        <div class="pdf-footer-center">@yield('footer-center', '')</div>
+{{--        <div class="pdf-footer-left">@yield('footer-left', 'BIGM Admission Portal')</div>--}}
+{{--        <div class="pdf-footer-center">@yield('footer-center', '')</div>--}}
         <div class="pdf-footer-right">@yield('footer-right', '')</div>
     </div>
 </div>
