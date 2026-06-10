@@ -277,7 +277,7 @@
     "copilot.sensitive.folder.allow.file_read./home/fuad/_agents/skills/laravel-specialist": "true",
     "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpCreateRemoteSdkForm": "Docker",
     "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpInplaceEditRemoteSdkForm": "Docker",
-    "git-widget-placeholder": "Merging main",
+    "git-widget-placeholder": "main",
     "last_opened_file_path": "/Users/fuad/misc/projects/innovatech/bigm/admission_portal/storage/app/public",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",

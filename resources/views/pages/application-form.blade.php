@@ -1269,7 +1269,7 @@
                         'ssc_certificate',
                         'hsc_certificate',
                         'graduation_certificate',
-                        'masters_certificate',
+                        // 'masters_certificate',
                     ];
 
                     fileInputIds.forEach((id) => {
