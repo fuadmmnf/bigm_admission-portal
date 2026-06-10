@@ -342,19 +342,19 @@
 </div>
 
 {{-- Page numbers via PHP (dompdf) --}}
-<script type="text/php">
-    if (isset($pdf)) {
-        $font = $fontMetrics->getFont("DejaVu Sans", "normal");
-        $size = 7;
-        $color = array(107/255, 114/255, 128/255);
-        $width  = $pdf->get_width();
-        $height = $pdf->get_height();
-        // x: right-aligned ~14mm from right edge; y: near bottom of page footer area
-        $x = $width - 112;
-        $y = $height - 14;
-        $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);
-    }
-</script>
+{{--<script type="text/php">--}}
+{{--    if (isset($pdf)) {--}}
+{{--        $font = $fontMetrics->getFont("DejaVu Sans", "normal");--}}
+{{--        $size = 7;--}}
+{{--        $color = array(107/255, 114/255, 128/255);--}}
+{{--        $width  = $pdf->get_width();--}}
+{{--        $height = $pdf->get_height();--}}
+{{--        // x: right-aligned ~14mm from right edge; y: near bottom of page footer area--}}
+{{--        $x = $width - 112;--}}
+{{--        $y = $height - 14;--}}
+{{--        $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);--}}
+{{--    }--}}
+{{--</script>--}}
 
 {{-- Main Content --}}
 <div class="report-content">
