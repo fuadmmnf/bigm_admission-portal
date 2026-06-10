@@ -6,38 +6,54 @@
 @section('extra-styles')
     <style>
 
-        .report-header {
-            text-align: center;
-            margin-bottom: 5px;
-            padding-bottom: 2px;
+        @page {
+            margin: 32mm 14mm 35mm 14mm; /* bottom reserved space */
         }
 
-        .report-header p {
-            margin: 0;
-            line-height: 1.1;
-        }
+        /*.pdf-footer {*/
+        /*    bottom: -48mm;*/
+        /*    padding: 2pt 14mm 12pt;*/
+        /*}*/
 
-        .report-header .title {
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        .report-header .subtitle {
-            font-size: 10px;
-            margin-top: 2px;
-        }
+        /*.pdf-footer-left,*/
+        /*.pdf-footer-right {*/
+        /*    vertical-align: top;*/
+        /*}*/
 
         .attendance-table {
             width: 100%;
             border-collapse: collapse;
-            table-layout: auto;
+            table-layout: auto !important;
         }
 
         .attendance-table th,
         .attendance-table td {
-            border: 1px solid #d1d5db;
-            padding: 4pt;
+            vertical-align: middle !important;
             font-size: 9pt;
+            padding: 4pt;
+        }
+
+        .attendance-table .sl-col {
+            width: 30pt !important;
+            text-align: center;
+        }
+
+        .attendance-table .app-col {
+            width: 95pt !important;
+            text-align: center;
+        }
+
+        .attendance-table .photo-col {
+            width: 65pt !important;
+            text-align: center;
+        }
+
+        .attendance-table .sign-col {
+            width: 120pt !important;
+        }
+
+        .attendance-table .name-col {
+            width: auto !important;
         }
 
         .att-photo-box {
@@ -45,164 +61,161 @@
             height: 40pt;
             border: 1px solid #111827;
             text-align: center;
+            line-height: 30pt;
+            font-size: 7pt;
+            color: #6b7280;
             overflow: hidden;
-            margin: auto;
+            margin: 0 auto;
         }
 
         .att-photo-box img {
             width: 40pt;
             height: 40pt;
             object-fit: cover;
-        }
-
-        /* ================================
-           INVIGILATOR (BOTTOM FIXED ABOVE FOOTER)
-           ================================ */
-
-        .invigilator-wrapper {
-            position: fixed;
-
-            left: 14mm;
-            right: 14mm;
-
-            /* 🔥 KEY CHANGE: push ABOVE footer area */
-            bottom: 32mm; /* footer is ~22mm, so we lift above it */
-
-            font-size: 9pt;
-        }
-
-        .inv-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        .inv-table td {
-            width: 50%;
-            vertical-align: top;
-        }
-
-        .inv-col {
-            width: 100%;
-        }
-
-        .inv-block {
-            margin-bottom: 10px;
-            text-align: center;
-        }
-
-        .inv-box {
-            width: 150pt;
-            height: 22pt;
-            border: 1px solid #111827;
-            margin: 0 auto;
-        }
-
-        .inv-label {
-            font-size: 8pt;
-            margin-top: 2pt;
-            text-align: center;
             display: block;
         }
 
-        /* LEFT / RIGHT alignment */
-        .inv-left { text-align: left; }
-        .inv-right { text-align: right; }
+        .att-sign-blank {
+            height: 34pt;
+        }
+
+        .att-footer-block {
+            font-size: 8.5pt;
+            line-height: 1.1;
+            color: #111827;
+            width: 150pt;
+        }
+
+        .att-footer-block.right {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .att-footer-row {
+            margin-bottom: 2pt;
+        }
+
+        .att-footer-row:last-child {
+            margin-bottom: 0;
+        }
+
+
+        .att-footer-box {
+            width: 150pt;
+            height: 15pt;
+            border: 1px solid #111827;
+            display: block;
+        }
+
+        .att-footer-label {
+            margin-top: 1pt;
+            font-size: 7.5pt;
+            display: block;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .att-footer-block.right .att-footer-box,
+        .att-footer-block.right .att-footer-label {
+            margin-left: auto;
+        }
 
     </style>
+@endsection
+
+@section('footer-left')
+    <div class="att-footer-block" >
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Name</span>
+        </div>
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Signature</span>
+        </div>
+    </div>
+@endsection
+
+@section('footer-right')
+    <div class="att-footer-block right">
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Name</span>
+        </div>
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Signature</span>
+        </div>
+    </div>
 @endsection
 
 @section('content')
 
     <div class="report-header">
-        <p class="title">{{ $exam->name }}</p>
-        <p class="subtitle">Attendance Sheet</p>
+        <p style="font-size: 15px; margin: 0; line-height: 1.1; font-weight: bold;">
+            {{ $exam->name }}
+        </p>
+        <p style="margin: 2px 0 0; font-size: 10px; line-height: 1.1;">
+            Attendance Sheet
+        </p>
     </div>
+    @if ($applications->isEmpty())
 
-    @if($applications->isEmpty())
-
-        <p style="margin-top:20px;">No applicants found.</p>
+        <div class="empty-row" style="margin-top: 24px;">
+            No paid applicants found for this exam.
+        </div>
 
     @else
 
-        <table class="attendance-table">
+        <table class="report-table attendance-table">
+
             <thead>
             <tr>
-                <th>SL</th>
-                <th>Application ID</th>
-                <th>Name</th>
-                <th>Photo</th>
-                <th>Signature</th>
+                <th class="sl-col">SL</th>
+                <th class="app-col">Application ID</th>
+                <th class="name-col">Name</th>
+                <th class="photo-col">Photo</th>
+                <th class="sign-col">Signature</th>
             </tr>
             </thead>
 
             <tbody>
-            @foreach($applications as $i => $app)
+            @foreach ($applications as $index => $application)
+
                 <tr>
-                    <td>{{ $i+1 }}</td>
-                    <td>{{ $app->application_id ?? $app->ulid }}</td>
-                    <td>{{ $app->applicant_name }}</td>
-                    <td>
+
+                    <td class="sl-col">
+                        {{ $index + 1 }}
+                    </td>
+
+                    <td class="app-col">
+                        {{ $application->application_id ?? $application->ulid }}
+                    </td>
+
+                    <td class="name-col">
+                        {{ $application->applicant_name }}
+                    </td>
+
+                    <td class="photo-col">
                         <div class="att-photo-box">
-                            @if($app->photo_data_uri)
-                                <img src="{{ $app->photo_data_uri }}">
+                            @if($application->photo_data_uri)
+                                <img src="{{ $application->photo_data_uri }}" alt="Photo">
+                            @else
+                                Photo
                             @endif
                         </div>
                     </td>
-                    <td></td>
+
+                    <td class="sign-col">
+                        <div class="att-sign-blank"></div>
+                    </td>
+
                 </tr>
+
             @endforeach
             </tbody>
+
         </table>
-
-        {{-- INVIGILATOR (NOW ABOVE FOOTER) --}}
-        <div class="invigilator-wrapper">
-
-            <table class="inv-table">
-                <tr>
-
-                    {{-- LEFT --}}
-                    <td class="inv-left">
-
-                        <div class="inv-col">
-
-                            <div class="inv-block">
-                                <div class="inv-box"></div>
-                                <div class="inv-label">Invigilator Name</div>
-                            </div>
-
-                            <div class="inv-block">
-                                <div class="inv-box"></div>
-                                <div class="inv-label">Invigilator Signature</div>
-                            </div>
-
-                        </div>
-
-                    </td>
-
-                    {{-- RIGHT --}}
-                    <td class="inv-right">
-
-                        <div class="inv-col">
-
-                            <div class="inv-block">
-                                <div class="inv-box"></div>
-                                <div class="inv-label">Invigilator Name</div>
-                            </div>
-
-                            <div class="inv-block">
-                                <div class="inv-box"></div>
-                                <div class="inv-label">Invigilator Signature</div>
-                            </div>
-
-                        </div>
-
-                    </td>
-
-                </tr>
-            </table>
-
-        </div>
 
     @endif
 
