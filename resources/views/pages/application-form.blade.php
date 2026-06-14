@@ -2261,22 +2261,27 @@
                     const url = URL.createObjectURL(file);
 
                     img.onload = () => {
+                        const photoMinWidth = 300;
+                        const photoMinHeight = 300;
+                        const signatureMinWidth = 300;
+                        const signatureMinHeight = 80;
+
                         URL.revokeObjectURL(url);
 
                         let valid = true;
                         let message = '';
 
                         if (type === 'photo') {
-                            if (img.width < this.photoMinWidth || img.height < this.photoMinHeight) {
+                            if (img.width !== photoMinWidth || img.height !== photoMinHeight) {
                                 valid = false;
-                                message = `Photo must be at least ${this.photoMinWidth}x${this.photoMinHeight}px`;
+                                message = `Photo must be at least ${photoMinWidth}x${photoMinHeight}px`;
                             }
                         }
 
                         if (type === 'signature') {
-                            if (img.width < this.signatureMinWidth || img.height < this.signatureMinHeight) {
+                            if (img.width !== signatureMinWidth || img.height !== signatureMinHeight) {
                                 valid = false;
-                                message = `Signature must be at least ${this.signatureMinWidth}x${this.signatureMinHeight}px`;
+                                message = `Signature must be at least ${signatureMinWidth}x${signatureMinHeight}px`;
                             }
                         }
 
