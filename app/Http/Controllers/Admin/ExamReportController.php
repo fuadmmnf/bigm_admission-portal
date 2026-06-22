@@ -53,6 +53,8 @@ class ExamReportController extends Controller
     public function attendanceList(Exam $exam): Response
     {
         $applications = $this->paidApplicantsBaseQuery($exam)
+            ->reorder()
+            ->orderBy('application_id')
             ->get([
                 'ulid',
                 'application_id',

@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 class ReportTablesLayoutTest extends TestCase
 {
-    public function test_report_table_views_show_application_id_under_photo_without_a_separate_app_id_column(): void
+    public function test_report_table_views_keep_application_id_under_photo_without_a_separate_app_id_column(): void
     {
         $application = (object) [
             'ulid' => '01ARZ3NDEKTSV4RRFFQ69G5FAV',
@@ -53,7 +53,6 @@ class ReportTablesLayoutTest extends TestCase
             ['reports.gender-wise-applicants', ['genderFilter' => null]],
             ['reports.employer-wise-applicants', ['employerFilter' => null]],
             ['reports.enrolled-students', []],
-            ['reports.choice-list-wise-applicants', []],
             [
                 'reports.choice-list-by-subject',
                 [
@@ -83,6 +82,66 @@ class ReportTablesLayoutTest extends TestCase
             $this->assertStringContainsString('20260001', $html);
             $this->assertSame(0, preg_match('/<th[^>]*>\s*App\.\s*ID\s*<\/th>/i', $html));
         }
+    }
+
+    public function test_choice_list_report_uses_a_dedicated_application_id_column(): void
+    {
+        $application = (object) [
+            'ulid' => '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+            'application_id' => '20260001',
+            'applicant_name' => 'Report Candidate',
+            'written_exam_marks' => 72.5,
+            'viva_exam_marks' => 70,
+            'photo_data_uri' => null,
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'MBA',
+                    'second_choice' => 'MPA',
+                    'third_choice' => 'MDS',
+                    'fourth_choice' => 'MABS',
+                    'fifth_choice' => 'MSS',
+                    'sixth_choice' => 'LLM',
+                ],
+            ],
+        ];
+
+        $html = view('reports.choice-list-wise-applicants', [
+            'exam' => new Exam(['name' => 'Layout Test Exam']),
+            'applications' => collect([$application]),
+            'generatedAt' => CarbonImmutable::parse('2026-05-06 10:00:00'),
+        ])->render();
+
+        $this->assertStringContainsString('<th class="col-app-id">Application ID</th>', $html);
+        $this->assertStringContainsString('<th class="col-photo">Photo</th>', $html);
+        $this->assertStringContainsString('<td class="col-app-id">20260001</td>', $html);
+        $this->assertStringNotContainsString('<div class="photo-app-id">', $html);
+        $this->assertStringNotContainsString('Photo / App. ID', $html);
+    }
+
+    public function test_attendance_sheet_shows_two_invigilator_blocks_in_footer(): void
+    {
+        $application = (object) [
+            'ulid' => '01ARZ3NDEKTSV4RRFFQ69G5FAC',
+            'application_id' => '20260004',
+            'applicant_name' => 'Attendance Candidate',
+            'photo_data_uri' => null,
+            'additional_info' => [],
+        ];
+
+        $html = view('reports.attendance-list', [
+            'exam' => new Exam(['name' => 'Layout Test Exam']),
+            'applications' => collect([$application]),
+            'generatedAt' => CarbonImmutable::parse('2026-05-06 10:00:00'),
+        ])->render();
+
+        $this->assertStringContainsString('Invigilator 1 Name', $html);
+        $this->assertStringContainsString('Invigilator 1 Signature', $html);
+        $this->assertStringContainsString('Invigilator 2 Name', $html);
+        $this->assertStringContainsString('Invigilator 2 Signature', $html);
+        $this->assertStringContainsString('<div class="att-footer-block">', $html);
+        $this->assertStringContainsString('<div class="att-footer-block right">', $html);
+        $this->assertSame(4, substr_count($html, 'class="att-footer-box"'));
+        $this->assertSame(4, substr_count($html, 'class="att-footer-label"'));
     }
 
     public function test_viva_sheet_view_shows_requested_columns_and_marks(): void
@@ -118,11 +177,11 @@ class ReportTablesLayoutTest extends TestCase
 
         $this->assertStringContainsString('Viva Sheet', $html);
         $this->assertStringContainsString('>Name<', $html);
-        $this->assertStringContainsString('>Exp.<', $html);
+        $this->assertStringContainsString('>Total Exp.<', $html);
         $this->assertStringContainsString('>Workplace<', $html);
         $this->assertStringContainsString('>Point<', $html);
         $this->assertStringContainsString('Invigilator Name', $html);
-        $this->assertStringContainsString('Invigilator Signature', $html);
+        $this->assertStringContainsString('Signature:', $html);
         $this->assertStringContainsString('viva-box', $html);
         $this->assertStringContainsString('>Written<', $html);
         $this->assertStringContainsString('>Viva<', $html);

@@ -1,10 +1,24 @@
 @extends('reports.layouts.report')
 
 @section('title', 'Attendance Sheet')
-@section('report-subtitle', 'Attendance Sheet')
+@section('report-subtitle', '')
 
 @section('extra-styles')
     <style>
+
+        @page {
+            margin: 32mm 14mm 35mm 14mm; /* bottom reserved space */
+        }
+
+        /*.pdf-footer {*/
+        /*    bottom: -48mm;*/
+        /*    padding: 2pt 14mm 12pt;*/
+        /*}*/
+
+        /*.pdf-footer-left,*/
+        /*.pdf-footer-right {*/
+        /*    vertical-align: top;*/
+        /*}*/
 
         .attendance-table {
             width: 100%;
@@ -19,39 +33,35 @@
             padding: 4pt;
         }
 
-        /* Small SL column */
         .attendance-table .sl-col {
             width: 30pt !important;
             text-align: center;
         }
 
-        /* Medium App ID */
         .attendance-table .app-col {
             width: 95pt !important;
+            text-align: center;
         }
 
-        /* Photo */
         .attendance-table .photo-col {
             width: 65pt !important;
             text-align: center;
         }
 
-        /* Signature */
         .attendance-table .sign-col {
             width: 120pt !important;
         }
 
-        /* Name takes remaining width */
         .attendance-table .name-col {
             width: auto !important;
         }
 
         .att-photo-box {
-            width: 50pt;
-            height: 60pt;
+            width: 40pt;
+            height: 40pt;
             border: 1px solid #111827;
             text-align: center;
-            line-height: 60pt;
+            line-height: 30pt;
             font-size: 7pt;
             color: #6b7280;
             overflow: hidden;
@@ -59,8 +69,8 @@
         }
 
         .att-photo-box img {
-            width: 50pt;
-            height: 60pt;
+            width: 40pt;
+            height: 40pt;
             object-fit: cover;
             display: block;
         }
@@ -69,43 +79,44 @@
             height: 34pt;
         }
 
-        .att-footer-field {
+        .att-footer-block {
             font-size: 8.5pt;
-            line-height: 1.3;
-            margin-bottom: 10pt;
-        }
-
-        .att-footer-field .field-label {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 2pt;
-        }
-
-        .att-footer-line {
-            display: inline-block;
-            width: 140pt;
-            border-bottom: 1px solid #111827;
-        }
-
-        .att-footer-sig {
-            text-align: right;
-            margin-bottom: 10pt;
-        }
-
-        .att-footer-sig .sig-box {
-            height: 26pt;
+            line-height: 1.1;
+            color: #111827;
             width: 150pt;
-            border: 1px solid #111827;
-            display: inline-block;
+        }
+
+        .att-footer-block.right {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .att-footer-row {
             margin-bottom: 2pt;
         }
 
-        .att-footer-sig .field-label {
-            font-weight: bold;
-            font-size: 8pt;
+        .att-footer-row:last-child {
+            margin-bottom: 0;
+        }
+
+
+        .att-footer-box {
+            width: 150pt;
+            height: 15pt;
+            border: 1px solid #111827;
+            display: block;
+        }
+
+        .att-footer-label {
+            margin-top: 1pt;
+            font-size: 7.5pt;
             display: block;
             text-align: center;
-            width: 150pt;
+            font-weight: bold;
+        }
+
+        .att-footer-block.right .att-footer-box,
+        .att-footer-block.right .att-footer-label {
             margin-left: auto;
         }
 
@@ -113,26 +124,41 @@
 @endsection
 
 @section('footer-left')
-    <div class="att-footer-field">
-        <span class="att-footer-line">&nbsp;</span><br/>
-        <span class="field-label">Invigilator's Name:</span>
+    <div class="att-footer-block" >
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Name</span>
+        </div>
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Signature</span>
+        </div>
     </div>
 @endsection
 
 @section('footer-right')
-    <div class="att-footer-sig">
-        <span class="sig-box"></span>
-        <span class="field-label">Invigilator's Signature</span><br/>
+    <div class="att-footer-block right">
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Name</span>
+        </div>
+        <div class="att-footer-row">
+            <span class="att-footer-box"></span>
+            <span class="att-footer-label">Invigilator Signature</span>
+        </div>
     </div>
 @endsection
 
 @section('content')
 
-    <div class="report-header" style="margin-bottom: 10px;">
-        <p class="report-header-subtitle" style="font-size: 10px; margin: 0; color: #111827;">{{ $exam->name }}</p>
-        <p class="report-title-chip" style="margin-top: 6px;">Attendance Sheet</p>
+    <div class="report-header">
+        <p style="font-size: 15px; margin: 0; line-height: 1.1; font-weight: bold;">
+            {{ $exam->name }}
+        </p>
+        <p style="margin: 2px 0 0; font-size: 10px; line-height: 1.1;">
+            Attendance Sheet
+        </p>
     </div>
-
     @if ($applications->isEmpty())
 
         <div class="empty-row" style="margin-top: 24px;">

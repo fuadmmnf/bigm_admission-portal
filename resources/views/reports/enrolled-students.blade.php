@@ -6,7 +6,7 @@
 @section('content')
 <div class="report-meta">
     <span><span class="label">Exam:</span> {{ $exam->name }}</span>
-    <span><span class="label">Total Enrolled:</span><span class="summary-badge">{{ $applications->count() }}</span></span>
+{{--    <span><span class="label">Total Enrolled:</span><span class="summary-badge">{{ $applications->count() }}</span></span>--}}
 </div>
 
 <table class="report-table">

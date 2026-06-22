@@ -90,8 +90,15 @@ class SendAdmitCardController extends Controller
                     'mail_type' => $mailType,
                 ]);
             } else {
-                Mail::to($application->applicant_email)
-                    ->queue(new AdmitCardMail($application, $mailType));
+                try {
+                    Mail::to($application->applicant_email)
+                        ->send(new AdmitCardMail($application, $mailType));
+
+                } catch (\Throwable $e) {
+                    Mail::to($application->applicant_email)
+                        ->queue(new AdmitCardMail($application, $mailType));
+                }
+
             }
 
             $sent++;

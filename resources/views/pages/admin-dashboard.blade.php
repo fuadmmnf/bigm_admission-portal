@@ -12,7 +12,7 @@ new #[Layout('layouts.app')] class extends Component {
             'total_exams' => Exam::query()->count(),
             'active_exams' => Exam::query()->where('status', 'active')->count(),
             'draft_exams' => Exam::query()->where('status', 'draft')->count(),
-            'paid_applications' => Application::query()->where('status', 'paid')->count(),
+//            'paid_applications' => Application::query()->where('status', 'paid')->count(),
         ];
     }
 
@@ -49,7 +49,7 @@ new #[Layout('layouts.app')] class extends Component {
                         'total_exams'       => ['label' => 'Total Exams',       'cls' => 'border-gray-200 bg-gray-50     text-gray-700'],
                         'active_exams'      => ['label' => 'Active Exams',      'cls' => 'border-indigo-200 bg-indigo-50  text-indigo-700'],
                         'draft_exams'       => ['label' => 'Draft Exams',       'cls' => 'border-blue-200 bg-blue-50     text-blue-700'],
-                        'paid_applications' => ['label' => 'Paid Applications', 'cls' => 'border-emerald-200 bg-emerald-50 text-emerald-700'],
+//                        'paid_applications' => ['label' => 'Paid Applications', 'cls' => 'border-emerald-200 bg-emerald-50 text-emerald-700'],
                     ];
                 @endphp
                 @foreach ($statConfig as $key => $config)

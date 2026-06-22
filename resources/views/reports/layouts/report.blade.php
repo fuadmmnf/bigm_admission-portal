@@ -7,7 +7,7 @@
     <link rel="shortcut icon" href="{{ asset('images/logo.png') }}" type="image/png">
     <style>
         @page {
-            margin: 28mm 14mm 22mm 14mm;
+            margin: 40mm 14mm 22mm 14mm;
             size: {{ $pageOrientation ?? 'portrait' }};
         }
 
@@ -43,7 +43,7 @@
         /* ── Fixed Header ──────────────────────────────────── */
         .pdf-header {
             position: fixed;
-            top: -28mm;
+            top: -32mm;
             left: -14mm;
             right: -14mm;
             color: #111827;
@@ -57,10 +57,11 @@
         }
 
         .pdf-header-logo {
-            width: 60px;
+            width: 100px;
             height: auto;
             display: inline-block;
             margin-bottom: 2pt;
+            margin-top: 15pt;
         }
 
         .pdf-header-short {
@@ -276,10 +277,12 @@
 
         /* ── Report Header (reusable across all reports) ────── */
         .report-header {
+
             text-align: center;
             border-bottom: 1px solid #d1d5db;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
+            margin-bottom: 6px !important;
+            padding-bottom: 4px !important;
+
         }
 
         .report-header-logo-wrap {
@@ -300,7 +303,6 @@
         }
 
         .report-header-subtitle {
-            margin-top: 2px;
             font-size: 9.2px;
             color: #374151;
         }
@@ -333,26 +335,26 @@
 {{-- Fixed Footer --}}
 <div class="pdf-footer">
     <div class="pdf-footer-inner">
-        <div class="pdf-footer-left">@yield('footer-left', 'BIGM Admission Portal &mdash; Confidential')</div>
+        <div class="pdf-footer-left">@yield('footer-left', '')</div>
         <div class="pdf-footer-center">@yield('footer-center', '')</div>
         <div class="pdf-footer-right">@yield('footer-right', '')</div>
     </div>
 </div>
 
 {{-- Page numbers via PHP (dompdf) --}}
-<script type="text/php">
-    if (isset($pdf)) {
-        $font = $fontMetrics->getFont("DejaVu Sans", "normal");
-        $size = 7;
-        $color = array(107/255, 114/255, 128/255);
-        $width  = $pdf->get_width();
-        $height = $pdf->get_height();
-        // x: right-aligned ~14mm from right edge; y: near bottom of page footer area
-        $x = $width - 112;
-        $y = $height - 14;
-        $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);
-    }
-</script>
+{{--<script type="text/php">--}}
+{{--    if (isset($pdf)) {--}}
+{{--        $font = $fontMetrics->getFont("DejaVu Sans", "normal");--}}
+{{--        $size = 7;--}}
+{{--        $color = array(107/255, 114/255, 128/255);--}}
+{{--        $width  = $pdf->get_width();--}}
+{{--        $height = $pdf->get_height();--}}
+{{--        // x: right-aligned ~14mm from right edge; y: near bottom of page footer area--}}
+{{--        $x = $width - 112;--}}
+{{--        $y = $height - 14;--}}
+{{--        $pdf->page_text($x, $y, "Page {PAGE_NUM} of {PAGE_COUNT}", $font, $size, $color);--}}
+{{--    }--}}
+{{--</script>--}}
 
 {{-- Main Content --}}
 <div class="report-content">

@@ -7,6 +7,12 @@
 @section('extra-styles')
 <style>
 
+    .report-table .col-app-id {
+        width: 55pt !important;
+        text-align: center;
+        font-size: 7.5pt;
+    }
+
     .report-table .col-photo {
         width: 95pt !important;
     }
@@ -25,13 +31,14 @@
 @section('content')
 <div class="report-meta">
     <span><span class="label">Exam:</span> {{ $exam->name }}</span>
-    <span><span class="label">Total Applicants:</span><span class="summary-badge">{{ $applications->count() }}</span></span>
+{{--    <span><span class="label">Total Applicants:</span><span class="summary-badge">{{ $applications->count() }}</span></span>--}}
 </div>
 
 <table class="report-table">
     <thead>
         <tr>
-            <th class="col-photo">Photo / App. ID</th>
+            <th class="col-app-id">Application ID</th>
+            <th class="col-photo">Photo</th>
             <th class="col-name">Applicant Name</th>
             <th class="col-marks-stack">Marks</th>
             <th class="col-choice">1st Choice</th>
@@ -54,13 +61,13 @@
                 $shorten = fn(string $name): string => strlen($name) > 18 ? substr($name, 0, 17) . '…' : $name;
             @endphp
             <tr>
-                <td class="col-photo photo-with-id">
+                <td class="col-app-id">{{ $application->application_id ?? $application->ulid }}</td>
+                <td class="col-photo">
                     @if($application->photo_data_uri)
                         <img src="{{ $application->photo_data_uri }}" alt="Photo" class="report-photo">
                     @else
                         <div class="report-photo-placeholder">N/A</div>
                     @endif
-                    <div class="photo-app-id">{{ $application->application_id ?? $application->ulid }}</div>
                 </td>
                 <td class="col-name">{{ $application->applicant_name }}</td>
                 <td class="col-marks-stack">
@@ -79,7 +86,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="9" class="empty-row">No paid applicants found.</td>
+                <td colspan="10" class="empty-row">No paid applicants found.</td>
             </tr>
         @endforelse
     </tbody>

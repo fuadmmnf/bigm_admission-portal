@@ -14,12 +14,12 @@ return [
     ],
 
     'marksheet_pdf' => [
-        'max_kb' => 5120,
+        'max_kb' => 1024,
         'max_count' => 10,
     ],
 
     'certificate_pdf' => [
-        'max_kb' => 5120,
+        'max_kb' => 1024,
     ],
 ];
 
