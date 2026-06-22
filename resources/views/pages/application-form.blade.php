@@ -588,11 +588,11 @@
                         </div>
                         <div x-show="educationResultTypes.ssc === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
-                            <input name="education[ssc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'numeric'">
+                            <input name="education[ssc][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.ssc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'numeric'">
                         </div>
                         <div x-show="educationResultTypes.ssc === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">GPA *</label>
-                            <input name="education[ssc][result]" type="number" step="0.01" min="0" value="{{ old('education.ssc.result') }}" placeholder="e.g. 4.67" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'numeric'">
+                            <input name="education[ssc][result]" type="number" step="0.001" min="0" value="{{ old('education.ssc.result') }}" placeholder="e.g. 4.67" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.ssc === 'numeric'">
                         </div>
                         <div x-show="educationResultTypes.ssc === 'division'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
@@ -629,11 +629,11 @@
                         </div>
                         <div x-show="educationResultTypes.hsc === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
-                            <input name="education[hsc][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'numeric'">
+                            <input name="education[hsc][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.hsc.result_scale') }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'numeric'">
                         </div>
                         <div x-show="educationResultTypes.hsc === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">GPA *</label>
-                            <input name="education[hsc][result]" type="number" step="0.01" min="0" value="{{ old('education.hsc.result') }}" placeholder="e.g. 4.50" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'numeric'">
+                            <input name="education[hsc][result]" type="number" step="0.001" min="0" value="{{ old('education.hsc.result') }}" placeholder="e.g. 4.50" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.hsc === 'numeric'">
                         </div>
                         <div x-show="educationResultTypes.hsc === 'division'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
@@ -671,11 +671,11 @@
                         </div>
                         <div x-show="educationResultTypes.graduation === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
-                            <input name="education[graduation][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'numeric'">
+                            <input name="education[graduation][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.graduation.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'numeric'">
                         </div>
                         <div x-show="educationResultTypes.graduation === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">CGPA *</label>
-                            <input name="education[graduation][result]" type="number" step="0.01" min="0" value="{{ old('education.graduation.result') }}" placeholder="e.g. 3.75" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'numeric'">
+                            <input name="education[graduation][result]" type="number" step="0.001" min="0" value="{{ old('education.graduation.result') }}" placeholder="e.g. 3.75" class="rounded-md border-gray-300 w-full" :required="educationResultTypes.graduation === 'numeric'">
                         </div>
                         <div x-show="educationResultTypes.graduation === 'division'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
@@ -714,11 +714,11 @@
                         </div>
                         <div x-show="educationResultTypes.masters === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label>
-                            <input name="education[masters][result_scale]" type="number" step="0.01" min="0" value="{{ old('education.masters.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full">
+                            <input name="education[masters][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.masters.result_scale') }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full">
                         </div>
                         <div x-show="educationResultTypes.masters === 'numeric'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
-                            <input name="education[masters][result]" type="number" step="0.01" min="0" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full">
+                            <input name="education[masters][result]" type="number" step="0.001" min="0" value="{{ old('education.masters.result') }}" placeholder="Result" class="rounded-md border-gray-300 w-full">
                         </div>
                         <div x-show="educationResultTypes.masters === 'division'" x-cloak>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
