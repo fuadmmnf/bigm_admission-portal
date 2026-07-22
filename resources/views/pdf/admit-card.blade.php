@@ -390,14 +390,14 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
                             <td class="meta-label">Email</td>
                             <td class="meta-value">: {{ $displayText($application->applicant_email) }}</td>
                         </tr>
-                        <tr>
-                            <td class="meta-label">Father's Name</td>
-                            <td class="meta-value">: {{ $displayText(data_get($personal, 'father_name')) }}</td>
-                        </tr>
-                        <tr>
-                            <td class="meta-label">Mother's Name</td>
-                            <td class="meta-value">: {{ $displayText(data_get($personal, 'mother_name')) }}</td>
-                        </tr>
+{{--                        <tr>--}}
+{{--                            <td class="meta-label">Father's Name</td>--}}
+{{--                            <td class="meta-value">: {{ $displayText(data_get($personal, 'father_name')) }}</td>--}}
+{{--                        </tr>--}}
+{{--                        <tr>--}}
+{{--                            <td class="meta-label">Mother's Name</td>--}}
+{{--                            <td class="meta-value">: {{ $displayText(data_get($personal, 'mother_name')) }}</td>--}}
+{{--                        </tr>--}}
                         <tr>
                             <td class="meta-label">Exam</td>
                             <td class="meta-value">: {{ $displayText($exam?->name) }}</td>

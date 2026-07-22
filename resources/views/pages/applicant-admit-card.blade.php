@@ -354,8 +354,8 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
             </p>
             <p class="meta-row"><strong>Name:</strong> {{ $application->applicant_name ?: 'N/A' }}</p>
             <p class="meta-row"><strong>Email:</strong> {{ $application->applicant_email ?: 'N/A' }}</p>
-            <p class="meta-row"><strong>Father's Name:</strong> {{ data_get($personal, 'father_name', 'N/A') }}</p>
-            <p class="meta-row"><strong>Mother's Name:</strong> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
+{{--            <p class="meta-row"><strong>Father's Name:</strong> {{ data_get($personal, 'father_name', 'N/A') }}</p>--}}
+{{--            <p class="meta-row"><strong>Mother's Name:</strong> {{ data_get($personal, 'mother_name', 'N/A') }}</p>--}}
             <p class="meta-row"><strong>Exam Center:</strong> {{ $centerText }}</p>
             <p class="meta-row"><strong>Exam Date & Time:</strong> {{ $examDateText }}</p>
             <p class="meta-row"><strong>Time:</strong> {{ $examTimeText }}</p>
