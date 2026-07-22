@@ -73,12 +73,16 @@
     $additional = is_array($application->additional_info) ? $application->additional_info : [];
     $examMeta   = is_array($exam?->additional_info) ? $exam->additional_info : [];
 
-    $examDateText = data_get($examMeta, 'exam_date')
-        ?? optional($exam?->start_date)->format('d M, Y (l)')
+     $examDateText  = data_get($examMeta, 'exam_date')
+//        ?? optional($exam?->start_date)->format('d M, Y (l)')
+        ?? '31 July, 2026 (Friday)'
         ?? 'To be announced';
-    $examTimeText = data_get($examMeta, 'exam_time')
-        ?? optional($exam?->start_date)->format('h.i A')
+    $examTimeText  = data_get($examMeta, 'exam_time')
+//        ?? optional($exam?->start_date)->format('h.i A')
+        ?? '10:00 AM'
         ?? 'To be announced';
+
+
     $centerText   = data_get($examMeta, 'exam_center', 'BIGM Campus, E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207');
 
     $noticeTitle = match ($mailType) {
