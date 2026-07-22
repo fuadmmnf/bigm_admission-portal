@@ -364,9 +364,8 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
 
     {{-- Title tag --}}
     <div class="card-title-row">
-        <h3>{{ $displayText($exam?->name) }}</h3>
         {{--        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>--}}
-        <div class="card-title-sub">Admit Card</div>
+        <div class="card-title-sub">{{ $displayText($exam?->name) }}<br/>Admit Card</div>
         @if ($mailType !== 'admit_card')
             <span class="card-title-tag" style="margin-top:4pt;">{{ $noticeTitle }}</span>
         @endif

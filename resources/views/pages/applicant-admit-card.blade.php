@@ -343,8 +343,7 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
         <div class="subtitle">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207</div>
 
         <div class="admit-title">
-            <h1>{{ $displayText($exam?->name) }}</h1>
-            <h2>Admit Card</h2>
+            <h2>{{ $displayText($exam?->name) }} <br/>Admit Card</h2>
             <p>Admission test {{ data_get($examMeta, 'admission_session', $defaultSession) }}</p>
         </div>
     </header>
