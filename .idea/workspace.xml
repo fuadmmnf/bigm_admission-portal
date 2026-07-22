@@ -6,6 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pdf/admit-card.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -328,7 +329,9 @@
       <workItem from="1779253889370" duration="917000" />
       <workItem from="1781028650672" duration="3903000" />
       <workItem from="1781116399301" duration="2990000" />
-      <workItem from="1781289025636" duration="5309000" />
+      <workItem from="1781289025636" duration="6999000" />
+      <workItem from="1782636337931" duration="3181000" />
+      <workItem from="1784740734333" duration="546000" />
     </task>
     <servers />
   </component>

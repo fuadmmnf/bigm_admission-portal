@@ -291,16 +291,22 @@
     $admissionSession  = data_get($examMeta, 'admission_session', $defaultSession);
 
     $examDateText  = data_get($examMeta, 'exam_date')
-        ?? optional($exam?->start_date)->format('d M, Y (l)')
+//        ?? optional($exam?->start_date)->format('d M, Y (l)')
+        ?? '31 July, 2026 (Friday)'
         ?? 'To be announced';
     $examTimeText  = data_get($examMeta, 'exam_time')
-        ?? optional($exam?->start_date)->format('h.i A')
+//        ?? optional($exam?->start_date)->format('h.i A')
+        ?? '10:00 AM'
         ?? 'To be announced';
     $centerText    = data_get($examMeta, 'exam_center', 'BIGM Campus, E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207');
     $examTypeText  = data_get($examMeta, 'exam_type', 'Written');
     $durationText  = data_get($examMeta, 'exam_duration', '1.30 Hours');
 
     $instructions = data_get($examMeta, 'admit_card_instructions', [
+        'Candidates finaly selected for admission must submit all required documents (including the Migration
+Certificate), a completed University of Dhaka registration form, and the registration fee of BDT 3,000 to
+BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 will be accepted until
+14 September 2026.',
         'This admit card applies to both the written examination and viva voce.',
         'Applicant must present this admit card while sitting for the exam.',
         'Applicant must be seated in the examination hall at least 15 minutes before the exam starts.',
@@ -358,12 +364,12 @@
 
     {{-- Title tag --}}
     <div class="card-title-row">
-{{--        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>--}}
+        {{--        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>--}}
         <div class="card-title-sub">Admit Card</div>
         @if ($mailType !== 'admit_card')
             <span class="card-title-tag" style="margin-top:4pt;">{{ $noticeTitle }}</span>
         @endif
-{{--        <div class="card-session">Admission Test {{ $admissionSession }}</div>--}}
+        {{--        <div class="card-session">Admission Test {{ $admissionSession }}</div>--}}
     </div>
 
     {{-- Details + Photo --}}
