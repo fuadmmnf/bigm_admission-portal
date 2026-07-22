@@ -130,6 +130,15 @@
                                         Send Alumni Notice to All
                                     @endif
                                 </button>
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                                     formaction="{{ route('admin.exams.send-cv', $exam) }}"
+                                     x-on:click="sendScope = 'all_paid'; targetStage = ''"
+                                     onclick="return confirm('Send CV email to ALL applicants visible on this tab?')"
+                                 >
+                                    Send CV to All
+                                </button>
                             </div>
                             <div class="flex items-center gap-2" x-show="selected.length > 0" x-cloak>
                                 <span class="text-sm text-gray-600" x-text="`${selected.length} selected`"></span>
@@ -139,7 +148,7 @@
                                      formaction="{{ route('admin.exams.send-admit-cards', $exam) }}"
                                      x-on:click="sendScope = 'selected'; targetStage = ''"
                                      onclick="return confirm('Send email notification to the selected applicants on this tab?')"
-                                >
+                                 >
                                     {{--                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"--}}
                                     {{--                                         viewBox="0 0 24 24">--}}
                                     {{--                                        <path stroke-linecap="round" stroke-linejoin="round"--}}
@@ -154,6 +163,15 @@
                                     @else
                                         Send Alumni Notice(s)
                                     @endif
+                                </button>
+                                <button
+                                    type="submit"
+                                    class="inline-flex items-center gap-1.5 rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-cyan-700"
+                                     formaction="{{ route('admin.exams.send-cv', $exam) }}"
+                                     x-on:click="sendScope = 'selected'; targetStage = ''"
+                                     onclick="return confirm('Send CV email to the selected applicants?')"
+                                 >
+                                    Send CV(s)
                                 </button>
 
                                 @if ($activeTab === 'paid')

@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ApplicationShowController;
 use App\Http\Controllers\Admin\ApplicationStageUpdateController;
 use App\Http\Controllers\Admin\ExamReportController;
 use App\Http\Controllers\Admin\SendAdmitCardController;
+use App\Http\Controllers\Admin\SendCVController;
 use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
@@ -70,6 +71,9 @@ Route::middleware([
 
     Route::post('/admin/exams/{exam}/send-admit-cards', SendAdmitCardController::class)
         ->name('admin.exams.send-admit-cards')
+        ->whereUlid('exam');
+    Route::post('/admin/exams/{exam}/send-cv', SendCVController::class)
+        ->name('admin.exams.send-cv')
         ->whereUlid('exam');
     Route::post('/admin/exams/{exam}/applications/stage', ApplicationStageUpdateController::class)
         ->name('admin.exams.applications.stage-update')
