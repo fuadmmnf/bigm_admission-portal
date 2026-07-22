@@ -295,12 +295,13 @@
     $sessionStartYear = $exam?->start_date?->year ?? now()->year;
     $defaultSession = $sessionStartYear.'-'.($sessionStartYear + 1);
 
-    $examDateText = data_get($examMeta, 'exam_date')
-        ?? optional($exam?->start_date)->format('d M, Y (l)')
+     $examDateText  = data_get($examMeta, 'exam_date')
+//        ?? optional($exam?->start_date)->format('d M, Y (l)')
+        ?? '31 July, 2026 (Friday)'
         ?? 'To be announced';
-
-    $examTimeText = data_get($examMeta, 'exam_time')
-        ?? optional($exam?->start_date)->format('h.i A')
+    $examTimeText  = data_get($examMeta, 'exam_time')
+//        ?? optional($exam?->start_date)->format('h.i A')
+        ?? '10:00 AM'
         ?? 'To be announced';
 
     $centerText = data_get($examMeta, 'exam_center', 'BIGM Campus, E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207');
@@ -308,6 +309,10 @@
     $durationText = data_get($examMeta, 'exam_duration', '1.30 Hours');
 
     $instructions = data_get($examMeta, 'admit_card_instructions', [
+        'Candidates finaly selected for admission must submit all required documents (including the Migration
+Certificate), a completed University of Dhaka registration form, and the registration fee of BDT 3,000 to
+BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 will be accepted until
+14 September 2026.',
         'This admit card will be applicable for both written examination and viva voce.',
         'Applicant must show this admit card while sitting for exam.',
         'Applicant must sit in the examination hall at least 15 minutes before the exam starts.',
@@ -326,70 +331,71 @@
     $backUrl = $exam ? route('admin.exams.show', $exam) : route('admin-dashboard');
 @endphp
 
-    <div class="print-controls">
-        <a href="{{ $backUrl }}" class="button">Back to Applicants</a>
-        <button type="button" onclick="window.print()" class="button primary">Print Admit Card</button>
-    </div>
+<div class="print-controls">
+    <a href="{{ $backUrl }}" class="button">Back to Applicants</a>
+    <button type="button" onclick="window.print()" class="button primary">Print Admit Card</button>
+</div>
 
-    <section class="sheet">
-        <header class="header">
-            <img src="{{ $logoUrl }}" alt="BIGM Logo" class="logo-mark">
-            <h1 class="title">Bangladesh Institute of Governance and Management (BIGM)</h1>
-            <div class="subtitle">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207</div>
+<section class="sheet">
+    <header class="header">
+        <img src="{{ $logoUrl }}" alt="BIGM Logo" class="logo-mark">
+        <h1 class="title">Bangladesh Institute of Governance and Management (BIGM)</h1>
+        <div class="subtitle">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207</div>
 
-            <div class="admit-title">
-                <h2>Admit Card</h2>
-                <p>Admission test {{ data_get($examMeta, 'admission_session', $defaultSession) }}</p>
-            </div>
-        </header>
+        <div class="admit-title">
+            <h2>Admit Card</h2>
+            <p>Admission test {{ data_get($examMeta, 'admission_session', $defaultSession) }}</p>
+        </div>
+    </header>
 
-        <div class="details">
-            <div class="left">
-                <p class="meta-row"><strong>Applicant ID:</strong> {{ $application->application_id ?? $application->ulid }}</p>
-                <p class="meta-row"><strong>Name:</strong> {{ $application->applicant_name ?: 'N/A' }}</p>
-                <p class="meta-row"><strong>Email:</strong> {{ $application->applicant_email ?: 'N/A' }}</p>
-                <p class="meta-row"><strong>Father's Name:</strong> {{ data_get($personal, 'father_name', 'N/A') }}</p>
-                <p class="meta-row"><strong>Mother's Name:</strong> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
-                <p class="meta-row"><strong>Exam Center:</strong> {{ $centerText }}</p>
-                <p class="meta-row"><strong>Exam Date & Time:</strong> {{ $examDateText }}</p>
-                <p class="meta-row"><strong>Time:</strong> {{ $examTimeText }}</p>
-                <p class="meta-row"><strong>Exam Type:</strong> {{ $examTypeText }}</p>
-                <p class="meta-row"><strong>Duration:</strong> {{ $durationText }}</p>
-            </div>
-
-            <div class="right">
-                <div class="photo-box">
-                    @if($photoUrl)
-                        <img src="{{ $photoUrl }}" alt="Applicant Photo">
-                    @else
-                        Photo not uploaded
-                    @endif
-                </div>
-                <div class="signature-box">
-                    @if($signatureUrl)
-                        <img src="{{ $signatureUrl }}" alt="Applicant Signature">
-                    @else
-                        Signature not uploaded
-                    @endif
-                </div>
-            </div>
+    <div class="details">
+        <div class="left">
+            <p class="meta-row"><strong>Applicant ID:</strong> {{ $application->application_id ?? $application->ulid }}
+            </p>
+            <p class="meta-row"><strong>Name:</strong> {{ $application->applicant_name ?: 'N/A' }}</p>
+            <p class="meta-row"><strong>Email:</strong> {{ $application->applicant_email ?: 'N/A' }}</p>
+            <p class="meta-row"><strong>Father's Name:</strong> {{ data_get($personal, 'father_name', 'N/A') }}</p>
+            <p class="meta-row"><strong>Mother's Name:</strong> {{ data_get($personal, 'mother_name', 'N/A') }}</p>
+            <p class="meta-row"><strong>Exam Center:</strong> {{ $centerText }}</p>
+            <p class="meta-row"><strong>Exam Date & Time:</strong> {{ $examDateText }}</p>
+            <p class="meta-row"><strong>Time:</strong> {{ $examTimeText }}</p>
+            <p class="meta-row"><strong>Exam Type:</strong> {{ $examTypeText }}</p>
+            <p class="meta-row"><strong>Duration:</strong> {{ $durationText }}</p>
         </div>
 
-        <section class="instructions">
-            <div class="watermark" style="opacity:0.08; font-size:0; line-height:0;">
-                <img src="{{ $logoUrl }}" alt="BIGM Watermark" style="width:70%; height:auto;">
+        <div class="right">
+            <div class="photo-box">
+                @if($photoUrl)
+                    <img src="{{ $photoUrl }}" alt="Applicant Photo">
+                @else
+                    Photo not uploaded
+                @endif
             </div>
+            <div class="signature-box">
+                @if($signatureUrl)
+                    <img src="{{ $signatureUrl }}" alt="Applicant Signature">
+                @else
+                    Signature not uploaded
+                @endif
+            </div>
+        </div>
+    </div>
 
-            <div class="instructions-content">
-                <h3 class="instructions-title">General instructions for applicants</h3>
-                <ul class="instructions-list">
-                    @foreach ($instructions as $instruction)
-                        <li>{{ $instruction }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        </section>
+    <section class="instructions">
+        <div class="watermark" style="opacity:0.08; font-size:0; line-height:0;">
+            <img src="{{ $logoUrl }}" alt="BIGM Watermark" style="width:70%; height:auto;">
+        </div>
+
+        <div class="instructions-content">
+            <h3 class="instructions-title">General instructions for applicants</h3>
+            <ul class="instructions-list">
+                @foreach ($instructions as $instruction)
+                    <li>{{ $instruction }}</li>
+                @endforeach
+            </ul>
+        </div>
     </section>
+</section>
 </body>
 </html>
 
