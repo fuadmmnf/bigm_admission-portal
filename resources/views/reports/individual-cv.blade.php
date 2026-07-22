@@ -127,13 +127,13 @@
                     <tr><td class="k">Gender</td><td>{{ $toText($application->gender ?? data_get($personal, 'gender')) }}</td></tr>
                     <tr><td class="k">Date of Birth</td><td>{{ $toText(data_get($personal, 'date_of_birth')) }}</td></tr>
                     <tr><td class="k">Age</td><td>{{ $toText(data_get($personal, 'age_as_of_reference')) }}</td></tr>
-                    <tr>
-                        <td class="k">Stage</td>
-                        <td><span class="badge">{{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</span></td>
-                    </tr>
-                    <tr><td class="k">Written Exam Marks</td><td>{{ $application->written_exam_marks !== null ? number_format((float) $application->written_exam_marks, 2) : 'N/A' }}</td></tr>
-                    <tr><td class="k">Viva Exam Marks</td><td>{{ $application->viva_exam_marks !== null ? number_format((float) $application->viva_exam_marks, 2) : 'N/A' }}</td></tr>
-                    <tr><td class="k">Selected Program / Course</td><td>{{ $toText($application->selectedCategory?->name) }}</td></tr>
+{{--                    <tr>--}}
+{{--                        <td class="k">Stage</td>--}}
+{{--                        <td><span class="badge">{{ str($application->selection_stage ?? 'paid')->replace('_', ' ')->title() }}</span></td>--}}
+{{--                    </tr>--}}
+{{--                    <tr><td class="k">Written Exam Marks</td><td>{{ $application->written_exam_marks !== null ? number_format((float) $application->written_exam_marks, 2) : 'N/A' }}</td></tr>--}}
+{{--                    <tr><td class="k">Viva Exam Marks</td><td>{{ $application->viva_exam_marks !== null ? number_format((float) $application->viva_exam_marks, 2) : 'N/A' }}</td></tr>--}}
+{{--                    <tr><td class="k">Selected Program / Course</td><td>{{ $toText($application->selectedCategory?->name) }}</td></tr>--}}
                 </table>
             </td>
             <td style="width: 35%; vertical-align: top; text-align: center; padding-top: 6px;">
