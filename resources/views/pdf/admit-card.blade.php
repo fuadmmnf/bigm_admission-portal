@@ -299,7 +299,7 @@
         ?? '10:00 AM'
         ?? 'To be announced';
     $centerText    = data_get($examMeta, 'exam_center', 'BIGM Campus, E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207');
-    $examTypeText  = data_get($examMeta, 'exam_type', 'Written');
+    $examTypeText  = data_get($examMeta, 'exam_type', 'MCQ & Written');
     $durationText  = data_get($examMeta, 'exam_duration', '1.30 Hours');
 
     $instructions = data_get($examMeta, 'admit_card_instructions', [
@@ -342,7 +342,7 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
                 <span style="font-size:12pt;font-weight:bold;letter-spacing:1pt;">BIGM</span>
             @endif
         </div>
-        <h1>Bangladesh Institute of Governance and Management (BIGM)</h1>
+        <h1>Bangladesh Institute of Governance and Management</h1>
         <p class="sub">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka – 1207</p>
     </div>
 
@@ -364,6 +364,7 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
 
     {{-- Title tag --}}
     <div class="card-title-row">
+        <h3>{{ $displayText($exam?->name) }}</h3>
         {{--        <div class="card-title-main">Bangladesh Institute of Governance and Management (BIGM)</div>--}}
         <div class="card-title-sub">Admit Card</div>
         @if ($mailType !== 'admit_card')
@@ -398,10 +399,10 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
 {{--                            <td class="meta-label">Mother's Name</td>--}}
 {{--                            <td class="meta-value">: {{ $displayText(data_get($personal, 'mother_name')) }}</td>--}}
 {{--                        </tr>--}}
-                        <tr>
-                            <td class="meta-label">Exam</td>
-                            <td class="meta-value">: {{ $displayText($exam?->name) }}</td>
-                        </tr>
+{{--                        <tr>--}}
+{{--                            <td class="meta-label">Exam</td>--}}
+{{--                            <td class="meta-value">: {{ $displayText($exam?->name) }}</td>--}}
+{{--                        </tr>--}}
                         <tr>
                             <td class="meta-label">Exam Date</td>
                             <td class="meta-value">: {{ $examDateText }}</td>

@@ -305,7 +305,7 @@
         ?? 'To be announced';
 
     $centerText = data_get($examMeta, 'exam_center', 'BIGM Campus, E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207');
-    $examTypeText = data_get($examMeta, 'exam_type', 'Written');
+    $examTypeText = data_get($examMeta, 'exam_type', 'MCQ & Written');
     $durationText = data_get($examMeta, 'exam_duration', '1.30 Hours');
 
     $instructions = data_get($examMeta, 'admit_card_instructions', [
@@ -339,10 +339,11 @@ BIGM by 25 August 2026 (4:00 PM); late submission with a late fee of BDT 12,000 
 <section class="sheet">
     <header class="header">
         <img src="{{ $logoUrl }}" alt="BIGM Logo" class="logo-mark">
-        <h1 class="title">Bangladesh Institute of Governance and Management (BIGM)</h1>
+        <h1 class="title">Bangladesh Institute of Governance and Management</h1>
         <div class="subtitle">E-33, Sher-E-Bangla Nagar, Agargaon, Dhaka - 1207</div>
 
         <div class="admit-title">
+            <h1>{{ $displayText($exam?->name) }}</h1>
             <h2>Admit Card</h2>
             <p>Admission test {{ data_get($examMeta, 'admission_session', $defaultSession) }}</p>
         </div>
