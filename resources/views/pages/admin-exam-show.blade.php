@@ -166,7 +166,7 @@
                                 </button>
                                 <button
                                     type="submit"
-                                    class="inline-flex items-center gap-1.5 rounded-md bg-cyan-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-cyan-700"
+                                    class="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700"
                                      formaction="{{ route('admin.exams.send-cv', $exam) }}"
                                      x-on:click="sendScope = 'selected'; targetStage = ''"
                                      onclick="return confirm('Send CV email to the selected applicants?')"
