@@ -101,48 +101,142 @@
     </div>
 
     <div class="body-content">
-        <p class="greeting">Dear {{ $application->applicant_name ?: 'Applicant' }},</p>
 
-        @if ($mailType === 'viva_eligibility')
-            <div class="notice-box viva">
-                <strong>Viva Eligibility:</strong> Congratulations! You are eligible for the viva examination
-                for <strong>{{ $exam?->name ?? 'the admission exam' }}</strong>.
-                Please attend as per schedule and bring all required documents.
-            </div>
+        <p class="greeting">
+            Dear {{ $application->applicant_name ?: 'Applicant' }},
+        </p>
+
+        @if ($mailType === 'admit_card')
+
+            <p>
+                Your <strong>Admit Card</strong> for the
+                <strong>{{ $exam?->name ?? 'BIGM Admission Test' }}</strong>
+                is attached to this email as a PDF.
+            </p>
+
+            <p>
+                Please download the attached admit card, verify the information,
+                and bring a printed copy to the admission test along with a valid
+                photo identification.
+            </p>
+
+            <h3 style="margin-top:24px;margin-bottom:12px;font-size:15px;color:#1e3a5f;">
+                Admission Test Information
+            </h3>
+
+            <table class="detail-table">
+                <tr>
+                    <td>Applicant ID</td>
+                    <td>{{ $application->application_id }}</td>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td>{{ $application->applicant_name ?: 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>{{ $application->email ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td>Admission Test</td>
+                    <td>{{ $exam?->name ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td>Date</td>
+                    <td>{{ $examDateText }}</td>
+                </tr>
+                <tr>
+                    <td>Time</td>
+                    <td>{{ $examTimeText }}</td>
+                </tr>
+            </table>
+
+            <p>
+                Please refer to your admit card for the examination venue and other
+                important instructions.
+            </p>
+
+            <p>
+                If you have any questions regarding your admit card or the admission
+                test, please contact the BIGM Admission Office.
+            </p>
+
+            <p style="margin-top:24px;">
+                Kind regards,
+            </p>
+
+            <p style="margin-top:8px;">
+                <strong>MPA Admission Office</strong><br>
+                Bangladesh Institute of Governance and Management (BIGM)
+            </p>
+
+        @elseif ($mailType === 'viva_eligibility')
+
+            <p>
+                Congratulations! You have been selected to attend the viva examination
+                for <strong>{{ $exam?->name ?? 'the admission process' }}</strong>.
+            </p>
+
+            <p>
+                Please refer to the attached PDF for your viva schedule and further
+                instructions.
+            </p>
+
+            <table class="detail-table">
+                <tr><td>Applicant ID</td><td>{{ $application->application_id }}</td></tr>
+                <tr><td>Name</td><td>{{ $application->applicant_name ?: 'N/A' }}</td></tr>
+                <tr><td>Email</td><td>{{ $application->email ?? 'N/A' }}</td></tr>
+                <tr><td>Examination</td><td>{{ $exam?->name ?? 'N/A' }}</td></tr>
+            </table>
+
+            <p>
+                If you have any questions, please contact the BIGM Admission Office.
+            </p>
+
+            <p style="margin-top:24px;">
+                Kind regards,
+            </p>
+
+            <p style="margin-top:8px;">
+                <strong>BIGM Admission Office</strong><br>
+                Bangladesh Institute of Governance and Management (BIGM)
+            </p>
+
         @elseif ($mailType === 'program_selection')
-            <div class="notice-box program">
-                <strong>Program Selection:</strong> Congratulations! You have been selected for
-                <strong>{{ $selectedProgram }}</strong> under
-                <strong>{{ $exam?->name ?? 'the admission exam' }}</strong>.
-            </div>
-        @else
-            <div class="notice-box">
-                Your <strong>Admit Card</strong> for
-                <strong>{{ $exam?->name ?? 'the BIGM Admission Exam' }}</strong>
-                has been issued and is attached to this email as a PDF.
-                Please download, print, and bring it to the examination hall.
-            </div>
+
+            <p>
+                Congratulations! You have been selected for admission to the
+                <strong>{{ $selectedProgram }}</strong> programme.
+            </p>
+
+            <p>
+                Please refer to the attached notification for further instructions
+                regarding the admission process.
+            </p>
+
+            <table class="detail-table">
+                <tr><td>Applicant ID</td><td>{{ $application->application_id }}</td></tr>
+                <tr><td>Name</td><td>{{ $application->applicant_name ?: 'N/A' }}</td></tr>
+                <tr><td>Email</td><td>{{ $application->email ?? 'N/A' }}</td></tr>
+                <tr><td>Programme</td><td>{{ $selectedProgram }}</td></tr>
+            </table>
+
+            <p>
+                If you have any questions regarding your admission, please contact
+                the BIGM Admission Office.
+            </p>
+
+            <p style="margin-top:24px;">
+                Kind regards,
+            </p>
+
+            <p style="margin-top:8px;">
+                <strong>BIGM Admission Office</strong><br>
+                Bangladesh Institute of Governance and Management (BIGM)
+            </p>
+
         @endif
 
-        <div class="attachment-note">
-            📎 <strong>Attached:</strong> {{ $noticeTitle }} (PDF) — download and keep a printed copy.
-        </div>
-
-        <table class="detail-table">
-            <tr><td>Applicant ID</td><td>{{ $application->ulid }}</td></tr>
-            <tr><td>Name</td><td>{{ $application->applicant_name ?: 'N/A' }}</td></tr>
-            <tr><td>Exam</td><td>{{ $exam?->name ?? 'N/A' }}</td></tr>
-            @if ($mailType === 'admit_card')
-            <tr><td>Exam Date</td><td>{{ $examDateText }}</td></tr>
-            <tr><td>Time</td><td>{{ $examTimeText }}</td></tr>
-            <tr><td>Exam Center</td><td>{{ $centerText }}</td></tr>
-            @endif
-        </table>
-
-        <p style="font-size:13px;color:#374151;margin-top:16px;">
-            For any queries, please contact the BIGM office directly.<br>
-            Please do not reply to this automatically generated email.
-        </p>
     </div>
 
     <div class="footer">

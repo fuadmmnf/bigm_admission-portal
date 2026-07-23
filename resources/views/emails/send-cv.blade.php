@@ -77,32 +77,60 @@
     </div>
 
     <div class="body-content">
-        <p class="greeting">Dear {{ $application->applicant_name ?: 'Applicant' }},</p>
 
-        <div class="notice-box">
-            Your <strong>Curriculum Vitae (CV)</strong> for
-            <strong>{{ $exam?->name ?? 'the BIGM Admission Exam' }}</strong>
-            has been generated and is attached to this email as a PDF.
-            Please download and keep it for your records.
-        </div>
+        <p class="greeting">
+            Dear {{ $application->applicant_name ?: 'Applicant' }},
+        </p>
 
-        <div class="attachment-note">
-            📎 <strong>Attached:</strong> Curriculum Vitae (CV) PDF — download and keep a copy.
-        </div>
+        <p>
+            Thank you for applying to the
+            <strong>{{ $exam?->name ?? 'BIGM Admission' }}</strong>.
+        </p>
+
+        <p>
+            Attached is a PDF copy of your <strong>Curriculum Vitae (CV)</strong>,
+            generated from the information you submitted through the BIGM Admission
+            Portal. Please review the document and keep it for your records.
+        </p>
+
+        <h3 style="margin-top:24px;margin-bottom:12px;font-size:15px;color:#1e3a5f;">
+            Applicant Information
+        </h3>
 
         <table class="detail-table">
-            <tr><td>Applicant ID</td><td>{{ $application->application_id ?? $application->ulid }}</td></tr>
-            <tr><td>Name</td><td>{{ $application->applicant_name ?: 'N/A' }}</td></tr>
-            <tr><td>Email</td><td>{{ $application->applicant_email ?: 'N/A' }}</td></tr>
-            <tr><td>Exam</td><td>{{ $exam?->name ?? 'N/A' }}</td></tr>
+            <tr>
+                <td>Applicant ID</td>
+                <td>{{ $application->application_id ?? 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td>Name</td>
+                <td>{{ $application->applicant_name ?: 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td>Email</td>
+                <td>{{ $application->applicant_email ?: 'N/A' }}</td>
+            </tr>
+            <tr>
+                <td>Admission</td>
+                <td>{{ $exam?->name ?? 'N/A' }}</td>
+            </tr>
         </table>
 
-        <p style="font-size:13px;color:#374151;margin-top:16px;">
-            For any queries, please contact the BIGM office directly.<br>
-            Please do not reply to this automatically generated email.
+        <p>
+            For any queries regarding your application, please contact the BIGM
+            Admission Office.
         </p>
-    </div>
 
+        <p style="margin-top:24px;">
+            Kind regards,
+        </p>
+
+        <p style="margin-top:8px;">
+            <strong>BIGM Admission Office</strong><br>
+            Bangladesh Institute of Governance and Management (BIGM)
+        </p>
+
+    </div>
     <div class="footer">
         This is an auto-generated notification from BIGM Admission Portal. Please do not reply to this email.
     </div>

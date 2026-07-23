@@ -6,7 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/reports/individual-cv.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/reports/individual-cv.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/emails/admit-card.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/emails/admit-card.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/emails/application-confirmation.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/emails/application-confirmation.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/emails/send-cv.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/emails/send-cv.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +113,7 @@
     &quot;accountId&quot;: &quot;01511ea2-1fd2-4c00-841c-e87e665f4b60&quot;
   }
 }</component>
-  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="bigm_admission-workspace:latest">
+  <component name="PhpWorkspaceProjectConfiguration" interpreter_name="dk-workspace:latest">
     <include_path>
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/guzzle" />
       <path value="$PROJECT_DIR$/vendor/guzzlehttp/promises" />

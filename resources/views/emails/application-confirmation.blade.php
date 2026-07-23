@@ -83,7 +83,7 @@
     $exam          = $application->exam;
     $examName      = $exam?->name ?? 'MPA Admission Exam';
     $applicantName = $application->applicant_name ?: 'Applicant';
-    $applicationId = $application->application_id ?? $application->ulid;
+    $applicationId = $application->application_id ?? '';
     $registrationDate = $application->updated_at
         ? $application->updated_at->format('d M Y')
         : now()->format('d M Y');
