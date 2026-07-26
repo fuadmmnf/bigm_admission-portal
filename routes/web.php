@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\ApplicationAssessmentUpdateController;
 use App\Http\Controllers\Admin\ApplicationDeleteController;
 use App\Http\Controllers\Admin\ApplicationShowController;
 use App\Http\Controllers\Admin\ApplicationStageUpdateController;
+use App\Http\Controllers\Admin\ApplicationCvController;
 use App\Http\Controllers\Admin\ExamReportController;
 use App\Http\Controllers\Admin\SendAdmitCardController;
 use App\Http\Controllers\Admin\SendCVController;
@@ -60,6 +61,8 @@ Route::middleware([
     Route::get('/admin/exams/{exam}', [ExamPageController::class, 'show'])->name('admin.exams.show')->whereUlid('exam');
     Route::get('/admin/applications/{application:ulid}/admit-card', ApplicationAdmitCardController::class)
         ->name('admin.applications.admit-card');
+    Route::get('/admin/applications/{application:ulid}/cv', ApplicationCvController::class)
+        ->name('admin.applications.cv');
     Route::get('/admin/applications/{application:ulid}', ApplicationShowController::class)
         ->name('admin.applications.show');
     Route::patch('/admin/applications/{application:ulid}/assessment', ApplicationAssessmentUpdateController::class)
@@ -263,4 +266,3 @@ Route::prefix('/_secret')->middleware('throttle:10,1')->group(function (): void 
         ]);
     })->name('secret.super.storage-link');
 });
-

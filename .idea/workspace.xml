@@ -3,11 +3,18 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BackgroundAgentGlobalSettings">
+    <option name="selectedModelId" value="auto" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Console/Commands/SendAdmitCardCommand.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Console/Commands/SendAdmitCardCommand.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/Console/Commands/SendCVCommand.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Console/Commands/SendCVCommand.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/ExamReportController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Admin/SendCVController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Admin/SendCVController.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/Mail/SendCVMail.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Mail/SendCVMail.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/admin-exam-show.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/web.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/web.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -262,6 +269,21 @@
   <component name="ProjectLevelVcsManager">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
+  <component name="ProjectSessionTemplates">
+    <option name="panelTemplate">
+      <template>
+        <option name="modeId" value="Agent" />
+        <option name="model">
+          <model>
+            <option name="modelType" value="builtin_id" />
+            <option name="modelValue" value="auto" />
+          </model>
+        </option>
+        <option name="targetType" value="BACKGROUND" />
+        <option name="worktreeMode" value="WORKSPACE" />
+      </template>
+    </option>
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -272,15 +294,17 @@
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.laravel_idea.move_run_console_settings&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
     &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;copilot.chat.legacySessionMetadata.migrated&quot;: &quot;true&quot;,
     &quot;copilot.sensitive.allow.copilot_create_file.files_outside_workspace&quot;: &quot;true&quot;,
     &quot;copilot.sensitive.allow.copilot_read_file.files_outside_workspace&quot;: &quot;true&quot;,
     &quot;copilot.sensitive.folder.allow.file_read./home/fuad/_agents/skills/laravel-specialist&quot;: &quot;true&quot;,
     &quot;credentialsType com.jetbrains.php.remote.interpreter.ui.PhpCreateRemoteSdkForm&quot;: &quot;Docker&quot;,
     &quot;credentialsType com.jetbrains.php.remote.interpreter.ui.PhpInplaceEditRemoteSdkForm&quot;: &quot;Docker&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/fuad/misc/projects/innovatech/bigm/admission_portal/storage/app/public&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/media/fuad/Work/innova/bigm/bigm_admission-portal/storage/app/public&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -305,8 +329,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-PS-261.25134.104" />
-        <option value="bundled-php-predefined-a98d8de5180a-6bbb74dbab74-com.jetbrains.php.sharedIndexes-PS-261.25134.104" />
+        <option value="bundled-js-predefined-d6986cc7102b-31caf2ab9e3c-JavaScript-PS-261.26222.71" />
+        <option value="bundled-php-predefined-a98d8de5180a-6bbb74dbab74-com.jetbrains.php.sharedIndexes-PS-261.26222.71" />
       </set>
     </attachedChunks>
   </component>
@@ -333,6 +357,9 @@
       <workItem from="1781289025636" duration="6999000" />
       <workItem from="1782636337931" duration="3181000" />
       <workItem from="1784740734333" duration="3222000" />
+      <workItem from="1784803528611" duration="7102000" />
+      <workItem from="1784955837172" duration="92000" />
+      <workItem from="1785037421235" duration="845000" />
     </task>
     <servers />
   </component>

@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Application;
 use App\Models\Category;
 use App\Models\Exam;
+use App\Support\ApplicationMedia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ExamReportController extends Controller
@@ -298,12 +298,7 @@ class ExamReportController extends Controller
 
             return $firstChoiceCode !== null && $firstChoiceCode === $selectedProgramCode;
         })->values()->map(function (Application $application) {
-            $uploads = data_get($application->additional_info, 'uploads', []);
-
-            $application->setAttribute('photo_data_uri', $this->fileToDataUri(data_get($uploads, 'applicant_photo')));
-            $application->setAttribute('signature_data_uri', $this->fileToDataUri(data_get($uploads, 'signature')));
-
-            return $application;
+            return ApplicationMedia::hydrateCvMedia($application);
         });
 
         $pdf = Pdf::loadView('reports.all-applicant-cvs', [
@@ -342,58 +337,13 @@ class ExamReportController extends Controller
         return strtoupper(trim((string) $firstToken));
     }
 
-    private function fileToDataUri(?string $path): ?string
-    {
-        $normalized = $this->normalizePublicPath($path);
-
-        if ($normalized === null || ! Storage::disk('public')->exists($normalized)) {
-            return null;
-        }
-
-        $contents = Storage::disk('public')->get($normalized);
-        $extension = strtolower(pathinfo($normalized, PATHINFO_EXTENSION));
-        $mime = match ($extension) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-            'webp' => 'image/webp',
-            default => 'application/octet-stream',
-        };
-
-        return 'data:'.$mime.';base64,'.base64_encode($contents);
-    }
-
     private function attachPhotoDataUris(Collection $applications): Collection
     {
         return $applications->map(function (Application $application) {
             $uploads = data_get($application->additional_info, 'uploads', []);
-            $application->setAttribute('photo_data_uri', $this->fileToDataUri(data_get($uploads, 'applicant_photo')));
+            $application->setAttribute('photo_data_uri', ApplicationMedia::fileToDataUri(data_get($uploads, 'applicant_photo')));
 
             return $application;
         });
     }
-
-    private function normalizePublicPath(?string $path): ?string
-    {
-        if (blank($path)) {
-            return null;
-        }
-
-        $normalized = ltrim((string) $path, '/');
-
-        $publicStoragePrefix = trim((string) config('filesystems.disks.public.url', ''), '/').'/';
-        if ($publicStoragePrefix !== '' && str_starts_with($normalized, $publicStoragePrefix)) {
-            $normalized = substr($normalized, strlen($publicStoragePrefix));
-        }
-
-        if (str_starts_with($normalized, 'public/')) {
-            $normalized = substr($normalized, 7);
-        }
-
-        if (str_starts_with($normalized, 'storage/')) {
-            $normalized = substr($normalized, 8);
-        }
-
-        return $normalized;
-    }
 }
-

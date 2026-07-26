@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Application;
+use App\Support\ApplicationMedia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -37,6 +38,7 @@ class SendCVMail extends Mailable
     public function attachments(): array
     {
         $application = $this->application;
+        $application = ApplicationMedia::hydrateCvMedia($application);
 
         $filename = 'cv-'.$application->application_id.'.pdf';
 
@@ -62,4 +64,3 @@ class SendCVMail extends Mailable
         }
     }
 }
-

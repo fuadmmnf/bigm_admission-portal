@@ -469,6 +469,14 @@
                                                 >
                                                     Admit Card PDF
                                                 </a>
+                                                <a
+                                                    href="{{ route('admin.applications.cv', $application) }}"
+                                                    target="_blank"
+                                                    rel="noopener"
+                                                    class="inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                                                >
+                                                    CV PDF
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>
@@ -632,4 +640,3 @@
         }
     </script>
 </x-app-layout>
-

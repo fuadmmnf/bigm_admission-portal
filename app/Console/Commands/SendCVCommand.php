@@ -5,10 +5,10 @@ namespace App\Console\Commands;
 use App\Mail\SendCVMail;
 use App\Models\Application;
 use App\Models\Exam;
+use App\Support\ApplicationMedia;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 
 class SendCVCommand extends Command
 {
@@ -76,17 +76,7 @@ class SendCVCommand extends Command
                 continue;
             }
 
-            $uploads = data_get($application->additional_info, 'uploads', []);
-
-            $application->setAttribute(
-                'photo_data_uri',
-                $this->fileToDataUri(data_get($uploads, 'applicant_photo'))
-            );
-
-            $application->setAttribute(
-                'signature_data_uri',
-                $this->fileToDataUri(data_get($uploads, 'signature'))
-            );
+            $application = ApplicationMedia::hydrateCvMedia($application);
 
             try {
 
@@ -124,52 +114,5 @@ class SendCVCommand extends Command
         $this->info("Failed : {$failed}");
 
         return self::SUCCESS;
-    }
-
-    private function fileToDataUri(?string $path): ?string
-    {
-        $normalized = $this->normalizePublicPath($path);
-
-        if ($normalized === null || ! Storage::disk('public')->exists($normalized)) {
-            return null;
-        }
-
-        $contents = Storage::disk('public')->get($normalized);
-
-        $extension = strtolower(pathinfo($normalized, PATHINFO_EXTENSION));
-
-        $mime = match ($extension) {
-            'jpg', 'jpeg' => 'image/jpeg',
-            'png'         => 'image/png',
-            'webp'        => 'image/webp',
-            default       => 'application/octet-stream',
-        };
-
-        return 'data:' . $mime . ';base64,' . base64_encode($contents);
-    }
-
-    private function normalizePublicPath(?string $path): ?string
-    {
-        if (blank($path)) {
-            return null;
-        }
-
-        $normalized = ltrim((string) $path, '/');
-
-        $publicStoragePrefix = trim((string) config('filesystems.disks.public.url', ''), '/') . '/';
-
-        if ($publicStoragePrefix !== '' && str_starts_with($normalized, $publicStoragePrefix)) {
-            $normalized = substr($normalized, strlen($publicStoragePrefix));
-        }
-
-        if (str_starts_with($normalized, 'public/')) {
-            $normalized = substr($normalized, 7);
-        }
-
-        if (str_starts_with($normalized, 'storage/')) {
-            $normalized = substr($normalized, 8);
-        }
-
-        return $normalized;
     }
 }
