@@ -52,6 +52,8 @@ class ExamReportController extends Controller
 
     public function attendanceList(Exam $exam): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->reorder()
             ->orderBy('application_id')
@@ -76,6 +78,8 @@ class ExamReportController extends Controller
 
     public function vivaSheet(Exam $exam): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->whereIn('selection_stage', [Application::STAGE_VIVA_SELECTED, Application::STAGE_PROGRAM_SELECTED])
             ->get([
@@ -103,6 +107,8 @@ class ExamReportController extends Controller
 
     public function genderWiseApplicants(Exam $exam, Request $request): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $gender = $request->query('gender');
 
         $query = $this->paidApplicantsBaseQuery($exam)
@@ -126,6 +132,8 @@ class ExamReportController extends Controller
 
     public function employerWiseApplicants(Exam $exam, Request $request): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $employer = $request->query('employer');
 
         $query = $this->paidApplicantsBaseQuery($exam)
@@ -149,6 +157,8 @@ class ExamReportController extends Controller
 
     public function choiceListWiseApplicants(Exam $exam): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->select(['ulid', 'application_id', 'applicant_name', 'written_exam_marks', 'viva_exam_marks', 'additional_info'])
             ->get();
@@ -165,6 +175,8 @@ class ExamReportController extends Controller
 
     public function choiceListBySubject(Exam $exam, Request $request): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $subject = $request->query('subject');
         $programs = config('applicant_form.programs', []);
 
@@ -205,6 +217,8 @@ class ExamReportController extends Controller
 
     public function enrolledStudents(Exam $exam): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->where('selection_stage', Application::STAGE_PROGRAM_SELECTED)
             ->with('selectedCategory:id,name')
@@ -222,6 +236,8 @@ class ExamReportController extends Controller
 
     public function programSelectedByCode(Exam $exam, Request $request): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $programId = (int) $request->query('program_id');
 
         abort_if($programId <= 0, 422, 'A valid program code must be selected.');
@@ -262,6 +278,8 @@ class ExamReportController extends Controller
 
     public function allApplicantCvs(Exam $exam, Request $request): Response
     {
+        ini_set('memory_limit', '1024M');
+        set_time_limit(300);
         $programId = (int) $request->query('program_id');
 
         abort_if($programId <= 0, 422, 'A valid program code must be selected.');
