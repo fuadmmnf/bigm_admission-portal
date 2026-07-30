@@ -17,6 +17,8 @@ use Illuminate\Support\Str;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use PhpOffice\PhpWord\Style\Table;
+use PhpOffice\PhpWord\SimpleType\Jc;
 
 class ExamReportController extends Controller
 {
@@ -80,14 +82,19 @@ class ExamReportController extends Controller
 //        return $pdf->stream('attendance-list-'.$exam->ulid.'.pdf');
 //    }
 
-    public function getPhotoPath($application)
+    private static function getApplicantPhotoPath(Application $application): ?string
     {
-        if (!$application->photo) {
+        $photo = data_get($application->additional_info, 'uploads.applicant_photo');
+
+        if (!$photo) {
             return null;
         }
 
-        return Storage::disk('public')->path($application->photo);
+        $path = Storage::disk('public')->path($photo);
+
+        return file_exists($path) ? $path : null;
     }
+
     public function attendanceList(Exam $exam)
     {
         ini_set('memory_limit', '1024M');
@@ -105,78 +112,213 @@ class ExamReportController extends Controller
 
         $phpWord = new PhpWord();
 
+        $phpWord->setDefaultFontName('Calibri');
+        $phpWord->setDefaultFontSize(10);
+
         $section = $phpWord->addSection([
-            'marginTop' => 800,
-            'marginBottom' => 800,
-            'marginLeft' => 600,
-            'marginRight' => 600,
+            'marginTop' => 900,
+            'marginBottom' => 900,
+            'marginLeft' => 700,
+            'marginRight' => 700,
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Header
+        |--------------------------------------------------------------------------
+        */
+
+        $header = $section->addHeader();
+
+        $headerTable = $header->addTable();
+        $headerTable->addRow();
+
+        // Logo
+        $logoCell = $headerTable->addCell(1500, [
+            'valign' => 'center',
+        ]);
+
+        if (file_exists(public_path('images/logo.png'))) {
+            $logoCell->addImage(
+                public_path('images/logo.png'),
+                [
+                    'width' => 55,
+                    'height' => 55,
+                    'alignment' => Jc::CENTER,
+                ]
+            );
+        }
+
+        // Organization
+        $textCell = $headerTable->addCell(8500, [
+            'valign' => 'center',
+        ]);
+
+        $textCell->addText(
+            'Bangladesh Institute of Governance and Management (BIGM)',
+            [
+                'bold' => true,
+                'size' => 14,
+            ],
+            [
+                'alignment' => Jc::CENTER,
+                'spaceAfter' => 40,
+            ]
+        );
+
+        $textCell->addText(
+            'Attendance Sheet',
+            [
+                'size' => 10,
+            ],
+            [
+                'alignment' => Jc::CENTER,
+                'spaceAfter' => 120,
+            ]
+        );
+
+        $header->addLine([
+            'weight' => 1,
+            'width' => 450,
+            'height' => 0,
+            'color' => 'D1D5DB',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Footer
+        |--------------------------------------------------------------------------
+        */
+
+        $footer = $section->addFooter();
+
+        $footer->addLine([
+            'weight' => 1,
+            'width' => 450,
+            'height' => 0,
+            'color' => 'D1D5DB',
+        ]);
+
+        $footer->addPreserveText(
+            'Page {PAGE} of {NUMPAGES}',
+            [
+                'size' => 8,
+                'color' => '666666',
+            ],
+            [
+                'alignment' => Jc::CENTER,
+            ]
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Report Title
+        |--------------------------------------------------------------------------
+        */
 
         $section->addText(
             $exam->name,
-            ['bold' => true, 'size' => 16],
-            ['alignment' => 'center']
+            [
+                'bold' => true,
+                'size' => 15,
+            ],
+            [
+                'alignment' => Jc::CENTER,
+                'spaceAfter' => 60,
+            ]
         );
 
-        $section->addText(
-            'Attendance Sheet',
-            ['size' => 11],
-            ['alignment' => 'center']
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | Attendance Table
+        |--------------------------------------------------------------------------
+        */
 
         $table = $section->addTable([
             'borderSize' => 6,
-            'borderColor' => '000000',
+            'borderColor' => 'BDBDBD',
             'cellMargin' => 80,
+            'alignment' => Jc::CENTER,
         ]);
 
-        // Header
-        $table->addRow();
+        $headerStyle = [
+            'bold' => true,
+            'color' => 'FFFFFF',
+        ];
 
-        $table->addCell(800)->addText('SL', ['bold' => true]);
-        $table->addCell(1800)->addText('Application ID', ['bold' => true]);
-        $table->addCell(3500)->addText('Name', ['bold' => true]);
-        $table->addCell(1500)->addText('Photo', ['bold' => true]);
-        $table->addCell(2500)->addText('Signature', ['bold' => true]);
+        $headerCellStyle = [
+            'bgColor' => '1E3A5F',
+            'valign' => 'center',
+        ];
+
+        $table->addRow(500);
+
+        $table->addCell(500, $headerCellStyle)
+            ->addText('SL', $headerStyle, ['alignment' => Jc::CENTER]);
+
+        $table->addCell(1700, $headerCellStyle)
+            ->addText('Application ID', $headerStyle, ['alignment' => Jc::CENTER]);
+
+        $table->addCell(3400, $headerCellStyle)
+            ->addText('Name', $headerStyle, ['alignment' => Jc::CENTER]);
+
+        $table->addCell(1200, $headerCellStyle)
+            ->addText('Photo', $headerStyle, ['alignment' => Jc::CENTER]);
+
+        $table->addCell(2600, $headerCellStyle)
+            ->addText('Signature', $headerStyle, ['alignment' => Jc::CENTER]);
 
         foreach ($applications as $i => $application) {
 
             $table->addRow(900);
 
-            $table->addCell()->addText($i + 1);
+            $table->addCell(500)
+                ->addText($i + 1, [], ['alignment' => Jc::CENTER]);
 
-            $table->addCell()->addText(
-                $application->application_id ?? $application->ulid
-            );
+            $table->addCell(1700)
+                ->addText($application->application_id ?? $application->ulid);
 
-            $table->addCell()->addText($application->applicant_name);
+            $table->addCell(3400)
+                ->addText($application->applicant_name);
 
-            $photoCell = $table->addCell();
+            $photoCell = $table->addCell(1200);
 
-            if ($path = $this->getPhotoPath($application)) {
+            if ($path = $this->getApplicantPhotoPath($application)) {
 
-                $photoCell->addImage($path, [
-                    'width' => 45,
-                    'height' => 45,
-                ]);
+                $photoCell->addImage(
+                    $path,
+                    [
+                        'width' => 42,
+                        'height' => 42,
+                        'alignment' => Jc::CENTER,
+                    ]
+                );
 
             } else {
 
-                $photoCell->addText('Photo');
-
+                $photoCell->addText(
+                    'Photo',
+                    ['size' => 8],
+                    ['alignment' => Jc::CENTER]
+                );
             }
 
-            $table->addCell(); // blank signature cell
+            // Blank signature column
+            $table->addCell(2600);
         }
 
-        $tempFile = storage_path('app/temp_attendance.docx');
+        $tempFile = storage_path(
+            'app/attendance-list-' . $exam->ulid . '.docx'
+        );
 
         IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
 
-        return response()->download(
-            $tempFile,
-            'attendance-list.docx'
-        )->deleteFileAfterSend(true);
+        return response()
+            ->download(
+                $tempFile,
+                'attendance-list-' . $exam->ulid . '.docx'
+            )
+            ->deleteFileAfterSend(true);
     }
     public function vivaSheet(Exam $exam): Response
     {
@@ -204,7 +346,7 @@ class ExamReportController extends Controller
             'pageOrientation' => 'landscape',
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->stream('viva-sheet-'.$exam->ulid.'.pdf');
+        return $pdf->stream('viva-sheet-' . $exam->ulid . '.pdf');
     }
 
     public function genderWiseApplicants(Exam $exam, Request $request): Response
@@ -229,7 +371,7 @@ class ExamReportController extends Controller
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('gender-wise-applicants-'.$exam->ulid.'.pdf');
+        return $pdf->stream('gender-wise-applicants-' . $exam->ulid . '.pdf');
     }
 
     public function employerWiseApplicants(Exam $exam, Request $request): Response
@@ -254,7 +396,7 @@ class ExamReportController extends Controller
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('employer-wise-applicants-'.$exam->ulid.'.pdf');
+        return $pdf->stream('employer-wise-applicants-' . $exam->ulid . '.pdf');
     }
 
     public function choiceListWiseApplicants(Exam $exam): Response
@@ -272,7 +414,7 @@ class ExamReportController extends Controller
             'generatedAt' => now(),
         ])->setPaper('a4', 'landscape');
 
-        return $pdf->stream('choice-list-wise-applicants-'.$exam->ulid.'.pdf');
+        return $pdf->stream('choice-list-wise-applicants-' . $exam->ulid . '.pdf');
     }
 
     public function choiceListBySubject(Exam $exam, Request $request): Response
@@ -282,7 +424,7 @@ class ExamReportController extends Controller
         $subject = $request->query('subject');
         $programs = config('applicant_form.programs', []);
 
-        abort_if(! $subject || ! in_array($subject, $programs), 422, 'A valid subject must be selected.');
+        abort_if(!$subject || !in_array($subject, $programs), 422, 'A valid subject must be selected.');
 
         $choiceFields = [
             'first_choice',
@@ -298,7 +440,7 @@ class ExamReportController extends Controller
         foreach ($choiceFields as $field) {
             $group = $this->paidApplicantsBaseQuery($exam)
                 ->select(['ulid', 'application_id', 'applicant_name', 'written_exam_marks', 'viva_exam_marks', 'additional_info'])
-                ->where('additional_info->course_preferences->'.$field, $subject)
+                ->where('additional_info->course_preferences->' . $field, $subject)
                 ->get();
 
             $byChoice[$field] = $this->attachPhotoDataUris($group);
@@ -313,7 +455,7 @@ class ExamReportController extends Controller
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('choice-list-by-subject-'.$subject.'-'.$exam->ulid.'.pdf');
+        return $pdf->stream('choice-list-by-subject-' . $subject . '-' . $exam->ulid . '.pdf');
     }
 
 
@@ -333,14 +475,14 @@ class ExamReportController extends Controller
             'generatedAt' => now(),
         ])->setPaper('a4', 'portrait');
 
-        return $pdf->stream('enrolled-students-'.$exam->ulid.'.pdf');
+        return $pdf->stream('enrolled-students-' . $exam->ulid . '.pdf');
     }
 
     public function programSelectedByCode(Exam $exam, Request $request): Response
     {
         ini_set('memory_limit', '1024M');
         set_time_limit(300);
-        $programId = (int) $request->query('program_id');
+        $programId = (int)$request->query('program_id');
 
         abort_if($programId <= 0, 422, 'A valid program code must be selected.');
 
@@ -375,14 +517,14 @@ class ExamReportController extends Controller
 
         $programCode = data_get($programCategory->additional_info, 'code', $programCategory->name);
 
-        return $pdf->stream('program-selected-'.$programCode.'-'.$exam->ulid.'.pdf');
+        return $pdf->stream('program-selected-' . $programCode . '-' . $exam->ulid . '.pdf');
     }
 
     public function allApplicantCvs(Exam $exam, Request $request): Response
     {
         ini_set('memory_limit', '1024M');
         set_time_limit(300);
-        $programId = (int) $request->query('program_id');
+        $programId = (int)$request->query('program_id');
 
         abort_if($programId <= 0, 422, 'A valid program code must be selected.');
 
@@ -431,7 +573,7 @@ class ExamReportController extends Controller
 
         $safeCode = Str::slug($selectedProgramCode, '-');
 
-        return $pdf->stream('program-wise-cvs-'.$safeCode.'-'.$exam->ulid.'.pdf');
+        return $pdf->stream('program-wise-cvs-' . $safeCode . '-' . $exam->ulid . '.pdf');
     }
 
     private function extractFirstChoiceProgramCode(Application $application): ?string
@@ -443,18 +585,18 @@ class ExamReportController extends Controller
 
     private function normalizeProgramCode(mixed $value): ?string
     {
-        $text = trim((string) $value);
+        $text = trim((string)$value);
         if ($text === '') {
             return null;
         }
 
         if (str_contains($text, ' - ')) {
-            $text = trim((string) explode(' - ', $text, 2)[0]);
+            $text = trim((string)explode(' - ', $text, 2)[0]);
         }
 
         $firstToken = preg_split('/\s+/', $text)[0] ?? $text;
 
-        return strtoupper(trim((string) $firstToken));
+        return strtoupper(trim((string)$firstToken));
     }
 
     private function attachPhotoDataUris(Collection $applications): Collection
