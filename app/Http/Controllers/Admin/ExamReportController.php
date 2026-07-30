@@ -12,7 +12,11 @@ use Illuminate\Support\Collection;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use PhpOffice\PhpWord\PhpWord;
+use PhpOffice\PhpWord\IOFactory;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExamReportController extends Controller
 {
@@ -50,10 +54,45 @@ class ExamReportController extends Controller
         ]);
     }
 
-    public function attendanceList(Exam $exam): Response
+//    public function attendanceList(Exam $exam): Response
+//    {
+//        ini_set('memory_limit', '1024M');
+//        set_time_limit(300);
+//        $applications = $this->paidApplicantsBaseQuery($exam)
+//            ->reorder()
+//            ->orderBy('application_id')
+//            ->get([
+//                'ulid',
+//                'application_id',
+//                'applicant_name',
+//                'applicant_phone',
+//                'applicant_email',
+//                'additional_info',
+//            ]);
+//        $applications = $this->attachPhotoDataUris($applications);
+//
+//        $pdf = Pdf::loadView('reports.attendance-list', [
+//            'exam' => $exam,
+//            'applications' => $applications,
+//            'generatedAt' => now(),
+//        ])->setPaper('a4', 'portrait');
+//
+//        return $pdf->stream('attendance-list-'.$exam->ulid.'.pdf');
+//    }
+
+    public function getPhotoPath($application)
+    {
+        if (!$application->photo) {
+            return null;
+        }
+
+        return Storage::disk('public')->path($application->photo);
+    }
+    public function attendanceList(Exam $exam)
     {
         ini_set('memory_limit', '1024M');
         set_time_limit(300);
+
         $applications = $this->paidApplicantsBaseQuery($exam)
             ->reorder()
             ->orderBy('application_id')
@@ -61,21 +100,84 @@ class ExamReportController extends Controller
                 'ulid',
                 'application_id',
                 'applicant_name',
-                'applicant_phone',
-                'applicant_email',
                 'additional_info',
             ]);
-        $applications = $this->attachPhotoDataUris($applications);
 
-        $pdf = Pdf::loadView('reports.attendance-list', [
-            'exam' => $exam,
-            'applications' => $applications,
-            'generatedAt' => now(),
-        ])->setPaper('a4', 'portrait');
+        $phpWord = new PhpWord();
 
-        return $pdf->stream('attendance-list-'.$exam->ulid.'.pdf');
+        $section = $phpWord->addSection([
+            'marginTop' => 800,
+            'marginBottom' => 800,
+            'marginLeft' => 600,
+            'marginRight' => 600,
+        ]);
+
+        $section->addText(
+            $exam->name,
+            ['bold' => true, 'size' => 16],
+            ['alignment' => 'center']
+        );
+
+        $section->addText(
+            'Attendance Sheet',
+            ['size' => 11],
+            ['alignment' => 'center']
+        );
+
+        $table = $section->addTable([
+            'borderSize' => 6,
+            'borderColor' => '000000',
+            'cellMargin' => 80,
+        ]);
+
+        // Header
+        $table->addRow();
+
+        $table->addCell(800)->addText('SL', ['bold' => true]);
+        $table->addCell(1800)->addText('Application ID', ['bold' => true]);
+        $table->addCell(3500)->addText('Name', ['bold' => true]);
+        $table->addCell(1500)->addText('Photo', ['bold' => true]);
+        $table->addCell(2500)->addText('Signature', ['bold' => true]);
+
+        foreach ($applications as $i => $application) {
+
+            $table->addRow(900);
+
+            $table->addCell()->addText($i + 1);
+
+            $table->addCell()->addText(
+                $application->application_id ?? $application->ulid
+            );
+
+            $table->addCell()->addText($application->applicant_name);
+
+            $photoCell = $table->addCell();
+
+            if ($path = $this->getPhotoPath($application)) {
+
+                $photoCell->addImage($path, [
+                    'width' => 45,
+                    'height' => 45,
+                ]);
+
+            } else {
+
+                $photoCell->addText('Photo');
+
+            }
+
+            $table->addCell(); // blank signature cell
+        }
+
+        $tempFile = storage_path('app/temp_attendance.docx');
+
+        IOFactory::createWriter($phpWord, 'Word2007')->save($tempFile);
+
+        return response()->download(
+            $tempFile,
+            'attendance-list.docx'
+        )->deleteFileAfterSend(true);
     }
-
     public function vivaSheet(Exam $exam): Response
     {
         ini_set('memory_limit', '1024M');
