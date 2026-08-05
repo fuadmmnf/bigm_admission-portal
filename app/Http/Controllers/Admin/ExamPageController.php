@@ -7,8 +7,11 @@ use App\Models\Application;
 use App\Models\Category;
 use App\Models\Exam;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -49,6 +52,19 @@ class ExamPageController extends Controller
             $activeTab = 'paid';
         }
         $search = trim($request->string('search')->toString());
+        $firstChoiceProgramId = $request->integer('first_choice_program_id');
+
+        $programCategories = Category::query()
+            ->where('type', 'program')
+            ->orderBy('name')
+            ->get(['id', 'name', 'additional_info']);
+
+        $selectedProgramCategory = null;
+        if ($firstChoiceProgramId > 0) {
+            $selectedProgramCategory = Category::query()
+                ->where('type', 'program')
+                ->find($firstChoiceProgramId, ['id', 'name', 'additional_info']);
+        }
 
         $sort = $request->string('sort')->toString();
         $allowedSorts = [
@@ -92,6 +108,14 @@ class ExamPageController extends Controller
             });
         }
 
+        if ($selectedProgramCategory !== null) {
+            $this->applyFirstChoiceProgramNameFilter(
+                $applicationsQuery,
+                $selectedProgramCategory->name,
+                data_get($selectedProgramCategory->additional_info, 'code')
+            );
+        }
+
         match ($sort) {
             'appid_asc' => $applicationsQuery
                 ->orderByRaw('application_id IS NULL')
@@ -132,11 +156,6 @@ class ExamPageController extends Controller
             ->paginate(25)
             ->appends($request->query());
 
-        $programCategories = Category::query()
-            ->where('type', 'program')
-            ->orderBy('name')
-            ->get(['id', 'name', 'additional_info']);
-
         // Single conditional-aggregation query replaces the previous 4 separate COUNTs.
         $counts = $exam->applications()
             ->where('status', 'paid')
@@ -169,8 +188,46 @@ class ExamPageController extends Controller
             'activeTab'         => $activeTab,
             'activeSort'        => $sort,
             'activeSearch'      => $search,
+            'activeFirstChoiceProgramId' => $selectedProgramCategory?->id,
             'programCategories' => $programCategories,
         ]);
+    }
+
+    private function applyFirstChoiceProgramNameFilter(Builder|HasMany $query, string $programName, mixed $programCode): void
+    {
+        $normalizedValues = array_values(array_unique(array_filter([
+            mb_strtolower(trim($programName)),
+            mb_strtolower(trim((string) $programCode)),
+        ])));
+        if ($normalizedValues === []) {
+            return;
+        }
+
+        $driver = DB::connection()->getDriverName();
+        $placeholders = implode(', ', array_fill(0, count($normalizedValues), '?'));
+
+        if ($driver === 'mysql' || $driver === 'mariadb') {
+            $query->whereRaw(
+                "LOWER(TRIM(JSON_UNQUOTE(JSON_EXTRACT(additional_info, '$.course_preferences.first_choice')))) IN ({$placeholders})",
+                $normalizedValues
+            );
+
+            return;
+        }
+
+        if ($driver === 'pgsql') {
+            $query->whereRaw(
+                "LOWER(TRIM(additional_info->'course_preferences'->>'first_choice')) IN ({$placeholders})",
+                $normalizedValues
+            );
+
+            return;
+        }
+
+        $query->whereRaw(
+            "LOWER(TRIM(json_extract(additional_info, '$.course_preferences.first_choice'))) IN ({$placeholders})",
+            $normalizedValues
+        );
     }
 
     public function create(): View
@@ -264,4 +321,3 @@ class ExamPageController extends Controller
         }
     }
 }
-

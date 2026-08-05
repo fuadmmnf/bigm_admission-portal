@@ -219,20 +219,35 @@
                     <div
                         class="px-4 py-3 border-b border-gray-200 bg-gray-50 flex flex-wrap items-center justify-between gap-3">
                         <div class="inline-flex rounded-md border border-gray-200 bg-white p-1 text-xs font-semibold">
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid', 'sort' => 'appid_asc', 'search' => $activeSearch, 'first_choice_program_id' => $activeFirstChoiceProgramId]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'paid' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Paid
                                 ({{ $totalPaid }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'viva', 'sort' => 'appid_asc', 'search' => $activeSearch, 'first_choice_program_id' => $activeFirstChoiceProgramId]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'viva' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Viva
                                 Selected ({{ $totalViva }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'program', 'sort' => 'appid_asc', 'search' => $activeSearch, 'first_choice_program_id' => $activeFirstChoiceProgramId]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'program' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Program
                                 Selected ({{ $totalProgram }})</a>
-                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'alumni', 'sort' => 'appid_asc', 'search' => $activeSearch]) }}"
+                            <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => 'alumni', 'sort' => 'appid_asc', 'search' => $activeSearch, 'first_choice_program_id' => $activeFirstChoiceProgramId]) }}"
                                class="rounded px-3 py-1.5 {{ $activeTab === 'alumni' ? 'bg-indigo-600 text-white' : 'text-gray-700 hover:bg-gray-100' }}">Alumni
                                 ({{ $totalAlumni }})</a>
                         </div>
                         <div class="ml-auto flex items-center gap-2 flex-wrap justify-end">
+                            <label for="first_choice_program_id" class="text-xs font-medium text-gray-600">1st Choice Program</label>
+                            <select
+                                id="first_choice_program_id"
+                                name="first_choice_program_id"
+                                form="exam-filter-form"
+                                class="w-56 rounded-md border-gray-300 text-xs"
+                                onchange="document.getElementById('exam-filter-form').requestSubmit()"
+                            >
+                                <option value="">All Programs (Clear filter)</option>
+                                @foreach ($programCategories as $category)
+                                    <option value="{{ $category->id }}" @selected((string) $activeFirstChoiceProgramId === (string) $category->id)>
+                                        {{ data_get($category->additional_info, 'code', $category->name) }} — {{ $category->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                             <label for="sort" class="text-xs font-medium text-gray-600">Sort</label>
                             <select id="sort" name="sort" form="exam-filter-form" class="w-44 rounded-md border-gray-300 text-xs"
                                     onchange="document.getElementById('exam-filter-form').requestSubmit()">
@@ -270,7 +285,7 @@
                                     class="inline-flex items-center rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
                                 Apply
                             </button>
-                            @if ($activeSearch !== '' || $activeSort !== 'appid_asc')
+                            @if ($activeSearch !== '' || $activeSort !== 'appid_asc' || $activeFirstChoiceProgramId !== null)
                                 <a href="{{ route('admin.exams.show', ['exam' => $exam, 'tab' => $activeTab]) }}"
                                    class="inline-flex items-center rounded-md px-2 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700"
                                    title="Clear filters">Clear</a>
@@ -343,7 +358,18 @@
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_email }}</td>
                                         <td class="px-4 py-3 text-sm text-gray-700">{{ $application->applicant_phone }}</td>
                                         @php
-                                            $rawChoices = array_values(array_filter((array) data_get($application->additional_info, 'course_preferences', [])));
+                                            $orderedChoiceKeys = [
+                                                'first_choice',
+                                                'second_choice',
+                                                'third_choice',
+                                                'fourth_choice',
+                                                'fifth_choice',
+                                                'sixth_choice',
+                                            ];
+                                            $rawChoices = array_map(
+                                                fn (string $key): mixed => data_get($application->additional_info, 'course_preferences.'.$key),
+                                                $orderedChoiceKeys
+                                            );
                                             $choiceValues = array_map(function ($choice): string {
                                                 $choiceText = trim((string) $choice);
                                                 if ($choiceText === '') {

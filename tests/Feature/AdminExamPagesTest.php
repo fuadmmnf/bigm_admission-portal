@@ -537,6 +537,85 @@ class AdminExamPagesTest extends TestCase
             ->assertDontSee('Search Name Target');
     }
 
+    public function test_exam_show_page_can_filter_by_first_choice_program_and_combine_with_sort_and_search(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+        $hrm = Category::factory()->create([
+            'type' => 'program',
+            'name' => 'Human Resource Management',
+            'additional_info' => ['code' => 'HRM'],
+        ]);
+        Category::factory()->create([
+            'type' => 'program',
+            'name' => 'Procurement and Supply Chain Management',
+            'additional_info' => ['code' => 'PSCM'],
+        ]);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Filter Match High',
+            'written_exam_marks' => 91.00,
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'Human Resource Management',
+                ],
+            ],
+        ]);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Filter Match Low',
+            'written_exam_marks' => 55.00,
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'HRM',
+                ],
+            ],
+        ]);
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Filter Miss',
+            'written_exam_marks' => 99.00,
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'PSCM - Procurement and Supply Chain Management',
+                ],
+            ],
+        ]);
+
+        $this->get(route('admin.exams.show', [
+            'exam' => $exam,
+            'tab' => 'paid',
+            'first_choice_program_id' => $hrm->id,
+            'sort' => 'written_desc',
+        ]))
+            ->assertOk()
+            ->assertSeeInOrder(['Filter Match High', 'Filter Match Low'])
+            ->assertDontSee('Filter Miss');
+
+        $this->get(route('admin.exams.show', [
+            'exam' => $exam,
+            'tab' => 'paid',
+            'first_choice_program_id' => $hrm->id,
+            'search' => 'Low',
+            'sort' => 'appid_asc',
+        ]))
+            ->assertOk()
+            ->assertSee('Filter Match Low')
+            ->assertDontSee('Filter Match High')
+            ->assertDontSee('Filter Miss');
+    }
+
     public function test_exam_show_search_remains_scoped_to_selected_tab(): void
     {
         $admin = User::factory()->create();
@@ -559,6 +638,39 @@ class AdminExamPagesTest extends TestCase
         $response->assertOk();
         $response->assertSee('No applicants found for this tab.');
         $response->assertSee('Clear');
+    }
+
+    public function test_exam_show_page_displays_course_preferences_in_fixed_first_to_sixth_order(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PAID,
+            'applicant_name' => 'Ordered Choice Candidate',
+            'additional_info' => [
+                'course_preferences' => [
+                    'fifth_choice' => 'GPP',
+                    'first_choice' => 'HRM',
+                    'sixth_choice' => 'PPFM',
+                    'third_choice' => 'PSCM',
+                    'fourth_choice' => 'PM',
+                    'second_choice' => 'IER',
+                ],
+            ],
+        ]);
+
+        $response = $this->get(route('admin.exams.show', ['exam' => $exam, 'tab' => 'paid']));
+
+        $response->assertOk();
+        $response->assertSee('Ordered Choice Candidate');
+        $response->assertSee('HRM, IER, PSCM, PM, GPP, PPFM');
     }
 
     public function test_admin_can_bulk_update_written_marks_via_inline_assessment_action(): void
@@ -995,4 +1107,3 @@ class AdminExamPagesTest extends TestCase
         ]);
     }
 }
-
