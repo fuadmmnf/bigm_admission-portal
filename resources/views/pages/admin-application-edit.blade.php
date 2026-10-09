@@ -13,8 +13,43 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            @php
+                $additionalInfo = is_array($additionalInfo ?? null) ? $additionalInfo : [];
+                $personalInfo = data_get($additionalInfo, 'personal', []);
+                $presentAddress = data_get($additionalInfo, 'present_address', []);
+                $permanentAddress = data_get($additionalInfo, 'permanent_address', []);
+                $educationData = data_get($additionalInfo, 'education', []);
+                $educationResultTypes = $formOptions['education_result_types'] ?? ['numeric' => 'GPA/CGPA', 'division' => 'Division'];
+                $educationBoards = $formOptions['education_boards'] ?? [];
+                $sscExaminations = $formOptions['ssc_examinations'] ?? [];
+                $hscExaminations = $formOptions['hsc_examinations'] ?? [];
+                $graduationExaminations = $formOptions['graduation_examinations'] ?? [];
+                $educationDivisions = $formOptions['education_divisions'] ?? [];
+            @endphp
 
-        <form method="POST" action="{{ route('admin.applications.update', $application) }}" class="space-y-6" x-data="editApplicationForm()">
+        <form
+            method="POST"
+            action="{{ route('admin.applications.update', $application) }}"
+            class="space-y-6"
+            x-data="editApplicationForm({
+                districts: @js($districts),
+                upazilas: @js($upazilas),
+                presentDistrictId: @js(old('present_address.district_id', $application->additional_info['present_address']['district_id'] ?? '')),
+                presentDistrictText: @js(old('present_address.district_name', data_get($presentAddress, 'district_name', ''))),
+                presentUpazilaId: @js(old('present_address.upazila_id', $application->additional_info['present_address']['upazila_id'] ?? '')),
+                presentUpazilaText: @js(old('present_address.upazila_name', data_get($presentAddress, 'upazila_name', ''))),
+                permanentDistrictId: @js(old('permanent_address.district_id', $application->additional_info['permanent_address']['district_id'] ?? '')),
+                permanentDistrictText: @js(old('permanent_address.district_name', data_get($permanentAddress, 'district_name', ''))),
+                permanentUpazilaId: @js(old('permanent_address.upazila_id', $application->additional_info['permanent_address']['upazila_id'] ?? '')),
+                permanentUpazilaText: @js(old('permanent_address.upazila_name', data_get($permanentAddress, 'upazila_name', ''))),
+                initialEducationResultTypes: @js([
+                    'ssc' => old('education.ssc.result_type', data_get($educationData, 'ssc.result_type', 'numeric')),
+                    'hsc' => old('education.hsc.result_type', data_get($educationData, 'hsc.result_type', 'numeric')),
+                    'graduation' => old('education.graduation.result_type', data_get($educationData, 'graduation.result_type', 'numeric')),
+                    'masters' => old('education.masters.result_type', data_get($educationData, 'masters.result_type', '')),
+                ]),
+            })"
+        >
             @csrf
             @method('PATCH')
 
@@ -31,25 +66,25 @@
 
                     <div>
                         <label for="father_name" class="block text-sm font-medium text-gray-700">Father's Name *</label>
-                        <input id="father_name" name="father_name" type="text" value="{{ old('father_name', $application->additional_info['personal']['father_name'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" required>
+                        <input id="father_name" name="father_name" type="text" value="{{ old('father_name', data_get($personalInfo, 'father_name', '')) }}" class="mt-1 block w-full rounded-md border-gray-300" required>
                         @error('father_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="mother_name" class="block text-sm font-medium text-gray-700">Mother's Name *</label>
-                        <input id="mother_name" name="mother_name" type="text" value="{{ old('mother_name', $application->additional_info['personal']['mother_name'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" required>
+                        <input id="mother_name" name="mother_name" type="text" value="{{ old('mother_name', data_get($personalInfo, 'mother_name', '')) }}" class="mt-1 block w-full rounded-md border-gray-300" required>
                         @error('mother_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="national_id_number" class="block text-sm font-medium text-gray-700">National ID / Birth Reg. / Passport *</label>
-                        <input id="national_id_number" name="national_id_number" type="text" value="{{ old('national_id_number', $application->national_id_number) }}" class="mt-1 block w-full rounded-md border-gray-300" required>
+                        <input id="national_id_number" name="national_id_number" type="text" value="{{ old('national_id_number', $application->applicant_nid) }}" class="mt-1 block w-full rounded-md border-gray-300" required>
                         @error('national_id_number')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                     </div>
 
                     <div>
                         <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth *</label>
-                        <input id="date_of_birth" name="date_of_birth" type="date" value="{{ old('date_of_birth', $application->additional_info['personal']['date_of_birth'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" required x-on:change="calculateAge()">
+                        <input id="date_of_birth" name="date_of_birth" type="date" value="{{ old('date_of_birth', data_get($personalInfo, 'date_of_birth', '')) }}" class="mt-1 block w-full rounded-md border-gray-300" required x-on:change="calculateAge()">
                         @error('date_of_birth')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                     </div>
 
@@ -93,12 +128,37 @@
                         <div class="grid grid-cols-1 gap-3 mt-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">District *</label>
-                                <input type="text" name="present_address[district_id]" value="{{ old('present_address.district_id', $application->additional_info['present_address']['district_id'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" placeholder="District ID" required>
+                                <select
+                                    name="present_address[district_id]"
+                                    x-model="presentDistrictId"
+                                    x-on:change="onDistrictChange('present')"
+                                    class="mt-1 block w-full rounded-md border-gray-300"
+                                    required
+                                >
+                                    <option value="">Select District</option>
+                                    @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" @selected((string) old('present_address.district_id', $application->additional_info['present_address']['district_id'] ?? '') === (string) $district->id)>
+                                            {{ $district->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error('present_address.district_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana *</label>
-                                <input type="text" name="present_address[upazila_id]" value="{{ old('present_address.upazila_id', $application->additional_info['present_address']['upazila_id'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" placeholder="Upazila ID" required>
+                                <select
+                                    name="present_address[upazila_id]"
+                                    x-model="presentUpazilaId"
+                                    :disabled="!presentDistrictId"
+                                    class="mt-1 block w-full rounded-md border-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                                    required
+                                >
+                                    <option value="">Select Upazila / Thana</option>
+                                    <template x-for="upazila in filteredUpazilas(presentDistrictId)" :key="upazila.id">
+                                        <option :value="String(upazila.id)" x-text="locationLabel(upazila)"></option>
+                                    </template>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500" x-show="!presentDistrictId">Select a district first.</p>
                                 @error('present_address.upazila_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
@@ -125,12 +185,37 @@
                         <div class="grid grid-cols-1 gap-3 mt-2">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">District *</label>
-                                <input type="text" name="permanent_address[district_id]" value="{{ old('permanent_address.district_id', $application->additional_info['permanent_address']['district_id'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" placeholder="District ID" required>
+                                <select
+                                    name="permanent_address[district_id]"
+                                    x-model="permanentDistrictId"
+                                    x-on:change="onDistrictChange('permanent')"
+                                    class="mt-1 block w-full rounded-md border-gray-300"
+                                    required
+                                >
+                                    <option value="">Select District</option>
+                                    @foreach($districts as $district)
+                                        <option value="{{ $district->id }}" @selected((string) old('permanent_address.district_id', $application->additional_info['permanent_address']['district_id'] ?? '') === (string) $district->id)>
+                                            {{ $district->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                                 @error('permanent_address.district_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Upazila / Thana *</label>
-                                <input type="text" name="permanent_address[upazila_id]" value="{{ old('permanent_address.upazila_id', $application->additional_info['permanent_address']['upazila_id'] ?? '') }}" class="mt-1 block w-full rounded-md border-gray-300" placeholder="Upazila ID" required>
+                                <select
+                                    name="permanent_address[upazila_id]"
+                                    x-model="permanentUpazilaId"
+                                    :disabled="!permanentDistrictId"
+                                    class="mt-1 block w-full rounded-md border-gray-300 disabled:bg-gray-100 disabled:text-gray-400"
+                                    required
+                                >
+                                    <option value="">Select Upazila / Thana</option>
+                                    <template x-for="upazila in filteredUpazilas(permanentDistrictId)" :key="upazila.id">
+                                        <option :value="String(upazila.id)" x-text="locationLabel(upazila)"></option>
+                                    </template>
+                                </select>
+                                <p class="mt-1 text-xs text-gray-500" x-show="!permanentDistrictId">Select a district first.</p>
                                 @error('permanent_address.upazila_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                             </div>
                             <div>
@@ -157,100 +242,314 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Education Information</h3>
                 
-                @php
-                    $educationLevels = ['ssc', 'hsc', 'graduation', 'masters', 'mphil_phd'];
-                    $educationLabels = [
-                        'ssc' => 'SSC / Equivalent',
-                        'hsc' => 'HSC / Equivalent',
-                        'graduation' => 'Graduation (Bachelor)',
-                        'masters' => 'Masters',
-                        'mphil_phd' => 'MPhil / PhD',
-                    ];
-                    $requiredLevels = ['ssc', 'hsc', 'graduation'];
-                @endphp
-
-                @foreach($educationLevels as $level)
-                    @php
-                        $eduData = $application->additional_info['education'][$level] ?? [];
-                        $isRequired = in_array($level, $requiredLevels);
-                    @endphp
-                    <fieldset class="rounded-lg border border-gray-200 p-4 mb-4">
-                        <legend class="px-2 text-sm font-semibold text-gray-700">{{ $educationLabels[$level] }} {{ $isRequired ? '*' : '(Optional)' }}</legend>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Examination {{ $isRequired ? '*' : '' }}</label>
-                                <select name="education[{{ $level }}][examination]" class="rounded-md border-gray-300 w-full" {{ $isRequired ? 'required' : '' }}>
-                                    <option value="">Select Examination</option>
-                                    <option value="SSC" @selected(($eduData['examination'] ?? '') === 'SSC')>SSC</option>
-                                    <option value="Dakhil" @selected(($eduData['examination'] ?? '') === 'Dakhil')>Dakhil</option>
-                                </select>
-                                @error("education.{$level}.examination")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Education Board {{ $isRequired ? '*' : '' }}</label>
-                                <select name="education[{{ $level }}][education_board]" class="rounded-md border-gray-300 w-full" {{ $isRequired ? 'required' : '' }}>
-                                    <option value="">Select Education Board</option>
-                                    <option value="Dhaka" @selected(($eduData['education_board'] ?? '') === 'Dhaka')>Dhaka</option>
-                                    <option value="Chittagong" @selected(($eduData['education_board'] ?? '') === 'Chittagong')>Chittagong</option>
-                                    <option value="Rajshahi" @selected(($eduData['education_board'] ?? '') === 'Rajshahi')>Rajshahi</option>
-                                </select>
-                                @error("education.{$level}.education_board")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Result Type {{ $isRequired ? '*' : '' }}</label>
-                                <select name="education[{{ $level }}][result_type]" class="rounded-md border-gray-300 w-full" x-on:change="updateResultFields('{{ $level }}')" {{ $isRequired ? 'required' : '' }}>
-                                    <option value="">Select Result Type</option>
-                                    <option value="numeric" @selected(($eduData['result_type'] ?? '') === 'numeric')>GPA/CGPA</option>
-                                    <option value="division" @selected(($eduData['result_type'] ?? '') === 'division')>Division</option>
-                                </select>
-                                @error("education.{$level}.result_type")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            @php $resultType = $eduData['result_type'] ?? null; @endphp
-
-                            @if($resultType === 'numeric' || !$resultType)
-                            <div x-show="resultTypes['{{ $level }}'] === 'numeric'" x-cloak>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Result (GPA/CGPA)</label>
-                                <input name="education[{{ $level }}][result]" type="text" value="{{ old("education.{$level}.result", $eduData['result'] ?? '') }}" placeholder="e.g., 4.0" class="rounded-md border-gray-300 w-full">
-                                @error("education.{$level}.result")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div x-show="resultTypes['{{ $level }}'] === 'numeric'" x-cloak>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale (e.g., out of 4)</label>
-                                <input name="education[{{ $level }}][result_scale]" type="text" value="{{ old("education.{$level}.result_scale", $eduData['result_scale'] ?? '') }}" placeholder="e.g., 4" class="rounded-md border-gray-300 w-full">
-                                @error("education.{$level}.result_scale")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-                            @endif
-
-                            @if($resultType === 'division' || !$resultType)
-                            <div x-show="resultTypes['{{ $level }}'] === 'division'" x-cloak>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
-                                <select name="education[{{ $level }}][division]" class="rounded-md border-gray-300 w-full">
-                                    <option value="">Select Division</option>
-                                    <option value="First Division" @selected(($eduData['division'] ?? '') === 'First Division')>First Division</option>
-                                    <option value="Second Division" @selected(($eduData['division'] ?? '') === 'Second Division')>Second Division</option>
-                                    <option value="Third Division" @selected(($eduData['division'] ?? '') === 'Third Division')>Third Division</option>
-                                </select>
-                                @error("education.{$level}.division")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-                            @endif
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Passing Year {{ $isRequired ? '*' : '' }}</label>
-                                <input name="education[{{ $level }}][passing_year]" type="text" value="{{ old("education.{$level}.passing_year", $eduData['passing_year'] ?? '') }}" placeholder="e.g., 2019" class="rounded-md border-gray-300 w-full" {{ $isRequired ? 'required' : '' }}>
-                                @error("education.{$level}.passing_year")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Institution Name {{ $isRequired ? '*' : '' }}</label>
-                                <input name="education[{{ $level }}][institution_name]" type="text" value="{{ old("education.{$level}.institution_name", $eduData['institution_name'] ?? '') }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" {{ $isRequired ? 'required' : '' }}>
-                                @error("education.{$level}.institution_name")<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
-                            </div>
+                @php $ssc = data_get($educationData, 'ssc', []); @endphp
+                <fieldset class="rounded-lg border border-gray-200 p-4 mb-4">
+                    <legend class="px-2 text-sm font-semibold text-gray-700">SSC / Equivalent *</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label>
+                            <select name="education[ssc][examination]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Examination</option>
+                                @foreach ($sscExaminations as $option)
+                                    <option value="{{ $option }}" @selected(old('education.ssc.examination', data_get($ssc, 'examination', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.ssc.examination')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>
-                    </fieldset>
-                @endforeach
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label>
+                            <select name="education[ssc][education_board]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Education Board</option>
+                                @foreach ($educationBoards as $option)
+                                    <option value="{{ $option }}" @selected(old('education.ssc.education_board', data_get($ssc, 'education_board', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.ssc.education_board')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Type *</label>
+                            <select name="education[ssc][result_type]" x-model="resultTypes.ssc" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Result Type</option>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}" @selected(old('education.ssc.result_type', data_get($ssc, 'result_type', 'numeric')) === $resultTypeKey)>{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.ssc.result_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.ssc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
+                            <input name="education[ssc][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.ssc.result_scale', data_get($ssc, 'result_scale', '')) }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="resultTypes.ssc === 'numeric'">
+                            @error('education.ssc.result_scale')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.ssc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">GPA *</label>
+                            <input name="education[ssc][result]" type="number" step="0.001" min="0" value="{{ old('education.ssc.result', data_get($ssc, 'result', '')) }}" placeholder="e.g. 4.67" class="rounded-md border-gray-300 w-full" :required="resultTypes.ssc === 'numeric'">
+                            @error('education.ssc.result')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.ssc === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                            <select name="education[ssc][division]" class="rounded-md border-gray-300 w-full" :required="resultTypes.ssc === 'division'">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.ssc.division', data_get($ssc, 'division', '')) === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.ssc.division')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Group *</label>
+                            <select name="education[ssc][group]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Group</option>
+                                @foreach (($formOptions['groups'] ?? []) as $option)
+                                    <option value="{{ $option }}" @selected(old('education.ssc.group', data_get($ssc, 'group', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.ssc.group')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label>
+                            <input name="education[ssc][passing_year]" type="text" value="{{ old('education.ssc.passing_year', data_get($ssc, 'passing_year', '')) }}" placeholder="e.g., 2019" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.ssc.passing_year')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Institution Name *</label>
+                            <input name="education[ssc][institution_name]" type="text" value="{{ old('education.ssc.institution_name', data_get($ssc, 'institution_name', '')) }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.ssc.institution_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </fieldset>
+
+                @php $hsc = data_get($educationData, 'hsc', []); @endphp
+                <fieldset class="rounded-lg border border-gray-200 p-4 mb-4">
+                    <legend class="px-2 text-sm font-semibold text-gray-700">HSC / Equivalent *</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label>
+                            <select name="education[hsc][examination]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Examination</option>
+                                @foreach ($hscExaminations as $option)
+                                    <option value="{{ $option }}" @selected(old('education.hsc.examination', data_get($hsc, 'examination', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.hsc.examination')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Education Board *</label>
+                            <select name="education[hsc][education_board]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Education Board</option>
+                                @foreach ($educationBoards as $option)
+                                    <option value="{{ $option }}" @selected(old('education.hsc.education_board', data_get($hsc, 'education_board', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.hsc.education_board')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Type *</label>
+                            <select name="education[hsc][result_type]" x-model="resultTypes.hsc" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Result Type</option>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}" @selected(old('education.hsc.result_type', data_get($hsc, 'result_type', 'numeric')) === $resultTypeKey)>{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.hsc.result_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.hsc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
+                            <input name="education[hsc][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.hsc.result_scale', data_get($hsc, 'result_scale', '')) }}" placeholder="e.g. 5.00" class="rounded-md border-gray-300 w-full" :required="resultTypes.hsc === 'numeric'">
+                            @error('education.hsc.result_scale')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.hsc === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">GPA *</label>
+                            <input name="education[hsc][result]" type="number" step="0.001" min="0" value="{{ old('education.hsc.result', data_get($hsc, 'result', '')) }}" placeholder="e.g. 4.50" class="rounded-md border-gray-300 w-full" :required="resultTypes.hsc === 'numeric'">
+                            @error('education.hsc.result')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.hsc === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                            <select name="education[hsc][division]" class="rounded-md border-gray-300 w-full" :required="resultTypes.hsc === 'division'">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.hsc.division', data_get($hsc, 'division', '')) === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.hsc.division')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Group *</label>
+                            <select name="education[hsc][group]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Group</option>
+                                @foreach (($formOptions['groups'] ?? []) as $option)
+                                    <option value="{{ $option }}" @selected(old('education.hsc.group', data_get($hsc, 'group', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.hsc.group')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label>
+                            <input name="education[hsc][passing_year]" type="text" value="{{ old('education.hsc.passing_year', data_get($hsc, 'passing_year', '')) }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.hsc.passing_year')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Institution Name *</label>
+                            <input name="education[hsc][institution_name]" type="text" value="{{ old('education.hsc.institution_name', data_get($hsc, 'institution_name', '')) }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.hsc.institution_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </fieldset>
+
+                @php $graduation = data_get($educationData, 'graduation', []); @endphp
+                <fieldset class="rounded-lg border border-gray-200 p-4 mb-4">
+                    <legend class="px-2 text-sm font-semibold text-gray-700">Graduation / Honours *</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Examination *</label>
+                            <select name="education[graduation][examination]" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Examination</option>
+                                @foreach ($graduationExaminations as $option)
+                                    <option value="{{ $option }}" @selected(old('education.graduation.examination', data_get($graduation, 'examination', '')) === $option)>{{ $option }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.graduation.examination')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                            <input name="education[graduation][subject]" type="text" value="{{ old('education.graduation.subject', data_get($graduation, 'subject', '')) }}" placeholder="Subject" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.graduation.subject')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">University / Institute *</label>
+                            <input name="education[graduation][institution]" type="text" value="{{ old('education.graduation.institution', data_get($graduation, 'institution', '')) }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.graduation.institution')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Type *</label>
+                            <select name="education[graduation][result_type]" x-model="resultTypes.graduation" class="rounded-md border-gray-300 w-full" required>
+                                <option value="">Select Result Type</option>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}" @selected(old('education.graduation.result_type', data_get($graduation, 'result_type', 'numeric')) === $resultTypeKey)>{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.graduation.result_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.graduation === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale *</label>
+                            <input name="education[graduation][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.graduation.result_scale', data_get($graduation, 'result_scale', '')) }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full" :required="resultTypes.graduation === 'numeric'">
+                            @error('education.graduation.result_scale')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.graduation === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">CGPA *</label>
+                            <input name="education[graduation][result]" type="number" step="0.001" min="0" value="{{ old('education.graduation.result', data_get($graduation, 'result', '')) }}" placeholder="e.g. 3.75" class="rounded-md border-gray-300 w-full" :required="resultTypes.graduation === 'numeric'">
+                            @error('education.graduation.result')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.graduation === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division *</label>
+                            <select name="education[graduation][division]" class="rounded-md border-gray-300 w-full" :required="resultTypes.graduation === 'division'">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.graduation.division', data_get($graduation, 'division', '')) === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.graduation.division')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Passing Year *</label>
+                            <input name="education[graduation][passing_year]" type="text" value="{{ old('education.graduation.passing_year', data_get($graduation, 'passing_year', '')) }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.graduation.passing_year')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years) *</label>
+                            <input name="education[graduation][course_duration_years]" type="number" step="0.1" value="{{ old('education.graduation.course_duration_years', data_get($graduation, 'course_duration_years', '')) }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full" required>
+                            @error('education.graduation.course_duration_years')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </fieldset>
+
+                @php $masters = data_get($educationData, 'masters', []); @endphp
+                <fieldset class="rounded-lg border border-gray-200 p-4 mb-4">
+                    <legend class="px-2 text-sm font-semibold text-gray-700">Masters / Equivalent (Optional)</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                            <input name="education[masters][subject]" type="text" value="{{ old('education.masters.subject', data_get($masters, 'subject', '')) }}" placeholder="Subject" class="rounded-md border-gray-300 w-full">
+                            @error('education.masters.subject')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label>
+                            <input name="education[masters][institution]" type="text" value="{{ old('education.masters.institution', data_get($masters, 'institution', '')) }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full">
+                            @error('education.masters.institution')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Type</label>
+                            <select name="education[masters][result_type]" x-model="resultTypes.masters" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Result Type</option>
+                                @foreach ($educationResultTypes as $resultTypeKey => $resultTypeLabel)
+                                    <option value="{{ $resultTypeKey }}" @selected(old('education.masters.result_type', data_get($masters, 'result_type', '')) === $resultTypeKey)>{{ $resultTypeLabel }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.masters.result_type')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.masters === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result Scale</label>
+                            <input name="education[masters][result_scale]" type="number" step="0.001" min="0" value="{{ old('education.masters.result_scale', data_get($masters, 'result_scale', '')) }}" placeholder="e.g. 4.00" class="rounded-md border-gray-300 w-full">
+                            @error('education.masters.result_scale')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.masters === 'numeric'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Result</label>
+                            <input name="education[masters][result]" type="number" step="0.001" min="0" value="{{ old('education.masters.result', data_get($masters, 'result', '')) }}" placeholder="Result" class="rounded-md border-gray-300 w-full">
+                            @error('education.masters.result')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div x-show="resultTypes.masters === 'division'" x-cloak>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Division</label>
+                            <select name="education[masters][division]" class="rounded-md border-gray-300 w-full">
+                                <option value="">Select Division</option>
+                                @foreach ($educationDivisions as $division)
+                                    <option value="{{ $division }}" @selected(old('education.masters.division', data_get($masters, 'division', '')) === $division)>{{ $division }}</option>
+                                @endforeach
+                            </select>
+                            @error('education.masters.division')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Passing Year</label>
+                            <input name="education[masters][passing_year]" type="number" value="{{ old('education.masters.passing_year', data_get($masters, 'passing_year', '')) }}" placeholder="Passing Year" class="rounded-md border-gray-300 w-full">
+                            @error('education.masters.passing_year')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Course Duration (Years)</label>
+                            <input name="education[masters][course_duration_years]" type="number" step="0.1" value="{{ old('education.masters.course_duration_years', data_get($masters, 'course_duration_years', '')) }}" placeholder="Course Duration (Years)" class="rounded-md border-gray-300 w-full">
+                            @error('education.masters.course_duration_years')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </fieldset>
+
+                @php $mphilPhd = data_get($educationData, 'mphil_phd', []); @endphp
+                <fieldset class="rounded-lg border border-gray-200 p-4">
+                    <legend class="px-2 text-sm font-semibold text-gray-700">MPhil / PhD (If Applicable)</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                            <input name="education[mphil_phd][subject]" type="text" value="{{ old('education.mphil_phd.subject', data_get($mphilPhd, 'subject', '')) }}" placeholder="Subject" class="rounded-md border-gray-300 w-full">
+                            @error('education.mphil_phd.subject')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">University / Institute</label>
+                            <input name="education[mphil_phd][institution]" type="text" value="{{ old('education.mphil_phd.institution', data_get($mphilPhd, 'institution', '')) }}" placeholder="University / Institute" class="rounded-md border-gray-300 w-full">
+                            @error('education.mphil_phd.institution')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Degree Completion Status</label>
+                            <select name="education[mphil_phd][degree_completion]" class="rounded-md border-gray-300 w-full">
+                                <option value="">— Select Status —</option>
+                                <option value="degree_awarded" @selected(old('education.mphil_phd.degree_completion', data_get($mphilPhd, 'degree_completion', '')) === 'degree_awarded')>Degree Awarded</option>
+                                <option value="ongoing" @selected(old('education.mphil_phd.degree_completion', data_get($mphilPhd, 'degree_completion', '')) === 'ongoing')>Ongoing</option>
+                            </select>
+                            @error('education.mphil_phd.degree_completion')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Completion Year</label>
+                            <input name="education[mphil_phd][completion_year]" type="number" value="{{ old('education.mphil_phd.completion_year', data_get($mphilPhd, 'completion_year', '')) }}" placeholder="Year (optional)" class="rounded-md border-gray-300 w-full">
+                            @error('education.mphil_phd.completion_year')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </fieldset>
             </div>
 
             <!-- Job Experience Section -->
@@ -367,20 +666,96 @@
     </div>
 
 <script>
-function editApplicationForm() {
+function editApplicationForm({
+    districts = [],
+    upazilas = [],
+    presentDistrictId = '',
+    presentDistrictText = '',
+    presentUpazilaId = '',
+    presentUpazilaText = '',
+    permanentDistrictId = '',
+    permanentDistrictText = '',
+    permanentUpazilaId = '',
+    permanentUpazilaText = '',
+    initialEducationResultTypes = {},
+} = {}) {
     return {
+        districts,
+        upazilas,
+        presentDistrictId: presentDistrictId ? String(presentDistrictId) : '',
+        presentDistrictText,
+        presentUpazilaId: presentUpazilaId ? String(presentUpazilaId) : '',
+        presentUpazilaText,
+        permanentDistrictId: permanentDistrictId ? String(permanentDistrictId) : '',
+        permanentDistrictText,
+        permanentUpazilaId: permanentUpazilaId ? String(permanentUpazilaId) : '',
+        permanentUpazilaText,
         resultTypes: {
-            ssc: 'numeric',
-            hsc: 'numeric',
-            graduation: 'numeric',
-            masters: 'numeric',
+            ssc: initialEducationResultTypes.ssc ?? 'numeric',
+            hsc: initialEducationResultTypes.hsc ?? 'numeric',
+            graduation: initialEducationResultTypes.graduation ?? 'numeric',
+            masters: initialEducationResultTypes.masters ?? '',
             mphil_phd: 'numeric',
+        },
+        init() {
+            this.presentDistrictId = this.presentDistrictId ? String(this.presentDistrictId) : '';
+            this.presentUpazilaId = this.presentUpazilaId ? String(this.presentUpazilaId) : '';
+            this.permanentDistrictId = this.permanentDistrictId ? String(this.permanentDistrictId) : '';
+            this.permanentUpazilaId = this.permanentUpazilaId ? String(this.permanentUpazilaId) : '';
+            if (! this.presentDistrictText && this.presentDistrictId) {
+                const district = this.districts.find((item) => String(item.id) === this.presentDistrictId);
+                if (district) {
+                    this.presentDistrictText = district.name;
+                }
+            }
+            if (! this.permanentDistrictText && this.permanentDistrictId) {
+                const district = this.districts.find((item) => String(item.id) === this.permanentDistrictId);
+                if (district) {
+                    this.permanentDistrictText = district.name;
+                }
+            }
+            if (! this.presentUpazilaText && this.presentUpazilaId) {
+                const upazila = this.upazilas.find((item) => String(item.id) === this.presentUpazilaId);
+                if (upazila) {
+                    this.presentUpazilaText = this.locationLabel(upazila);
+                }
+            }
+            if (! this.permanentUpazilaText && this.permanentUpazilaId) {
+                const upazila = this.upazilas.find((item) => String(item.id) === this.permanentUpazilaId);
+                if (upazila) {
+                    this.permanentUpazilaText = this.locationLabel(upazila);
+                }
+            }
         },
         updateResultFields(level) {
             const select = document.querySelector(`select[name="education[${level}][result_type]"]`);
             if (select) {
                 this.resultTypes[level] = select.value;
             }
+        },
+        filteredUpazilas(districtId) {
+            if (!districtId) {
+                return [];
+            }
+
+            return this.upazilas.filter((upazila) => String(upazila.parent_id) === String(districtId));
+        },
+        locationLabel(location) {
+            if (!location) {
+                return '';
+            }
+
+            return location.type === 'thana' ? `${location.name} (Thana)` : location.name;
+        },
+        onDistrictChange(addressType) {
+            if (addressType === 'present') {
+                this.presentUpazilaId = '';
+                this.presentUpazilaText = '';
+                return;
+            }
+
+            this.permanentUpazilaId = '';
+            this.permanentUpazilaText = '';
         },
         calculateAge() {
             const dobInput = document.getElementById('date_of_birth');
