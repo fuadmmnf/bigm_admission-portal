@@ -2,12 +2,20 @@
     <x-slot name="header">
         <div class="flex items-center justify-between gap-3">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">Applicant Details</h2>
-            <a
-                href="{{ route('admin.exams.show', ['exam' => $application->exam, 'tab' => request('tab', 'paid')]) }}"
-                class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest"
-            >
-                Back to Applicants
-            </a>
+            <div class="flex items-center gap-2">
+                <a
+                    href="{{ route('admin.applications.edit', $application) }}"
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-indigo-600 rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700"
+                >
+                    Edit Application
+                </a>
+                <a
+                    href="{{ route('admin.exams.show', ['exam' => $application->exam, 'tab' => request('tab', 'paid')]) }}"
+                    class="inline-flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest"
+                >
+                    Back to Applicants
+                </a>
+            </div>
         </div>
     </x-slot>
 

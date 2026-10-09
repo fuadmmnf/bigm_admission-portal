@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\ApplicationDeleteController;
 use App\Http\Controllers\Admin\ApplicationShowController;
 use App\Http\Controllers\Admin\ApplicationStageUpdateController;
 use App\Http\Controllers\Admin\ApplicationCvController;
+use App\Http\Controllers\Admin\ApplicationEditController;
 use App\Http\Controllers\Admin\ExamReportController;
 use App\Http\Controllers\Admin\SendAdmitCardController;
 use App\Http\Controllers\Admin\SendCVController;
@@ -65,6 +66,10 @@ Route::middleware([
         ->name('admin.applications.cv');
     Route::get('/admin/applications/{application:ulid}', ApplicationShowController::class)
         ->name('admin.applications.show');
+    Route::get('/admin/applications/{application:ulid}/edit', [ApplicationEditController::class, 'edit'])
+        ->name('admin.applications.edit');
+    Route::patch('/admin/applications/{application:ulid}', [ApplicationEditController::class, 'update'])
+        ->name('admin.applications.update');
     Route::patch('/admin/applications/{application:ulid}/assessment', ApplicationAssessmentUpdateController::class)
         ->name('admin.applications.assessment.update');
     Route::delete('/admin/applications/{application:ulid}', ApplicationDeleteController::class)
