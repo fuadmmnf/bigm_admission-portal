@@ -480,7 +480,7 @@
                                         </td>
                                         @endif
                                         <td class="px-4 py-3 text-sm whitespace-nowrap">
-                                            <div class="flex items-center gap-2">
+                                            <div class="flex flex-col items-start gap-1.5">
                                                 <a
                                                     href="{{ route('admin.applications.show', ['application' => $application, 'tab' => $activeTab]) }}"
                                                     class="inline-flex items-center rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"

@@ -12,7 +12,7 @@
             <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-2xl font-bold text-gray-800 text-center">Download Documents</h1>
-                <p class="text-gray-600 text-center text-sm mt-2">Enter your email and NID to download your CV and admit card</p>
+                <p class="text-gray-600 text-center text-sm mt-2">Enter your email and date of birth to download your CV and admit card</p>
             </div>
 
             <!-- Form Container -->
@@ -39,11 +39,11 @@
                         <span class="text-red-500 text-sm hidden" id="email-error"></span>
                     </div>
 
-                    <!-- NID Input -->
+                    <!-- Date of Birth Input -->
                     <div>
-                        <label for="nid" class="block text-sm font-medium text-gray-700 mb-1">National ID (NID) *</label>
-                        <input type="text" id="nid" name="nid" required placeholder="Your NID number" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                        <span class="text-red-500 text-sm hidden" id="nid-error"></span>
+                        <label for="date_of_birth" class="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
+                        <input type="date" id="date_of_birth" name="date_of_birth" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <span class="text-red-500 text-sm hidden" id="date_of_birth-error"></span>
                     </div>
 
                     <!-- Error Alert -->
@@ -75,18 +75,18 @@
                     <p id="applicantInfo" class="text-green-600 text-sm"></p>
                 </div>
 
-                <div id="downloadButtons" class="space-y-3">
-                    <button type="button" id="downloadCVBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                <div id="downloadButtons" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button type="button" id="downloadCVBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center gap-2 shadow-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         <span>Download CV</span>
                     </button>
-                    <button type="button" id="downloadAdmitCardBtn" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center gap-2">
+                    <button type="button" id="downloadAdmitCardBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2 px-4 rounded-lg transition flex items-center justify-center gap-2 shadow-sm">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <span>Download Admit Card</span>
+                        <span>Download Admit</span>
                     </button>
                 </div>
 
@@ -135,7 +135,7 @@
             const data = {
                 exam_id: formData.get('exam_id'),
                 email: formData.get('email'),
-                nid: formData.get('nid'),
+                date_of_birth: formData.get('date_of_birth'),
             };
 
             try {
@@ -153,11 +153,14 @@
                 if (response.ok && result.found) {
                     // Store form data for downloads
                     window.currentFormData = data;
-                    
+
+                    downloadCVBtn.classList.remove('hidden');
+                    downloadAdmitCardBtn.classList.remove('hidden');
+
                     // Show results
                     const applicantInfo = `${result.application.applicant_name} (App ID: ${result.application.application_id})`;
                     document.getElementById('applicantInfo').textContent = applicantInfo;
-                    
+
                     formContainer.classList.add('hidden');
                     resultsContainer.classList.remove('hidden');
                 } else {
@@ -180,12 +183,12 @@
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = type === 'cv' ? '{{ route("documents.cv") }}' : '{{ route("documents.admit-card") }}';
-            
+
             const fields = [
                 { name: '_token', value: document.querySelector('input[name="_token"]').value },
                 { name: 'exam_id', value: window.currentFormData.exam_id },
                 { name: 'email', value: window.currentFormData.email },
-                { name: 'nid', value: window.currentFormData.nid },
+                { name: 'date_of_birth', value: window.currentFormData.date_of_birth },
             ];
 
             fields.forEach(field => {
@@ -207,7 +210,7 @@
             errorAlert.classList.add('hidden');
             formContainer.classList.remove('hidden');
             resultsContainer.classList.add('hidden');
-            
+
             // Auto-select exam again if applicable
             if (examSelect.children.length === 2) {
                 examSelect.value = examSelect.children[1].value;

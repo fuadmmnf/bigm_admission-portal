@@ -107,6 +107,14 @@
             font-size: 7pt;
             margin-top: 2pt;
         }
+
+        .group-header-row td {
+            background: #eff6ff;
+            font-weight: 700;
+            font-size: 8px;
+            letter-spacing: 0.2pt;
+            padding: 4pt 3pt !important;
+        }
     </style>
 @endsection
 
@@ -163,7 +171,24 @@
         </thead>
 
         <tbody>
-        @forelse ($applications as $index => $application)
+        @php
+            $groupedVivaApplications = isset($groupedApplications) && $groupedApplications instanceof \Illuminate\Support\Collection
+                ? $groupedApplications
+                : collect($applications ?? [])
+                    ->groupBy(function ($application): string {
+                        $firstChoice = trim((string) data_get($application->additional_info, 'course_preferences.first_choice'));
+
+                        return $firstChoice !== '' ? $firstChoice : 'Not specified';
+                    })
+                    ->sortKeys()
+                    ->map(fn ($group) => $group->sortBy(fn ($application) => (string) ($application->application_id ?? $application->ulid))->values());
+            $serial = 1;
+        @endphp
+        @forelse ($groupedVivaApplications as $firstChoice => $applicationsByChoice)
+            <tr class="group-header-row">
+                <td colspan="11">1st Subject Choice: {{ $firstChoice }}</td>
+            </tr>
+            @foreach ($applicationsByChoice as $application)
             @php
                 $jobExp = data_get($application->additional_info, 'job_experience', []);
                 $education = data_get($application->additional_info, 'education', []);
@@ -224,7 +249,7 @@
             <tr>
                 <td class="col-name">
                     <div class="name-line">
-                        <span class="serial-inline">{{ $index + 1 }}.</span>
+                        <span class="serial-inline">{{ $serial++ }}.</span>
                         {{ $application->applicant_name }}
                     </div>
 
@@ -284,6 +309,7 @@
                     }}
                 </td>
             </tr>
+            @endforeach
         @empty
             <tr>
                 <td colspan="11" class="empty-row">

@@ -8,8 +8,8 @@ use App\Models\Exam;
 use App\Support\ApplicationMedia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class DocumentDownloadController extends Controller
 {
@@ -28,25 +28,26 @@ class DocumentDownloadController extends Controller
     }
 
     /**
-     * Search for an application using email and NID.
+     * Search for an application using email and date of birth.
      */
     public function searchApplication(Request $request)
     {
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'email' => 'required|email',
-            'nid' => 'required|string|min:5',
+            'date_of_birth' => 'required|date_format:Y-m-d',
         ]);
 
-        $application = Application::where('exam_id', $validated['exam_id'])
-            ->where('applicant_email', $validated['email'])
-            ->where('applicant_nid', $validated['nid'])
-            ->first();
+        $application = $this->findApplicationByEmailAndDob(
+            $validated['exam_id'],
+            $validated['email'],
+            $validated['date_of_birth']
+        );
 
         if (! $application) {
             return response()->json([
                 'found' => false,
-                'message' => 'No application found with the provided email and NID.',
+                'message' => 'No application found with the provided email and date of birth.',
             ], 404);
         }
 
@@ -68,13 +69,14 @@ class DocumentDownloadController extends Controller
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'email' => 'required|email',
-            'nid' => 'required|string|min:5',
+            'date_of_birth' => 'required|date_format:Y-m-d',
         ]);
 
-        $application = Application::where('exam_id', $validated['exam_id'])
-            ->where('applicant_email', $validated['email'])
-            ->where('applicant_nid', $validated['nid'])
-            ->first();
+        $application = $this->findApplicationByEmailAndDob(
+            $validated['exam_id'],
+            $validated['email'],
+            $validated['date_of_birth']
+        );
 
         abort_if(! $application, 404, 'Application not found.');
 
@@ -95,13 +97,14 @@ class DocumentDownloadController extends Controller
         $validated = $request->validate([
             'exam_id' => 'required|exists:exams,id',
             'email' => 'required|email',
-            'nid' => 'required|string|min:5',
+            'date_of_birth' => 'required|date_format:Y-m-d',
         ]);
 
-        $application = Application::where('exam_id', $validated['exam_id'])
-            ->where('applicant_email', $validated['email'])
-            ->where('applicant_nid', $validated['nid'])
-            ->first();
+        $application = $this->findApplicationByEmailAndDob(
+            $validated['exam_id'],
+            $validated['email'],
+            $validated['date_of_birth']
+        );
 
         abort_if(! $application, 404, 'Application not found.');
 
@@ -113,5 +116,13 @@ class DocumentDownloadController extends Controller
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream('admit-card-' . $application->ulid . '.pdf');
+    }
+
+    private function findApplicationByEmailAndDob(string $examId, string $email, string $dateOfBirth): ?Application
+    {
+        return Application::where('exam_id', $examId)
+            ->where('applicant_email', $email)
+            ->where('additional_info->personal->date_of_birth', $dateOfBirth)
+            ->first();
     }
 }

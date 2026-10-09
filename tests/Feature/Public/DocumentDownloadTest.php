@@ -37,6 +37,11 @@ class DocumentDownloadTest extends TestCase
             'applicant_email' => 'test@example.com',
             'applicant_nid' => '1234567890123',
             'applicant_name' => 'Test Applicant',
+            'additional_info' => [
+                'personal' => [
+                    'date_of_birth' => '1990-05-15',
+                ],
+            ],
         ]);
     }
 
@@ -63,7 +68,7 @@ class DocumentDownloadTest extends TestCase
         $response = $this->postJson(route('documents.search'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'test@example.com',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         $response->assertStatus(200);
@@ -76,19 +81,19 @@ class DocumentDownloadTest extends TestCase
         $response = $this->postJson(route('documents.search'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'wrong@example.com',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         $response->assertStatus(404);
         $response->assertJsonPath('found', false);
     }
 
-    public function test_search_fails_with_invalid_nid(): void
+    public function test_search_fails_with_invalid_date_of_birth(): void
     {
         $response = $this->postJson(route('documents.search'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'test@example.com',
-            'nid' => '9999999999999',
+            'date_of_birth' => '1999-12-31',
         ]);
 
         $response->assertStatus(404);
@@ -100,7 +105,7 @@ class DocumentDownloadTest extends TestCase
         $response = $this->postJson(route('documents.search'), [
             'exam_id' => Str::ulid(),
             'email' => 'test@example.com',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         $response->assertStatus(422);
@@ -112,23 +117,23 @@ class DocumentDownloadTest extends TestCase
         $response = $this->postJson(route('documents.search'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'not-an-email',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors('email');
     }
 
-    public function test_search_requires_nid(): void
+    public function test_search_requires_date_of_birth(): void
     {
         $response = $this->postJson(route('documents.search'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'test@example.com',
-            'nid' => '',
+            'date_of_birth' => '',
         ]);
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors('nid');
+        $response->assertJsonValidationErrors('date_of_birth');
     }
 
     public function test_download_cv_requires_valid_credentials(): void
@@ -136,7 +141,7 @@ class DocumentDownloadTest extends TestCase
         $response = $this->post(route('documents.cv'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'test@example.com',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         // Should generate PDF or redirect
@@ -148,7 +153,7 @@ class DocumentDownloadTest extends TestCase
         $response = $this->post(route('documents.admit-card'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'test@example.com',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         // Should generate PDF or redirect
@@ -160,7 +165,7 @@ class DocumentDownloadTest extends TestCase
         $response = $this->post(route('documents.cv'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'wrong@example.com',
-            'nid' => '1234567890123',
+            'date_of_birth' => '1990-05-15',
         ]);
 
         $response->assertStatus(404);
@@ -171,7 +176,7 @@ class DocumentDownloadTest extends TestCase
         $response = $this->post(route('documents.admit-card'), [
             'exam_id' => $this->activeExam->id,
             'email' => 'test@example.com',
-            'nid' => '9999999999999',
+            'date_of_birth' => '1999-12-31',
         ]);
 
         $response->assertStatus(404);

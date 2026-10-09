@@ -105,6 +105,26 @@ class AdminExamPagesTest extends TestCase
         $response->assertDontSee('Send Email');
     }
 
+    public function test_exam_details_page_stacks_action_buttons_vertically(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+        ]);
+
+        $response = $this->get(route('admin.exams.show', $exam));
+
+        $response->assertOk();
+        $response->assertSee('flex flex-col items-start gap-1.5', false);
+    }
+
     public function test_admin_can_open_single_applicant_details_page(): void
     {
         $admin = User::factory()->create();
@@ -920,6 +940,79 @@ class AdminExamPagesTest extends TestCase
             'selection_stage' => Application::STAGE_PAID,
             'applicant_name' => 'Paid Only Candidate',
         ]);
+
+        $response = $this->get(route('admin.exams.reports.viva-sheet', $exam));
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_admin_can_stream_viva_sheet_grouped_by_first_choice_and_sorted_by_application_id(): void
+    {
+        $admin = User::factory()->create();
+        Role::findOrCreate('admin', 'web');
+        $admin->assignRole('admin');
+        $this->actingAs($admin);
+
+        $exam = Exam::factory()->create(['status' => 'active']);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_VIVA_SELECTED,
+            'application_id' => '20260003',
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'MPA',
+                ],
+            ],
+        ]);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_VIVA_SELECTED,
+            'application_id' => '20260002',
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'MBA',
+                ],
+            ],
+        ]);
+
+        Application::factory()->create([
+            'exam_id' => $exam->id,
+            'status' => 'paid',
+            'selection_stage' => Application::STAGE_PROGRAM_SELECTED,
+            'application_id' => '20260001',
+            'additional_info' => [
+                'course_preferences' => [
+                    'first_choice' => 'MBA',
+                ],
+            ],
+        ]);
+
+        $pdf = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        $pdf->shouldReceive('setPaper')->andReturnSelf();
+        $pdf->shouldReceive('stream')->andReturn(response('', 200, ['content-type' => 'application/pdf']));
+
+        Pdf::shouldReceive('loadView')
+            ->once()
+            ->with('reports.viva-sheet', \Mockery::on(function (array $data) use ($exam) {
+                $this->assertSame($exam->id, $data['exam']->id);
+                $this->assertSame(['MBA', 'MPA'], array_values($data['groupedApplications']->keys()->all()));
+                $this->assertSame(
+                    ['20260001', '20260002'],
+                    $data['groupedApplications']->get('MBA')->pluck('application_id')->values()->all()
+                );
+                $this->assertSame(
+                    ['20260003'],
+                    $data['groupedApplications']->get('MPA')->pluck('application_id')->values()->all()
+                );
+
+                return true;
+            }))
+            ->andReturn($pdf);
 
         $response = $this->get(route('admin.exams.reports.viva-sheet', $exam));
 

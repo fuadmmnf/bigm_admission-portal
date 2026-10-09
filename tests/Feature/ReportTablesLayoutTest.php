@@ -251,7 +251,59 @@ class ReportTablesLayoutTest extends TestCase
         $this->assertStringNotContainsString('3.99', $html);
         $this->assertStringNotContainsString('Second Division', $html);
     }
-}
 
+    public function test_viva_sheet_groups_by_first_choice_and_sorts_within_group_by_application_id(): void
+    {
+        $applications = collect([
+            (object) [
+                'ulid' => '01ARZ3NDEKTSV4RRFFQ69G5FAX',
+                'application_id' => '20260003',
+                'applicant_name' => 'Candidate 3',
+                'written_exam_marks' => null,
+                'viva_exam_marks' => null,
+                'additional_info' => [
+                    'course_preferences' => ['first_choice' => 'MPA'],
+                ],
+            ],
+            (object) [
+                'ulid' => '01ARZ3NDEKTSV4RRFFQ69G5FAY',
+                'application_id' => '20260002',
+                'applicant_name' => 'Candidate 2',
+                'written_exam_marks' => null,
+                'viva_exam_marks' => null,
+                'additional_info' => [
+                    'course_preferences' => ['first_choice' => 'MBA'],
+                ],
+            ],
+            (object) [
+                'ulid' => '01ARZ3NDEKTSV4RRFFQ69G5FAZ',
+                'application_id' => '20260001',
+                'applicant_name' => 'Candidate 1',
+                'written_exam_marks' => null,
+                'viva_exam_marks' => null,
+                'additional_info' => [
+                    'course_preferences' => ['first_choice' => 'MBA'],
+                ],
+            ],
+        ]);
+
+        $html = view('reports.viva-sheet', [
+            'exam' => new Exam(['name' => 'Layout Test Exam']),
+            'applications' => $applications,
+            'generatedAt' => CarbonImmutable::parse('2026-05-06 10:00:00'),
+        ])->render();
+
+        $this->assertStringContainsString('1st Subject Choice: MBA', $html);
+        $this->assertStringContainsString('1st Subject Choice: MPA', $html);
+        $this->assertLessThan(
+            strpos($html, '20260003'),
+            strpos($html, '20260001')
+        );
+        $this->assertLessThan(
+            strpos($html, '20260003'),
+            strpos($html, '20260002')
+        );
+    }
+}
 
 

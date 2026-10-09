@@ -338,10 +338,25 @@ class ExamReportController extends Controller
                 'additional_info',
             ]);
         $applications = $this->attachPhotoDataUris($applications);
+        $groupedApplications = $applications
+            ->groupBy(function (Application $application): string {
+                $firstChoice = trim((string) data_get($application->additional_info, 'course_preferences.first_choice'));
+
+                return $firstChoice !== '' ? $firstChoice : 'Not specified';
+            })
+            ->sortKeys()
+            ->map(function (Collection $group): Collection {
+                return $group
+                    ->sortBy(function (Application $application): string {
+                        return (string) ($application->application_id ?? $application->ulid);
+                    })
+                    ->values();
+            });
 
         $pdf = Pdf::loadView('reports.viva-sheet', [
             'exam' => $exam,
             'applications' => $applications,
+            'groupedApplications' => $groupedApplications,
             'generatedAt' => now(),
             'pageOrientation' => 'landscape',
         ])->setPaper('a4', 'landscape');
