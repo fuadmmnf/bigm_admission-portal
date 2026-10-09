@@ -7,13 +7,7 @@
     <option name="selectedModelId" value="auto" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Public/DocumentDownloadController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Public/DocumentDownloadController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/home.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/home.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/views/pages/public-document-download.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/resources/views/pages/public-document-download.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tests/Feature/Public/DocumentDownloadTest.php" beforeDir="false" afterPath="$PROJECT_DIR$/tests/Feature/Public/DocumentDownloadTest.php" afterDir="false" />
-    </list>
+    <list default="true" id="bc029a19-2c45-4bef-810d-f7252a0d0ac7" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -315,7 +309,7 @@
     "copilot.sensitive.folder.allow.file_read./home/fuad/_agents/skills/laravel-specialist": "true",
     "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpCreateRemoteSdkForm": "Docker",
     "credentialsType com.jetbrains.php.remote.interpreter.ui.PhpInplaceEditRemoteSdkForm": "Docker",
-    "git-widget-placeholder": "phase__2",
+    "git-widget-placeholder": "main",
     "last_opened_file_path": "/media/fuad/Work/innova/bigm/bigm_admission-portal/storage/app/public",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
