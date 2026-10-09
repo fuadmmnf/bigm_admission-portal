@@ -154,9 +154,16 @@
                                     required
                                 >
                                     <option value="">Select Upazila / Thana</option>
-                                    <template x-for="upazila in filteredUpazilas(presentDistrictId)" :key="upazila.id">
-                                        <option :value="String(upazila.id)" x-text="locationLabel(upazila)"></option>
-                                    </template>
+                                    @foreach($upazilas as $upazila)
+                                        <option
+                                            value="{{ $upazila->id }}"
+                                            @selected((string) old('present_address.upazila_id', data_get($presentAddress, 'upazila_id', '')) === (string) $upazila->id)
+                                            x-bind:hidden="String({{ $upazila->parent_id }}) !== String(presentDistrictId)"
+                                            x-bind:disabled="String({{ $upazila->parent_id }}) !== String(presentDistrictId)"
+                                        >
+                                            {{ $upazila->name }}{{ $upazila->type === 'thana' ? ' (Thana)' : '' }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 <p class="mt-1 text-xs text-gray-500" x-show="!presentDistrictId">Select a district first.</p>
                                 @error('present_address.upazila_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
@@ -211,9 +218,16 @@
                                     required
                                 >
                                     <option value="">Select Upazila / Thana</option>
-                                    <template x-for="upazila in filteredUpazilas(permanentDistrictId)" :key="upazila.id">
-                                        <option :value="String(upazila.id)" x-text="locationLabel(upazila)"></option>
-                                    </template>
+                                    @foreach($upazilas as $upazila)
+                                        <option
+                                            value="{{ $upazila->id }}"
+                                            @selected((string) old('permanent_address.upazila_id', data_get($permanentAddress, 'upazila_id', '')) === (string) $upazila->id)
+                                            x-bind:hidden="String({{ $upazila->parent_id }}) !== String(permanentDistrictId)"
+                                            x-bind:disabled="String({{ $upazila->parent_id }}) !== String(permanentDistrictId)"
+                                        >
+                                            {{ $upazila->name }}{{ $upazila->type === 'thana' ? ' (Thana)' : '' }}
+                                        </option>
+                                    @endforeach
                                 </select>
                                 <p class="mt-1 text-xs text-gray-500" x-show="!permanentDistrictId">Select a district first.</p>
                                 @error('permanent_address.upazila_id')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
@@ -313,7 +327,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Institution Name *</label>
-                            <input name="education[ssc][institution_name]" type="text" value="{{ old('education.ssc.institution_name', data_get($ssc, 'institution_name', '')) }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" required>
+                            <input name="education[ssc][institution_name]" type="text" value="{{ old('education.ssc.institution_name', data_get($ssc, 'institution_name', data_get($ssc, 'institution', ''))) }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" required>
                             @error('education.ssc.institution_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>
                     </div>
@@ -390,7 +404,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Institution Name *</label>
-                            <input name="education[hsc][institution_name]" type="text" value="{{ old('education.hsc.institution_name', data_get($hsc, 'institution_name', '')) }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" required>
+                            <input name="education[hsc][institution_name]" type="text" value="{{ old('education.hsc.institution_name', data_get($hsc, 'institution_name', data_get($hsc, 'institution', ''))) }}" placeholder="Institution Name" class="rounded-md border-gray-300 w-full" required>
                             @error('education.hsc.institution_name')<p class="text-red-600 text-sm mt-1">{{ $message }}</p>@enderror
                         </div>
                     </div>

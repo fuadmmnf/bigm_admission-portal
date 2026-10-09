@@ -95,6 +95,7 @@ class UpdateApplicationRequest extends FormRequest
             'education.ssc.division' => ['nullable', 'string', Rule::in($divisions), 'required_if:education.ssc.result_type,division'],
             'education.ssc.group' => ['required', 'string', 'max:60'],
             'education.ssc.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
+            'education.ssc.institution_name' => ['required', 'string', 'max:255'],
 
             'education.hsc.examination' => ['required', 'string', 'max:120'],
             'education.hsc.education_board' => ['required', 'string', 'max:120'],
@@ -104,6 +105,7 @@ class UpdateApplicationRequest extends FormRequest
             'education.hsc.division' => ['nullable', 'string', Rule::in($divisions), 'required_if:education.hsc.result_type,division'],
             'education.hsc.group' => ['required', 'string', 'max:60'],
             'education.hsc.passing_year' => ['required', 'integer', 'between:1950,' . $currentYear],
+            'education.hsc.institution_name' => ['required', 'string', 'max:255'],
 
             'education.graduation.examination' => ['required', 'string', 'max:120'],
             'education.graduation.subject' => ['required', 'string', 'max:120'],
