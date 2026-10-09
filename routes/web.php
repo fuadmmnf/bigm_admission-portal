@@ -15,12 +15,18 @@ use App\Http\Controllers\Admin\SendCVController;
 use App\Http\Controllers\Applicant\ApplicationFormController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Payment\PaymentController;
+use App\Http\Controllers\Public\DocumentDownloadController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Volt\Volt;
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::get('/documents', [DocumentDownloadController::class, 'showForm'])->name('documents.form');
+Route::post('/documents/search', [DocumentDownloadController::class, 'searchApplication'])->name('documents.search');
+Route::post('/documents/cv', [DocumentDownloadController::class, 'downloadCV'])->name('documents.cv');
+Route::post('/documents/admit-card', [DocumentDownloadController::class, 'downloadAdmitCard'])->name('documents.admit-card');
 
 Route::get('/media/public/{path}', function (string $path) {
     $normalizedPath = ltrim($path, '/');
